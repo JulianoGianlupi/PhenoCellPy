@@ -112,13 +112,24 @@ class Phase:
             return True, False
         elif not self.fixed_duration:
             transition = self.transition_to_next_phase(dt)
+            if self.exit_function is not None and transition:
+                self.exit_function(self.exit_function_args)
             return transition, False
         return False, False
 
 
+class QuiescentPhase(Phase):
+    def __init__(self):
+        # todo: this whole class
+        super().__init__()
+        return
+
 class Cycle:
     def __init__(self):
-        return
+        self.phases = [Phase(previous_phase_index=0, next_phase_index=0)]
+        self.quiecent_phase = QuiescentPhase()
+        self.current_phase = self.phases[0]
+        self.time_in_cycle = 0
 
     def time_step_cycle(self, dt):
 
@@ -129,11 +140,31 @@ class Cycle:
 
         next_phase, quies = self.current_phase.time_step_phase(dt)
 
+        if next_phase:
+            changed_phases, cell_dies, cell_divides = self.go_to_next_phase()
+            return changed_phases, cell_dies, cell_divides
+        elif quies:
+            self.go_to_quiescence(self.current_phase)
+            return True, False, False
+
+    def go_to_next_phase(self):
+        divides = self.current_phase.division_at_phase_exit
+        dies = self.current_phase.removal_at_phase_exit
+        self.set_phase(self.current_phase.next_phase_index)
+        return True, dies, divides
+
+    def set_phase(self, idx):
+        self.current_phase = self.phases[idx]
+        self.current_phase.time_in_phase = 0
+
+    def go_to_quiescence(self):
+        self.current_phase = self.quiecent_phase
+        self.current_phase.time_in_phase = 0
 
 
-class SimpleLiveCycle:
+class SimpleLiveCycle(Cycle):
     def __init__(self, time_unit: str = "min", name: str = "simple_live"):
-
+        super().__init__()
         self.time_unit = time_unit
 
         self.name = name
