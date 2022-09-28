@@ -1,11 +1,26 @@
-import warnings
-
 
 class Phase:
+    """
+    Generic cell cycle phase class.
+
+    :param index:
+    :param previous_phase_index:
+    :param next_phase_index:
+    :param time_unit:
+    :param name:
+    :param division_at_phase_exit:
+    :param removal_at_phase_exit:
+    :param fixed_duration:
+    :param phase_duration:
+    :param entry_function:
+    :param exit_function:
+    :param arrest_function:
+    """
     def __init__(self, index: int = None, previous_phase_index: int = None, next_phase_index: int = None,
                  time_unit: str = "min", name: str = None, division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 10,
                  entry_function=None, exit_function=None, arrest_function=None):
+
         if index is None:
             self.index = 0  # int
         else:
@@ -14,6 +29,8 @@ class Phase:
         self.previous_phase_index = previous_phase_index
 
         self.next_phase_index = next_phase_index
+
+        self.time_unit = time_unit
 
         if name is None:
             self.name = "unnamed"  # string: phase's name
