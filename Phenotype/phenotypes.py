@@ -124,6 +124,7 @@ class QuiescentPhase(Phase):
         super().__init__()
         return
 
+
 class Cycle:
     def __init__(self):
         self.phases = [Phase(previous_phase_index=0, next_phase_index=0)]
