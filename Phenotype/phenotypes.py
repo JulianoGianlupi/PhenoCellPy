@@ -45,7 +45,7 @@ class Phase:
 
         self.phase_duration = phase_duration
 
-        # self.time_in_phase = 0
+        self.time_in_phase = 0
 
         self.entry_function = entry_function  # function to be executed upon entering this phase
         self.entry_function_args = entry_function_args
@@ -56,14 +56,28 @@ class Phase:
         self.arrest_function = arrest_function  # function determining if cell will exit cell cycle and become quiescent
         self.arrest_function_args = arrest_function_args
 
-    # def time_step_phase(self, dt):
-    #     self.time_in_phase += dt
-    #
-    #     if self.arrest_function is not None:
-    #         self.arrest_function(self.arrest_function_args)
-    #
-    #     if self.fixed_duration and self.time_in_phase > self.phase_duration:
-    #         if
+    def time_step_phase(self, dt):
+        """
+
+        :param dt: float. Time-step length in the time units of Phase
+        :return: tuple. First element of tuple bool denoting if the cell moves to the next phase. Second element
+        denotes if the cell leaves the cell cycle and enters quiescence.
+        """
+
+        self.time_in_phase += dt
+
+        if self.arrest_function is not None:
+            if self.arrest_function(self.arrest_function_args):
+                return False, True
+
+        if self.fixed_duration and self.time_in_phase > self.phase_duration:
+            if self.exit_function is not None:
+                self.exit_function(self.exit_function_args)
+            return True, False
+        elif not self.fixed_duration:
+            transition = self.transition_to_next_phase(dt)
+            return transition, False
+        return False, False
 
 if __name__ == '__main__':
     pass
