@@ -14,7 +14,6 @@ class Phase:
                  transition_to_next_phase=None):
 
         """
-
         :param index:
         :param previous_phase_index:
         :param next_phase_index:
@@ -54,6 +53,9 @@ class Phase:
 
         self.fixed_duration = fixed_duration
 
+        if phase_duration <= 0:
+            raise ValueError(f"'phase_duration' must be greater than 0. Got {phase_duration}")
+
         self.phase_duration = phase_duration
 
         self.time_in_phase = 0
@@ -79,7 +81,7 @@ class Phase:
         :param dt: float. Time-step length in the time units of Phase
         :return: bool. random number < probability of transition
         """
-        prob = 1 - exp(dt/self.phase_duration)
+        prob = 1 - exp(-dt/self.phase_duration)
         return uniform() < prob
 
     def time_step_phase(self, dt):
@@ -89,6 +91,8 @@ class Phase:
         :return: tuple. First element of tuple: bool denoting if the cell moves to the next phase. Second element:
         denotes if the cell leaves the cell cycle and enters quiescence.
         """
+        if dt <= 0:
+            raise ValueError(f"'dt' must be greater than 0. Got {dt}.")
 
         self.time_in_phase += dt
 
@@ -105,7 +109,8 @@ class Phase:
             return transition, False
         return False, False
 
+
 if __name__ == '__main__':
     pass
 
-    # testPhase = Phase(fixed_duration="True")
+    # testPhase = Phase(phase_duration=-1)
