@@ -1,4 +1,9 @@
 
+from numpy import exp
+
+from numpy.random import uniform
+
+
 class Phase:
     """
     Generic cell cycle phase class.
@@ -20,7 +25,8 @@ class Phase:
                  time_unit: str = "min", name: str = None, division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 10,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
-                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None):
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
+                 transition_to_next_phase=None):
 
         if index is None:
             self.index = 0  # int
@@ -55,6 +61,15 @@ class Phase:
 
         self.arrest_function = arrest_function  # function determining if cell will exit cell cycle and become quiescent
         self.arrest_function_args = arrest_function_args
+
+        if transition_to_next_phase is None:
+            self.transition_to_next_phase = self._transition_to_next_phase
+        else:
+            self.transition_to_next_phase = transition_to_next_phase
+
+    def _transition_to_next_phase(self, dt):
+        prob = 1 - exp(dt/self.phase_duration)
+        return uniform() < prob
 
     def time_step_phase(self, dt):
         """
