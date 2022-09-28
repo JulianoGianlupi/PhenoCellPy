@@ -4,6 +4,12 @@ from numpy import exp
 from numpy.random import uniform
 
 
+# todo:
+#  - finish generic cycle class
+#  - implement phase transition
+#  - implement quiescent phenotype
+#  - implement physicell's phenotypes
+
 class Phase:
 
     def __init__(self, index: int = None, previous_phase_index: int = None, next_phase_index: int = None,
@@ -108,6 +114,33 @@ class Phase:
             transition = self.transition_to_next_phase(dt)
             return transition, False
         return False, False
+
+
+class Cycle:
+    def __init__(self):
+        return
+
+    def time_step_cycle(self, dt):
+
+        if dt <= 0:
+            raise ValueError(f"'dt' must be greater than 0. Got {dt}.")
+
+        self.time_in_cycle += dt
+
+        next_phase, quies = self.current_phase.time_step_phase(dt)
+
+
+
+class SimpleLiveCycle:
+    def __init__(self, time_unit: str = "min", name: str = "simple_live"):
+
+        self.time_unit = time_unit
+
+        self.name = name
+
+        self.phases = [Phase(index=0, previous_phase_index=0, next_phase_index=0, time_unit=time_unit, name="alive",
+                             division_at_phase_exit=True,)]
+
 
 
 if __name__ == '__main__':
