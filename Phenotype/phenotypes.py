@@ -19,7 +19,8 @@ class Phase:
     def __init__(self, index: int = None, previous_phase_index: int = None, next_phase_index: int = None,
                  time_unit: str = "min", name: str = None, division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 10,
-                 entry_function=None, exit_function=None, arrest_function=None):
+                 entry_function=None, entry_function_args: list = None, exit_function=None,
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None):
 
         if index is None:
             self.index = 0  # int
@@ -44,12 +45,25 @@ class Phase:
 
         self.phase_duration = phase_duration
 
+        # self.time_in_phase = 0
+
         self.entry_function = entry_function  # function to be executed upon entering this phase
+        self.entry_function_args = entry_function_args
 
         self.exit_function = exit_function  # function to be executed just before exiting this phase
+        self.exit_function_args = exit_function_args
 
         self.arrest_function = arrest_function  # function determining if cell will exit cell cycle and become quiescent
+        self.arrest_function_args = arrest_function_args
 
+    # def time_step_phase(self, dt):
+    #     self.time_in_phase += dt
+    #
+    #     if self.arrest_function is not None:
+    #         self.arrest_function(self.arrest_function_args)
+    #
+    #     if self.fixed_duration and self.time_in_phase > self.phase_duration:
+    #         if
 
 if __name__ == '__main__':
     pass
