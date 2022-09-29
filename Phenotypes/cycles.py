@@ -42,6 +42,8 @@ class Cycle:
         divides = self.current_phase.division_at_phase_exit
         dies = self.current_phase.removal_at_phase_exit
         self.set_phase(self.current_phase.next_phase_index)
+        if self.current_phase.entry_function is not None:
+            self.current_phase.entry_function()
         return True, dies, divides
 
     def set_phase(self, idx):
