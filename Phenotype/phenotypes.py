@@ -141,11 +141,11 @@ class Phase:
 
 
 class QuiescentPhase(Phase):
-    def __init__(self, index: int = 9999, next_phase_index: int = 0, time_unit: str = "min",
+    def __init__(self, index: int = 9999, next_phase_index: int = 0, time_unit: str = "min", dt: float = None,
                  fixed_duration: bool = True, phase_duration: float = 4.59*60, transition_to_next_phase=None,
                  transition_to_next_phase_args: list = None, exit_function=None,
                  exit_function_args: list = None):
-        super().__init__(index=index, next_phase_index=next_phase_index, time_unit=time_unit,
+        super().__init__(index=index, next_phase_index=next_phase_index, time_unit=time_unit, dt=dt,
                          fixed_duration=fixed_duration, phase_duration=phase_duration,
                          transition_to_next_phase=transition_to_next_phase,
                          transition_to_next_phase_args=transition_to_next_phase_args, exit_function=exit_function,
@@ -154,18 +154,32 @@ class QuiescentPhase(Phase):
 
 
 class Cycle:
-    def __init__(self):
-        self.phases = [Phase(previous_phase_index=0, next_phase_index=0)]
-        self.quiecent_phase = QuiescentPhase()
+    def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", phases: list = None,
+                 quiescent_phase: Phase or bool = None):
+
+        self.name = name
+
+        self.time_unit = time_unit
+
+        if dt <= 0 or dt is None:
+            raise ValueError(f"'dt' must be greater than 0. Got {dt}.")
+        self.dt = dt
+        if phases is None:
+            self.phases = [Phase(previous_phase_index=0, next_phase_index=0, dt=self.dt, time_unit=time_unit)]
+        else:
+            self.phases = phases
+        if quiescent_phase is None:
+            self.quiecent_phase = QuiescentPhase(dt=self.dt)
+        elif quiescent_phase is not None and not quiescent_phase:
+            self.quiecent_phase = False
+        else:
+            self.quiecent_phase = quiescent_phase
         self.current_phase = self.phases[0]
         self.time_in_cycle = 0
 
-    def time_step_cycle(self, dt):
+    def time_step_cycle(self):
 
-        if dt <= 0:
-            raise ValueError(f"'dt' must be greater than 0. Got {dt}.")
-
-        self.time_in_cycle += dt
+        self.time_in_cycle += self.dt
 
         next_phase, quies = self.current_phase.time_step_phase()
 
@@ -187,6 +201,8 @@ class Cycle:
         self.current_phase.time_in_phase = 0
 
     def go_to_quiescence(self):
+        if self.quiecent_phase is not None and not self.quiecent_phase:
+            return
         self.current_phase = self.quiecent_phase
         self.current_phase.time_in_phase = 0
 
