@@ -145,7 +145,27 @@ class QuiescentPhase(Phase):
                          exit_function_args=exit_function_args)
         return
 
+class Ki67Negative(Phase):
+    def __init__(self, name="Ki 67 negative", dt=0.1, time_unit="min", phase_duration=4.59*60, fixed_duration=False,
+                 index=0, next_phase_index=1, previous_phase_index=1):
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phase_duration=phase_duration,
+                         fixed_duration=fixed_duration, index=index, next_phase_index=next_phase_index,
+                         previous_phase_index=previous_phase_index)
 
+def standard_Ki67_entry_function(*args):  # todo
+    return
+
+class Ki67Positive(Phase):
+    def __init__(self, name="Ki 67 positive", dt=0.1, time_unit="min", phase_duration=15.5*60, fixed_duration=True,
+                 entry_function=None, entry_function_args=None, index=1, previous_phase_index=0, next_phase_index=1):
+        if entry_function is None:
+            entry_function = standard_Ki67_entry_function
+            entry_function_args = [1, 1]  # todo
+
+        super().__init__(self, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         index=index, name=name, dt=dt, time_unit=time_unit, phase_duration=phase_duration,
+                         fixed_duration=fixed_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args)
 
 
 
