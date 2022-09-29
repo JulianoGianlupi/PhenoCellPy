@@ -48,7 +48,7 @@ class Phase:
 
         self.time_unit = time_unit
 
-        if dt <= 0 or dt is None:
+        if dt is None or dt <= 0:
             raise ValueError(f"'dt' must be greater than 0. Got {dt}.")
         self.dt = dt
 
@@ -189,6 +189,7 @@ class Cycle:
         elif quies:
             self.go_to_quiescence()
             return True, False, False
+        return False, False, False
 
     def go_to_next_phase(self):
         divides = self.current_phase.division_at_phase_exit
@@ -208,17 +209,19 @@ class Cycle:
 
 
 class SimpleLiveCycle(Cycle):
-    def __init__(self, time_unit: str = "min", name: str = "simple_live"):
-        super().__init__()
-        self.time_unit = time_unit
-
-        self.name = name
-
-        self.phases = [Phase(index=0, previous_phase_index=0, next_phase_index=0, time_unit=time_unit, name="alive",
-                             division_at_phase_exit=True, )]
+    def __init__(self, time_unit: str = "min", name: str = "simple_live", dt=1):
+        phases = [Phase(index=0, previous_phase_index=0, next_phase_index=0, time_unit=time_unit, name="alive",
+                         division_at_phase_exit=True, phase_duration=60, dt=dt)]
+        super().__init__(name=name, time_unit=time_unit, phases=phases, quiescent_phase=False, dt=dt)
 
 
 if __name__ == '__main__':
     pass
 
-    # testPhase = Phase(phase_duration=-1)
+    testCycle = SimpleLiveCycle()
+    for i in range(1000):
+        changed_phase, died, divides = testCycle.time_step_cycle()
+        print(testCycle.time_in_cycle, testCycle.current_phase.name, testCycle.current_phase.time_in_phase)
+        if changed_phase or died or divides:
+            print(changed_phase, died, divides)
+    pass
