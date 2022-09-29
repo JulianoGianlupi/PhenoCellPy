@@ -85,7 +85,6 @@ class Phase:
             raise TypeError("Arrest function defined but no args given. Was expecting "
                             f"'arrest_function_args' to be a list, got {type(arrest_function_args)}.")
 
-
         if transition_to_next_phase is None:
             self.custom_transition_function = False
             self.transition_to_next_phase_args = None
@@ -142,9 +141,15 @@ class Phase:
 
 
 class QuiescentPhase(Phase):
-    def __init__(self, index: int = 999, next_phase_index: int = 0, time_unit: str = "min", ):
-        # todo: this whole class
-        super().__init__(index=index, next_phase_index=next_phase_index)
+    def __init__(self, index: int = 9999, next_phase_index: int = 0, time_unit: str = "min",
+                 fixed_duration: bool = True, phase_duration: float = 4.59*60, transition_to_next_phase=None,
+                 transition_to_next_phase_args: list = None, exit_function=None,
+                 exit_function_args: list = None):
+        super().__init__(index=index, next_phase_index=next_phase_index, time_unit=time_unit,
+                         fixed_duration=fixed_duration, phase_duration=phase_duration,
+                         transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args, exit_function=exit_function,
+                         exit_function_args=exit_function_args)
         return
 
 
