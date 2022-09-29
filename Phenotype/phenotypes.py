@@ -74,9 +74,17 @@ class Phase:
 
         self.exit_function = exit_function  # function to be executed just before exiting this phase
         self.exit_function_args = exit_function_args
+        if self.exit_function is not None and type(self.exit_function_args) != list:
+            raise TypeError("Exit function defined but no args given. Was expecting "
+                            f"'exit_function_args' to be a list, got {type(exit_function_args)}.")
 
         self.arrest_function = arrest_function  # function determining if cell will exit cell cycle and become quiescent
         self.arrest_function_args = arrest_function_args
+
+        if self.arrest_function is not None and type(self.arrest_function_args) != list:
+            raise TypeError("Arrest function defined but no args given. Was expecting "
+                            f"'arrest_function_args' to be a list, got {type(arrest_function_args)}.")
+
 
         if transition_to_next_phase is None:
             self.custom_transition_function = False
@@ -89,7 +97,8 @@ class Phase:
             self.custom_transition_function = True
             if type(transition_to_next_phase_args) != list:
                 raise TypeError("Custom exit function selected but no args given. Was expecting "
-                                f"'transition_to_next_phase_args' to be a list, got {transition_to_next_phase_args}.")
+                                "'transition_to_next_phase_args' to be a list, got "
+                                f"{type(transition_to_next_phase_args)}.")
             self.transition_to_next_phase_args = transition_to_next_phase_args
             self.transition_to_next_phase = transition_to_next_phase
 
