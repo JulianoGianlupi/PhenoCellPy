@@ -9,9 +9,16 @@ class Phase:
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 10,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
-                 transition_to_next_phase=None, transition_to_next_phase_args: list = None):
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = None,
+                 volume: float = None, update_volume=None, update_volume_args: list = None,
+                 update_volume_rate: float = None):
 
         """
+        :param update_volume_rate:
+        :param target_volume:
+        :param volume:
+        :param update_volume:
+        :param update_volume_args:
         :param index:
         :param previous_phase_index:
         :param next_phase_index:
@@ -94,6 +101,31 @@ class Phase:
             self.transition_to_next_phase_args = transition_to_next_phase_args
             self.transition_to_next_phase = transition_to_next_phase
 
+        if volume is None:
+            self.volume = 1
+        else:
+            self.volume = volume
+
+        if target_volume is None:
+            self.target_volume = 1
+        else:
+            self.target_volume = target_volume
+
+        if update_volume_rate is None:
+            self.update_volume_rate = 0.1
+        else:
+            self.update_volume_rate = update_volume_rate
+
+        if update_volume is None:
+            self.update_volume = self._update_volume
+            self.update_volume_args = None
+        else:
+            self.update_volume = update_volume
+            self.update_volume_args = update_volume_args
+
+    def _update_volume(self, none):
+        self.volume += self.update_volume_rate * (self.target_volume - self.volume)
+
     def _transition_to_next_phase_stochastic(self):
         """
         Default stochastic phase transition function. Calculates a Poisson probability based on dt and
@@ -115,6 +147,9 @@ class Phase:
         """
         self.time_in_phase += self.dt
 
+        if self.update_volume:
+            self.update_volume(self.update_volume_args)
+
         if self.arrest_function is not None:
             if self.arrest_function(self.arrest_function_args):
                 return False, True
@@ -135,43 +170,47 @@ class Phase:
 
 class QuiescentPhase(Phase):
     def __init__(self, index: int = 9999, next_phase_index: int = 0, time_unit: str = "min", dt: float = None,
-                 fixed_duration: bool = True, phase_duration: float = 4.59*60, transition_to_next_phase=None,
+                 fixed_duration: bool = True, phase_duration: float = 4.59 * 60, transition_to_next_phase=None,
                  transition_to_next_phase_args: list = None, exit_function=None,
-                 exit_function_args: list = None):
+                 exit_function_args: list = None, update_volume=False, volume=None, target_volume=None):
         super().__init__(index=index, next_phase_index=next_phase_index, time_unit=time_unit, dt=dt,
                          fixed_duration=fixed_duration, phase_duration=phase_duration,
                          transition_to_next_phase=transition_to_next_phase,
                          transition_to_next_phase_args=transition_to_next_phase_args, exit_function=exit_function,
-                         exit_function_args=exit_function_args)
+                         exit_function_args=exit_function_args, update_volume=update_volume, volume=volume,
+                         target_volume=target_volume)
         return
 
+
 class Ki67Negative(Phase):
-    def __init__(self, name="Ki 67 negative", dt=0.1, time_unit="min", phase_duration=4.59*60, fixed_duration=False,
+    def __init__(self, name="Ki 67 negative", dt=0.1, time_unit="min", phase_duration=4.59 * 60, fixed_duration=False,
                  index=0, next_phase_index=1, previous_phase_index=1):
         super().__init__(name=name, dt=dt, time_unit=time_unit, phase_duration=phase_duration,
                          fixed_duration=fixed_duration, index=index, next_phase_index=next_phase_index,
                          previous_phase_index=previous_phase_index)
 
-def standard_Ki67_entry_function(*args):  # todo
-    return
 
 class Ki67Positive(Phase):
-    def __init__(self, name="Ki 67 positive", dt=0.1, time_unit="min", phase_duration=15.5*60, fixed_duration=True,
-                 entry_function=None, entry_function_args=None, index=1, previous_phase_index=0, next_phase_index=1):
+    def __init__(self, index=None, previous_phase_index=None, next_phase_index=None, dt=None, time_unit="min",
+                 name=None, division_at_phase_exit=True, removal_at_phase_exit=False, fixed_duration=False,
+                 entry_function=None, entry_function_args=None, phase_duration=10):
         if entry_function is None:
-            entry_function = standard_Ki67_entry_function
-            entry_function_args = [1, 1]  # todo
+            entry_function = self._standard_Ki67_entry_function
+            entry_function_args = [None]
+        elif type(entry_function_args) != list:
+            raise TypeError("'entry_function' was defined but no value for 'entry_function_args' was given. Expected "
+                            f"list got {type(entry_function_args)}")
 
-        super().__init__(self, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         index=index, name=name, dt=dt, time_unit=time_unit, phase_duration=phase_duration,
-                         fixed_duration=fixed_duration, entry_function=entry_function,
-                         entry_function_args=entry_function_args)
+        super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
+                         phase_duration=phase_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit)
+
+    def _standard_Ki67_entry_function(self, *args):
+        self.target_volume *= 2
 
 
-
-
-
-
-
-
-
+if __name__ == '__main__':
+    test_ki = Ki67Positive(dt=0.1)
+    print(test_ki.index)
