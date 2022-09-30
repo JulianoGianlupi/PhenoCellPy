@@ -43,24 +43,32 @@ class Cycle:
         dies = self.current_phase.removal_at_phase_exit
         self.set_phase(self.current_phase.next_phase_index)
         if self.current_phase.entry_function is not None:
-            self.current_phase.entry_function()
+            self.current_phase.entry_function(self.current_phase.entry_function_args)
+        self.current_phase.time_in_phase = 0
         return True, dies, divides
 
     def set_phase(self, idx):
+        volume = self.current_phase.volume
+        tg_volume = self.current_phase.target_volume
         self.current_phase = self.phases[idx]
+        self.current_phase.volume = volume
+        self.current_phase.target_volume = tg_volume
         self.current_phase.time_in_phase = 0
 
     def go_to_quiescence(self):
         if self.quiecent_phase is not None and not self.quiecent_phase:
             return
+        volume = self.current_phase.volume
+        self.quiecent_phase.volume = volume
+        self.quiecent_phase.target_volume = volume
         self.current_phase = self.quiecent_phase
         self.current_phase.time_in_phase = 0
 
 
 class SimpleLiveCycle(Cycle):
     def __init__(self, time_unit: str = "min", name: str = "simple_live", dt=1):
-        phases = [Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, time_unit=time_unit, name="alive",
-                        division_at_phase_exit=True, phase_duration=60, dt=dt)]
+        phases = [Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
+                               name="alive", division_at_phase_exit=True, phase_duration=60)]
         super().__init__(name=name, time_unit=time_unit, phases=phases, quiescent_phase=False, dt=dt)
 
 
