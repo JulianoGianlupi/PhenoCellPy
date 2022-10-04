@@ -222,6 +222,15 @@ class Phase:
             self.update_volume_args = update_volume_args
 
     def _update_volume(self, none):
+        """
+        Updates the volume if cell is below target.
+
+        If the Phase's volume is below the Phase's target this function increments `self.volume` by
+        `self.update_volume_rate`.
+
+        :param none: Not used. Place holder in case of user defined function with args
+        :return:
+        """
         if self.volume < self.target_volume:
             self.volume += self.update_volume_rate
 
@@ -238,10 +247,23 @@ class Phase:
         return uniform() < prob
 
     def _transition_to_next_phase_deterministic(self):
+        """
+        Default deterministic phase transition function.
+
+        If the time spent in this phase is greater than the phase duration, go to the next phase.
+
+        :return:
+        """
         return self.time_in_phase > self.phase_duration
 
     def time_step_phase(self):
         """
+
+        Time steps the phase.
+
+        This function increments the `time_in_phase` by `dt`. Updates the cell volume. Checks if the cell arrests its
+        cycle (i.e., leaves the cycle; goes to quiescence). If the cell doesn't quies, this function checks if the cell
+        should transition to the next phase.
 
         :return: tuple. First element of tuple: bool denoting if the cell moves to the next phase. Second element:
         denotes if the cell leaves the cell cycle and enters quiescence.
