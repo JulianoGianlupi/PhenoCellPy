@@ -197,9 +197,9 @@ class Ki67Negative(Phase):
 
 
 class Ki67Positive(Phase):
-    def __init__(self, index=None, previous_phase_index=None, next_phase_index=None, dt=None, time_unit="min",
-                 name="Ki 67 positive", division_at_phase_exit=True, removal_at_phase_exit=False, fixed_duration=False,
-                 entry_function=None, entry_function_args=None, phase_duration=10, target_volume: float = None,
+    def __init__(self, index=None, previous_phase_index=None, next_phase_index=None, dt=0.1, time_unit="min",
+                 name="Ki 67 positive", division_at_phase_exit=True, removal_at_phase_exit=False, fixed_duration=True,
+                 entry_function=None, entry_function_args=None, phase_duration=15.5*60.0, target_volume: float = None,
                  volume: float = None, update_volume=None, update_volume_args: list = None,
                  update_volume_rate: float = None):
 
@@ -209,6 +209,9 @@ class Ki67Positive(Phase):
         elif type(entry_function_args) != list:
             raise TypeError("'entry_function' was defined but no value for 'entry_function_args' was given. Expected "
                             f"list got {type(entry_function_args)}")
+
+        if update_volume_rate is None:
+            update_volume_rate = target_volume/(phase_duration/dt)
 
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,

@@ -76,14 +76,15 @@ class SimpleLiveCycle(Cycle):
 
 class Ki67Basic(Cycle):
     def __init__(self, name="Ki67 Basic", dt=0.1, quiescent_phase=False, time_unit="min",
-                 target_volumes: list = None, volumes: list = None):
+                 target_volumes: list = None, volumes: list = None, update_volume_rate=None):
 
         if target_volumes is None:
             target_volumes = [1, 1]
             volumes = [1, 1]
 
         Ki67_positive = Phases.Ki67Negative(index=1, dt=dt, previous_phase_index=0, next_phase_index=0,
-                                            target_volume=target_volumes[1], volume=volumes[1], time_unit=time_unit)
+                                            target_volume=target_volumes[1], volume=volumes[1], time_unit=time_unit,
+                                            update_volume_rate=update_volume_rate)
         Ki67_negative = Phases.Ki67Positive(index=0, dt=dt, previous_phase_index=1, next_phase_index=1,
                                             target_volume=target_volumes[0], volume=volumes[0], time_unit=time_unit)
 
