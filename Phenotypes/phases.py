@@ -124,7 +124,7 @@ class Phase:
             self.update_volume_args = update_volume_args
 
     def _update_volume(self, none):
-        self.volume += self.update_volume_rate * (self.target_volume - self.volume)
+        self.volume += self.update_volume_rate
 
     def _transition_to_next_phase_stochastic(self):
         """
