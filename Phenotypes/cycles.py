@@ -66,7 +66,7 @@ class Cycle:
 
 
 class SimpleLiveCycle(Cycle):
-    def __init__(self, time_unit: str = "min", name: str = "simple_live", dt=1):
+    def __init__(self, time_unit: str = "min", name: str = "Simple Live", dt=1):
         phases = [Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
                                name="alive", division_at_phase_exit=True, phase_duration=60)]
         super().__init__(name=name, time_unit=time_unit, phases=phases, quiescent_phase=False, dt=dt)
@@ -81,6 +81,25 @@ class Ki67Basic(Cycle):
 
         super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase)
 
+
+cycle_names = ["Simple Live", "Ki67 Basic"]
+
+
+def get_cycle_by_name(name):
+
+    if name not in cycle_names:
+        raise ValueError(f"{name} is not a pre-defined cycle")
+
+    if name == "Simple Live":
+        return SimpleLiveCycle
+    elif name == "Ki67 Basic":
+        return Ki67Basic
+
+    return Cycle
+
+
+if __name__=="__main__":
+    print(cycle_names)
 
 
 
