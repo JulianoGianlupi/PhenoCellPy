@@ -82,10 +82,10 @@ class Ki67Basic(Cycle):
             target_volumes = [1, 1]
             volumes = [1, 1]
 
-        Ki67_positive = Phases.Ki67Negative(index=1, dt=dt, previous_phase_index=0, next_phase_index=0,
+        Ki67_positive = Phases.Ki67Positive(index=1, dt=dt, previous_phase_index=0, next_phase_index=0,
                                             target_volume=target_volumes[1], volume=volumes[1], time_unit=time_unit,
                                             update_volume_rate=update_volume_rate)
-        Ki67_negative = Phases.Ki67Positive(index=0, dt=dt, previous_phase_index=1, next_phase_index=1,
+        Ki67_negative = Phases.Ki67Negative(index=0, dt=dt, previous_phase_index=1, next_phase_index=1,
                                             target_volume=target_volumes[0], volume=volumes[0], time_unit=time_unit)
 
         phases = [Ki67_negative, Ki67_positive]
@@ -111,6 +111,8 @@ def get_cycle_by_name(name):
 
 if __name__=="__main__":
     print(cycle_names)
+
+    test = Ki67Basic()
 
 
 
