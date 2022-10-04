@@ -1,5 +1,6 @@
 import Phenotypes.phases as Phases
 
+
 class Cycle:
     def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", phases: list = None,
                  quiescent_phase: Phases.Phase or bool = None):
