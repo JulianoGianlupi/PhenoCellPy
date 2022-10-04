@@ -292,6 +292,9 @@ class Phase:
 
 
 class QuiescentPhase(Phase):
+
+    """Default Quiescent Phase. Inherits Phase()"""
+
     def __init__(self, index: int = 9999, next_phase_index: int = 0, time_unit: str = "min", dt: float = None,
                  fixed_duration: bool = True, phase_duration: float = 4.59 * 60, transition_to_next_phase=None,
                  transition_to_next_phase_args: list = None, exit_function=None,
@@ -306,6 +309,15 @@ class QuiescentPhase(Phase):
 
 
 class Ki67Negative(Phase):
+
+    """
+
+    Defines Ki 67- phase.
+
+    TODO: More description here
+
+    """
+
     def __init__(self, name="Ki 67 negative", dt=0.1, time_unit="min", phase_duration=4.59 * 60, fixed_duration=False,
                  index=0, next_phase_index=1, previous_phase_index=1):
         super().__init__(name=name, dt=dt, time_unit=time_unit, phase_duration=phase_duration,
@@ -314,6 +326,19 @@ class Ki67Negative(Phase):
 
 
 class Ki67Positive(Phase):
+
+    """
+
+    Defines the simple Ki 67+ phase. Inherits Phase().
+
+    Methods
+    -------
+
+    _standard_Ki67_entry_function
+        Default standard entry function to this phase.
+
+    """
+
     def __init__(self, index=None, previous_phase_index=None, next_phase_index=None, dt=None, time_unit="min",
                  name="Ki 67 positive", division_at_phase_exit=True, removal_at_phase_exit=False, fixed_duration=False,
                  entry_function=None, entry_function_args=None, phase_duration=10):
@@ -331,6 +356,13 @@ class Ki67Positive(Phase):
                          removal_at_phase_exit=removal_at_phase_exit)
 
     def _standard_Ki67_entry_function(self, *args):
+        """
+
+        Doubles the target volume of the cell upon entry to this phase.
+
+        :param args: Not used. Place holder in case of user defined function.
+        :return:
+        """
         self.target_volume *= 2
 
 
