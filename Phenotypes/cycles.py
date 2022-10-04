@@ -15,6 +15,7 @@ class Cycle:
         if phases is None:
             self.phases = [Phases.Phase(previous_phase_index=0, next_phase_index=0, dt=self.dt, time_unit=time_unit)]
         else:
+
             self.phases = phases
         if quiescent_phase is None:
             self.quiecent_phase = Phases.QuiescentPhase(dt=self.dt)
@@ -74,13 +75,21 @@ class SimpleLiveCycle(Cycle):
 
 
 class Ki67Basic(Cycle):
-    def __init__(self, name="Ki67 Basic", dt=0.1, quiescent_phase=False):
-        Ki67_positive = Phases.Ki67Negative(index=1, dt=dt, previous_phase_index=0, next_phase_index=0)
-        Ki67_negative = Phases.Ki67Positive(index=0, dt=dt, previous_phase_index=1, next_phase_index=1)
+    def __init__(self, name="Ki67 Basic", dt=0.1, quiescent_phase=False, time_unit="min",
+                 target_volumes: list = None, volumes: list = None):
+
+        if target_volumes is None:
+            target_volumes = [1, 1]
+            volumes = [1, 1]
+
+        Ki67_positive = Phases.Ki67Negative(index=1, dt=dt, previous_phase_index=0, next_phase_index=0,
+                                            target_volume=target_volumes[1], volume=volumes[1], time_unit=time_unit)
+        Ki67_negative = Phases.Ki67Positive(index=0, dt=dt, previous_phase_index=1, next_phase_index=1,
+                                            target_volume=target_volumes[0], volume=volumes[0], time_unit=time_unit)
 
         phases = [Ki67_negative, Ki67_positive]
 
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase)
+        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
 
 
 cycle_names = ["Simple Live", "Ki67 Basic"]
