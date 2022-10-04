@@ -1,6 +1,31 @@
 import Phenotypes.phases as Phases
 
+
 class Cycle:
+    """
+
+    Base class to define a cell cycle.
+
+    TODO: more description
+
+
+    Methods:
+    --------
+
+    time_step_cycle()
+        Timesteps the cycle model. Returns a tuple (cell changed phases, cell died, cell divided). See `time_step_cycle`
+        for further information.
+
+    go_to_next_phase()
+        Goes to the next phase in the cycle
+
+    set_phase(index)
+        Sets the current cycle's phase to be phase of index `index`
+
+    go_to_quiescence()
+        Moves cycle to quiescent phase
+
+    """
     def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", phases: list = None,
                  quiescent_phase: Phases.Phase or bool = None):
 

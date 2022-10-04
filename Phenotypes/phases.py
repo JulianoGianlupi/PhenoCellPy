@@ -6,7 +6,7 @@ class Phase:
     """
     Base class to define phases of a cell cycle.
 
-    Methods
+    Methods:
     -------
 
     time_step_phase()
