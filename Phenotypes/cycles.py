@@ -73,10 +73,14 @@ class SimpleLiveCycle(Cycle):
 
 
 class Ki67Basic(Cycle):
-    def __init__(self, name="Ki67 Basic", dt=0.1):  # todo: init signature
-        Ki67_positive = Phases.Phase()  # todo: define as a stand alone class
-        Ki67_negative = Phases.Phase()  # todo: define as a stand alone class
+    def __init__(self, name="Ki67 Basic", dt=0.1, quiescent_phase=False):
+        Ki67_positive = Phases.Ki67Negative(index=1, dt=dt, previous_phase_index=0, next_phase_index=0)
+        Ki67_negative = Phases.Ki67Positive(index=0, dt=dt, previous_phase_index=1, next_phase_index=1)
 
         phases = [Ki67_negative, Ki67_positive]
 
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=False)
+        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase)
+
+
+
+

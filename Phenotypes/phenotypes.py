@@ -3,6 +3,9 @@
 #  - implement phase transition
 #  - implement quiescent phenotype
 #  - implement physicell's phenotypes
+#  - documentation
+#  - functions to attach to object
+
 from Phenotypes.cycles import SimpleLiveCycle
 
 if __name__ == '__main__':
