@@ -192,7 +192,7 @@ class Ki67Negative(Phase):
 
 class Ki67Positive(Phase):
     def __init__(self, index=None, previous_phase_index=None, next_phase_index=None, dt=None, time_unit="min",
-                 name=None, division_at_phase_exit=True, removal_at_phase_exit=False, fixed_duration=False,
+                 name="Ki 67 positive", division_at_phase_exit=True, removal_at_phase_exit=False, fixed_duration=False,
                  entry_function=None, entry_function_args=None, phase_duration=10):
         if entry_function is None:
             entry_function = self._standard_Ki67_entry_function
