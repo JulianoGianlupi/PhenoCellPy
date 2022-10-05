@@ -35,7 +35,7 @@ class Cycle:
         Time-step size (in units of `time_unit`). Must be >0.
 
     time_unit : str
-        Time unit. TODO: Defines time convertions
+        Time unit. TODO: Defines time conversions
 
     phases : list
         Ordered list of phases this cycle goes through. Must be a list of :class:`Phases.Phase` objects.
