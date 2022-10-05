@@ -164,6 +164,9 @@ class Cycle:
 
 
 class SimpleLiveCycle(Cycle):
+    """
+    Simplest life cycle, it has only one phase. When "progressing" to the next phase it divides.
+    """
     def __init__(self, time_unit: str = "min", name: str = "simple_live", dt=1):
         phases = [Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
                                name="alive", division_at_phase_exit=True, phase_duration=60)]
@@ -171,6 +174,18 @@ class SimpleLiveCycle(Cycle):
 
 
 class Ki67Basic(Cycle):
+    """
+
+    Simple proliferating-quiescent phase. Does not use the stand-alone quiescent phase. Cell divides upon leaving Ki67+
+
+    TODO: find where physicell found the definition of this cycle. Find their explanation for this cycle
+    This is a two phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the quiescent phase, Ki67-'s mean du-
+    ration is 4.59h (stochastic transition to Ki67+ by default). Ki67+ (defined in :class:`Phases.Ki67Positive`) is the
+    proliferating phase. It is responsible for doubling the volume of the cell at a rate of
+    [increase in volume]/[Ki67+ duration]. Ki67+ duration is fixed (by default) at 15.5 hours. Once the cell exits Ki67+
+    it divides.
+
+    """
     def __init__(self, name="Ki67 Basic", dt=0.1, quiescent_phase=False):
         Ki67_positive = Phases.Ki67Negative(index=1, dt=dt, previous_phase_index=0, next_phase_index=0)
         Ki67_negative = Phases.Ki67Positive(index=0, dt=dt, previous_phase_index=1, next_phase_index=1)
