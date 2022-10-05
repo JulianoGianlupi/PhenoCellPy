@@ -78,6 +78,17 @@ class Cycle:
         self.time_in_cycle = 0
 
     def time_step_cycle(self):
+        """
+        Time-steps the cycle.
+
+        Increments :attr:`time_in_cycle` by :attr:`dt`. Calls :func:`current_phase.time_step_phase`. If the phase time-
+        step determines the cycle moves to the next phase (i.e., returns `True` for `next_phase`), calls
+        :func:go_to_next_phase. If the phase time-step determines the cell exits the cell cycle and goes to quiescence
+        (i.e., returns `True` for `quies`) calls :func:`go_to_quiescence`.
+
+        :return: Flags (bool) for phase changing, cell death, and cell division
+        :rtype: tuple of bool
+        """
 
         self.time_in_cycle += self.dt
 
@@ -92,6 +103,18 @@ class Cycle:
         return False, False, False
 
     def go_to_next_phase(self):
+        """
+
+        Sets the cycle phase to be the phase of index :attr:`current_phase.next_phase_index`.
+
+        Gets the flags for division and death upon phase exit. Sets the cycle phase to be
+        :attr:`current_phase.next_phase_index`. Calls :func:`current_phase.entry_function` (after phase change). Resets
+        :attr:`current_phase.time_in_phase` to 0. Returns that phase change has occurred, and the division and death
+        upon phase exit flags.
+
+        :return: Flags (bool) for phase changing, cell death, and cell division
+        :rtype: tuple of bool
+        """
         divides = self.current_phase.division_at_phase_exit
         dies = self.current_phase.removal_at_phase_exit
         self.set_phase(self.current_phase.next_phase_index)
