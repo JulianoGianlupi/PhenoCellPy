@@ -108,9 +108,8 @@ class Cycle:
         Sets the cycle phase to be the phase of index :attr:`current_phase.next_phase_index`.
 
         Gets the flags for division and death upon phase exit. Sets the cycle phase to be
-        :attr:`current_phase.next_phase_index`. Calls :func:`current_phase.entry_function` (after phase change). Resets
-        :attr:`current_phase.time_in_phase` to 0. Returns that phase change has occurred, and the division and death
-        upon phase exit flags.
+        :attr:`current_phase.next_phase_index` by calling :func:`set_phase`. Calls :func:`current_phase.entry_function`
+        (after phase change). Returns that phase change has occurred, and the division and death upon phase exit flags.
 
         :return: Flags (bool) for phase changing, cell death, and cell division
         :rtype: tuple of bool
@@ -120,10 +119,22 @@ class Cycle:
         self.set_phase(self.current_phase.next_phase_index)
         if self.current_phase.entry_function is not None:
             self.current_phase.entry_function(self.current_phase.entry_function_args)
-        self.current_phase.time_in_phase = 0
+        # self.current_phase.time_in_phase = 0
         return True, dies, divides
 
     def set_phase(self, idx):
+        """
+
+        Sets cycle phase to be phase of index :param:`idx`.
+
+        This function moves the cycle to the next phase and coordinates their volume attributes. Saves current
+        :attr:`current_phase.volume` and :attr:`current_phase.volume` to variables, sets :attr:`current_phase` to be
+        `phases[idx]`, resets :attr:`current_phase.volume` and :attr:`current_phase.volume` to be the previously saved
+        values, sets :attr:`current_phase.time_in_phase` to 0.
+
+        :param idx: index of list :attr:`phases`, which phase to go to.
+        :return: No return
+        """
         volume = self.current_phase.volume
         tg_volume = self.current_phase.target_volume
         self.current_phase = self.phases[idx]
