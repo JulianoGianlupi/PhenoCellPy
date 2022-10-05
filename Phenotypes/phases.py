@@ -3,6 +3,104 @@ from numpy.random import uniform
 
 
 class Phase:
+    """
+    Base class to define phases of a cell cycle.
+
+    Methods:
+    -------
+
+    time_step_phase()
+        Time steps the phase. Returns a tuple (did the cell transition to the next phase, did the cell enter
+        quiescence). See time_step_phase's documentation for further explanation.
+
+    transition_to_next_phase() or transition_to_next_phase(*args)
+        One of the default transition functions (`_transition_to_next_phase_deterministic`,
+        `_transition_to_next_phase_stochastic`) or an user defined function. If user defined, it will be called with
+        `transition_to_next_phase_args` as args. Must return a bool denoting if the transition occurs or not.
+
+    _transition_to_next_phase_deterministic()
+        Default deterministic transition function. Returns `time_in_phase > phase_duration`
+
+    _transition_to_next_phase_stochastic()
+        Default stochastic transition function. Probability of transition depends on `dt` and `phase_duration`
+
+    entry_function(*args)
+        Optional user defined function to be executed upon entering this phase. It gets called using attribute
+        `entry_function_args`. Must have no return
+
+    exit_function(*args)
+        Optional user defined function to be executed upon exiting this phase. It gets called using attribute
+        `exit_function_args`. Must have no return
+
+    arrest_function(*args)
+        Optional user defined function that returns true if the cell should exit the cell cycle and enter quiescence
+
+    update_volume() or update_volume(*args)
+        Function to update the volume of the cell. Can be user defined, in that case it has to use args and cannot have
+        a return value
+
+    Attributes
+    ----------
+
+    name : str
+        Name of the phase
+
+    index : int
+        The index of the phase in the cycle (0 idexed)
+
+    previous_phase_index : int
+        Index of the phase preceding this one (usually index-1)
+
+    next_phase_index : int
+        Index of the phase preceding this one (usually index+1)
+
+    time_unit : str
+        Time unit used by the model. TODO: defines unit conversions
+
+    dt : float
+        Size of the time-step in units of `time_unit`
+
+    division_at_phase_exit : bool
+        Flag for cell division at the end of the phase
+
+    removal_at_phase_exit : bool
+        Flag for cell removal (death) at the end of the phase
+
+    phase_duration : float
+        Average amount of time the phase lasts (in units of `time_unit`)
+
+    fixed_duration : bool
+        Flag for determining if the phase ends after a set amount of time or if it progresses to the next phase
+        in a stochastic manner with a rate `1/phase_duration`
+
+    time_in_phase : float
+        Time spent in this phase
+
+    volume : float
+        The volume of the cell in this phase
+
+    target_volume : float
+        The target volume of the cell in this phase
+
+    update_volume_rate : float
+        Amount of volume the cell will grow by if it is below the target and the default update volume function is used.
+
+    update_volume_args : list
+        Args used by custom `update_volume` function
+
+    entry_function_args : list
+        args for `entry_function`
+
+    exit_function_args : list
+        args for `exit_function`
+
+    arrest_function_args : list
+        args for `arrest_function`
+
+    transition_to_next_phase_args : list
+        args for `transition_to_next_phase` if a custom one is defined
+
+    """
 
     def __init__(self, index: int = None, previous_phase_index: int = None, next_phase_index: int = None,
                  dt: float = None, time_unit: str = "min", name: str = None, division_at_phase_exit: bool = False,
@@ -124,23 +222,48 @@ class Phase:
             self.update_volume_args = update_volume_args
 
     def _update_volume(self, none):
-        self.volume += self.update_volume_rate * (self.target_volume - self.volume)
+        """
+        Updates the volume if cell is below target.
+
+        If the Phase's volume is below the Phase's target this function increments `self.volume` by
+        `self.update_volume_rate`.
+
+        :param none: Not used. Place holder in case of user defined function with args
+        :return:
+        """
+        if self.volume < self.target_volume:
+            self.volume += self.update_volume_rate
 
     def _transition_to_next_phase_stochastic(self):
         """
-        Default stochastic phase transition function. Calculates a Poisson probability based on dt and
-        self.phase_duration, rolls a random number, and returns random number < probability
-        :param args: float. Time-step length in the time units of Phase
+        Default stochastic phase transition function.
+
+        Calculates a Poisson probability based on dt and self.phase_duration (p=1-exp(-dt/phase_duration), rolls a
+        random number, and returns random number < probability.
+
         :return: bool. random number < probability of transition
         """
         prob = 1 - exp(-self.dt / self.phase_duration)
         return uniform() < prob
 
     def _transition_to_next_phase_deterministic(self):
+        """
+        Default deterministic phase transition function.
+
+        If the time spent in this phase is greater than the phase duration, go to the next phase.
+
+        :return:
+        """
         return self.time_in_phase > self.phase_duration
 
     def time_step_phase(self):
         """
+
+        Time steps the phase.
+
+        This function increments the `time_in_phase` by `dt`. Updates the cell volume. Checks if the cell arrests its
+        cycle (i.e., leaves the cycle; goes to quiescence). If the cell doesn't quies, this function checks if the cell
+        should transition to the next phase.
 
         :return: tuple. First element of tuple: bool denoting if the cell moves to the next phase. Second element:
         denotes if the cell leaves the cell cycle and enters quiescence.
@@ -169,6 +292,9 @@ class Phase:
 
 
 class QuiescentPhase(Phase):
+
+    """Default Quiescent Phase. Inherits Phase()"""
+
     def __init__(self, index: int = 9999, next_phase_index: int = 0, time_unit: str = "min", dt: float = None,
                  fixed_duration: bool = True, phase_duration: float = 4.59 * 60, transition_to_next_phase=None,
                  transition_to_next_phase_args: list = None, exit_function=None,
@@ -183,6 +309,15 @@ class QuiescentPhase(Phase):
 
 
 class Ki67Negative(Phase):
+
+    """
+
+    Defines Ki 67- phase.
+
+    TODO: More description here
+
+    """
+
     def __init__(self, name="Ki 67 negative", dt=0.1, time_unit="min", phase_duration=4.59 * 60, fixed_duration=False,
                  index=0, next_phase_index=1, previous_phase_index=1):
         super().__init__(name=name, dt=dt, time_unit=time_unit, phase_duration=phase_duration,
@@ -191,9 +326,22 @@ class Ki67Negative(Phase):
 
 
 class Ki67Positive(Phase):
+
+    """
+
+    Defines the simple Ki 67+ phase. Inherits Phase().
+
+    Methods
+    -------
+
+    _standard_Ki67_entry_function
+        Default standard entry function to this phase.
+
+    """
+
     def __init__(self, index=None, previous_phase_index=None, next_phase_index=None, dt=None, time_unit="min",
-                 name="Ki 67 positive", division_at_phase_exit=True, removal_at_phase_exit=False, fixed_duration=False,
-                 entry_function=None, entry_function_args=None, phase_duration=10):
+                 name="Ki 67 positive", division_at_phase_exit=True, removal_at_phase_exit=False, fixed_duration=True,
+                 entry_function=None, entry_function_args=None, phase_duration=15.5*60.0):
         if entry_function is None:
             entry_function = self._standard_Ki67_entry_function
             entry_function_args = [None]
@@ -208,6 +356,13 @@ class Ki67Positive(Phase):
                          removal_at_phase_exit=removal_at_phase_exit)
 
     def _standard_Ki67_entry_function(self, *args):
+        """
+
+        Doubles the target volume of the cell upon entry to this phase.
+
+        :param args: Not used. Place holder in case of user defined function.
+        :return: No return
+        """
         self.target_volume *= 2
 
 
