@@ -331,8 +331,6 @@ class Ki67Positive(Phase):
 
     Defines the simple Ki 67+ phase. Inherits Phase().
 
-
-
     Methods
     -------
 
