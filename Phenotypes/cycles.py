@@ -25,6 +25,21 @@ class Cycle:
     go_to_quiescence()
         Moves cycle to quiescent phase
 
+    Attributes
+    ----------
+
+    name : str
+        Name of the cycle
+
+    dt : float
+        Time-step size (in units of `time_unit`)
+
+    time_unit : str
+        Time unit. TODO: Defines time convertions
+
+    phases : list
+        Ordered list of phases this cycle goes through. Must be a list of
+
     """
     def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", phases: list = None,
                  quiescent_phase: Phases.Phase or bool = None):
