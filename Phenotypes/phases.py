@@ -295,16 +295,21 @@ class QuiescentPhase(Phase):
 
     """Default Quiescent Phase. Inherits Phase()"""
 
-    def __init__(self, index: int = 9999, next_phase_index: int = 0, time_unit: str = "min", dt: float = None,
-                 fixed_duration: bool = True, phase_duration: float = 4.59 * 60, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, exit_function=None,
-                 exit_function_args: list = None, update_volume=False, volume=None, target_volume=None):
-        super().__init__(index=index, next_phase_index=next_phase_index, time_unit=time_unit, dt=dt,
+    def __init__(self, name: str = "quiescent", index: int = 9999, next_phase_index: int = 0, time_unit: str = "min",
+                 dt: float = None,fixed_duration: bool = False, phase_duration: float = 4.59 * 60,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, exit_function=None,
+                 division_at_phase_exit: bool = False, removal_at_phase_exit: bool = False, entry_function=None,
+                 entry_function_args: list = None, exit_function_args: list = None, update_volume=False, volume=None,
+                 target_volume=None):
+
+        super().__init__(name=name, index=index, next_phase_index=next_phase_index, time_unit=time_unit, dt=dt,
                          fixed_duration=fixed_duration, phase_duration=phase_duration,
                          transition_to_next_phase=transition_to_next_phase,
                          transition_to_next_phase_args=transition_to_next_phase_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, update_volume=update_volume, volume=volume,
-                         target_volume=target_volume)
+                         target_volume=target_volume, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, entry_function=entry_function,
+                         entry_function_args=entry_function_args)
         return
 
 
@@ -319,14 +324,14 @@ class Ki67Negative(Phase):
     """
 
     def __init__(self, name="Ki 67 negative", dt=0.1, time_unit="min", phase_duration=4.59 * 60, fixed_duration=False,
-                 index=0, next_phase_index=1, previous_phase_index=1):
+                 index=0, next_phase_index=1, previous_phase_index=1, target_volume: float = None,
+                 volume: float = None):
         super().__init__(name=name, dt=dt, time_unit=time_unit, phase_duration=phase_duration,
                          fixed_duration=fixed_duration, index=index, next_phase_index=next_phase_index,
-                         previous_phase_index=previous_phase_index)
+                         previous_phase_index=previous_phase_index, target_volume=target_volume, volume=volume)
 
 
 class Ki67Positive(Phase):
-
     """
 
     Defines the simple Ki 67+ phase. Inherits Phase().
@@ -338,10 +343,12 @@ class Ki67Positive(Phase):
         Default standard entry function to this phase.
 
     """
-
-    def __init__(self, index=None, previous_phase_index=None, next_phase_index=None, dt=None, time_unit="min",
+    def __init__(self, index=None, previous_phase_index=None, next_phase_index=None, dt=0.1, time_unit="min",
                  name="Ki 67 positive", division_at_phase_exit=True, removal_at_phase_exit=False, fixed_duration=True,
-                 entry_function=None, entry_function_args=None, phase_duration=15.5*60.0):
+                 entry_function=None, entry_function_args=None, phase_duration=15.5*60.0, target_volume: float = None,
+                 volume: float = None, update_volume=None, update_volume_args: list = None,
+                 update_volume_rate: float = None):
+
         if entry_function is None:
             entry_function = self._standard_Ki67_entry_function
             entry_function_args = [None]
@@ -349,11 +356,16 @@ class Ki67Positive(Phase):
             raise TypeError("'entry_function' was defined but no value for 'entry_function_args' was given. Expected "
                             f"list got {type(entry_function_args)}")
 
+        if update_volume_rate is None:
+            update_volume_rate = target_volume/(phase_duration/dt)
+
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
-                         removal_at_phase_exit=removal_at_phase_exit)
+                         removal_at_phase_exit=removal_at_phase_exit, target_volume=target_volume, volume=volume,
+                         update_volume=update_volume, update_volume_args=update_volume_args,
+                         update_volume_rate=update_volume_rate)
 
     def _standard_Ki67_entry_function(self, *args):
         """

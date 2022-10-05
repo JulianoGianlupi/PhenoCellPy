@@ -165,9 +165,9 @@ class Cycle:
 
 class SimpleLiveCycle(Cycle):
     """
-    Simplest life cycle, it has only one phase. When "progressing" to the next phase it divides.
-    """
-    def __init__(self, time_unit: str = "min", name: str = "simple_live", dt=1):
+        Simplest life cycle, it has only one phase. When "progressing" to the next phase it divides.
+        """
+    def __init__(self, time_unit: str = "min", name: str = "Simple Live", dt=1):
         phases = [Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
                                name="alive", division_at_phase_exit=True, phase_duration=60)]
         super().__init__(name=name, time_unit=time_unit, phases=phases, quiescent_phase=False, dt=dt)
@@ -188,14 +188,44 @@ class Ki67Basic(Cycle):
     """
 
     # todo: parameters that can be passed to the phases
-    def __init__(self, name="Ki67 Basic", dt=0.1, quiescent_phase=False):
-        Ki67_positive = Phases.Ki67Negative(index=1, dt=dt, previous_phase_index=0, next_phase_index=0)
-        Ki67_negative = Phases.Ki67Positive(index=0, dt=dt, previous_phase_index=1, next_phase_index=1)
+    def __init__(self, name="Ki67 Basic", dt=0.1, quiescent_phase=False, time_unit="min",
+                 target_volumes: list = None, volumes: list = None, update_volume_rate=None):
+
+        if target_volumes is None:
+            target_volumes = [1, 1]
+            volumes = [1, 1]
+
+        Ki67_positive = Phases.Ki67Positive(index=1, dt=dt, previous_phase_index=0, next_phase_index=0,
+                                            target_volume=target_volumes[1], volume=volumes[1], time_unit=time_unit,
+                                            update_volume_rate=update_volume_rate)
+        Ki67_negative = Phases.Ki67Negative(index=0, dt=dt, previous_phase_index=1, next_phase_index=1,
+                                            target_volume=target_volumes[0], volume=volumes[0], time_unit=time_unit)
 
         phases = [Ki67_negative, Ki67_positive]
 
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase)
+        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
 
+
+cycle_names = ["Simple Live", "Ki67 Basic"]
+
+
+def get_cycle_by_name(name):
+
+    if name not in cycle_names:
+        raise ValueError(f"{name} is not a pre-defined cycle")
+
+    if name == "Simple Live":
+        return SimpleLiveCycle
+    elif name == "Ki67 Basic":
+        return Ki67Basic
+
+    return Cycle
+
+
+if __name__=="__main__":
+    print(cycle_names)
+
+    test = Ki67Basic()
 
 
 

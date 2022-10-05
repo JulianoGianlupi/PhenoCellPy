@@ -1,0 +1,41 @@
+<CompuCell3D Revision="20210612" Version="4.2.5">
+   
+   <Metadata>
+      
+      <!-- Basic properties simulation -->
+      <NumberOfProcessors>1</NumberOfProcessors>
+      <DebugOutputFrequency>10</DebugOutputFrequency>
+      <!-- <NonParallelModule Name="Potts"/> -->
+   </Metadata>
+   
+   <Potts>
+      
+      <!-- Basic properties of CPM (GGH) algorithm -->
+      <Dimensions x="1024" y="1024" z="1"/>
+      <Steps>100000</Steps>
+      <Temperature>10.0</Temperature>
+      <NeighborOrder>1</NeighborOrder>
+   </Potts>
+   
+<Plugin Name="CellType">
+   
+   <CellType TypeId="0" TypeName="Medium"/>
+   <CellType TypeId="1" TypeName="cell"/>
+</Plugin>
+   
+   <Plugin Name="Volume"/>
+   
+   <Plugin Name="CenterOfMass">
+      
+      <!-- Module tracking center of mass of each cell -->
+   </Plugin>
+   
+<Plugin Name="Contact">
+   <Energy Type1="Medium" Type2="Medium">10.0</Energy>
+   <Energy Type1="Medium" Type2="cell">10.0</Energy>
+   <Energy Type1="cell" Type2="cell">10.0</Energy>
+   <NeighborOrder>4</NeighborOrder>
+</Plugin>
+   
+ 
+</CompuCell3D>
