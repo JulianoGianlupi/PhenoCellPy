@@ -186,6 +186,8 @@ class Ki67Basic(Cycle):
     it divides.
 
     """
+
+    # todo: parameters that can be passed to the phases
     def __init__(self, name="Ki67 Basic", dt=0.1, quiescent_phase=False):
         Ki67_positive = Phases.Ki67Negative(index=1, dt=dt, previous_phase_index=0, next_phase_index=0)
         Ki67_negative = Phases.Ki67Positive(index=0, dt=dt, previous_phase_index=1, next_phase_index=1)
