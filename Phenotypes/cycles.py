@@ -67,13 +67,13 @@ class Cycle:
         else:
             self.phases = phases
         if quiescent_phase is None:
-            self.quiecent_phase = Phases.QuiescentPhase(dt=self.dt)
+            self.quiescent_phase = Phases.QuiescentPhase(dt=self.dt)
         elif quiescent_phase is not None and not quiescent_phase:
-            self.quiecent_phase = False
+            self.quiescent_phase = False
         elif not isinstance(quiescent_phase, Phases.Phase):
             raise ValueError(f"`quiescent_phase` must Phases.Phase object, False, or None. Got {quiescent_phase}")
         else:
-            self.quiecent_phase = quiescent_phase
+            self.quiescent_phase = quiescent_phase
         self.current_phase = self.phases[0]
         self.time_in_cycle = 0
 
@@ -143,12 +143,23 @@ class Cycle:
         self.current_phase.time_in_phase = 0
 
     def go_to_quiescence(self):
-        if self.quiecent_phase is not None and not self.quiecent_phase:
+        """
+
+        Sets cycle phase to be the quiescent phase.
+
+        This function checks that :attr:`quiescent_phase` is a :class:`Phases.Phase`, if that's the case it sets
+        :attr:`current_phase` to be :attr:`quiescent_phase`. It also sets (after phase change) the
+        :attr:`current_phase.volume` and :attr:`current_phase.volume` to be the previous phase :attr:`volume` by first
+        saving it to a temporary variable. It resets :attr:`current_phase.time_in_phase` to be 0.
+
+        :return: No return
+        """
+        if not isinstance(self.quiescent_phase, Phases.Phase):
             return
         volume = self.current_phase.volume
-        self.quiecent_phase.volume = volume
-        self.quiecent_phase.target_volume = volume
-        self.current_phase = self.quiecent_phase
+        self.quiescent_phase.volume = volume
+        self.quiescent_phase.target_volume = volume
+        self.current_phase = self.quiescent_phase
         self.current_phase.time_in_phase = 0
 
 
