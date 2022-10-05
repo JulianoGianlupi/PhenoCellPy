@@ -340,8 +340,8 @@ class Ki67Positive(Phase):
     """
 
     def __init__(self, index=None, previous_phase_index=None, next_phase_index=None, dt=None, time_unit="min",
-                 name="Ki 67 positive", division_at_phase_exit=True, removal_at_phase_exit=False, fixed_duration=False,
-                 entry_function=None, entry_function_args=None, phase_duration=10):
+                 name="Ki 67 positive", division_at_phase_exit=True, removal_at_phase_exit=False, fixed_duration=True,
+                 entry_function=None, entry_function_args=None, phase_duration=15.5*60.0):
         if entry_function is None:
             entry_function = self._standard_Ki67_entry_function
             entry_function_args = [None]
@@ -361,7 +361,7 @@ class Ki67Positive(Phase):
         Doubles the target volume of the cell upon entry to this phase.
 
         :param args: Not used. Place holder in case of user defined function.
-        :return:
+        :return: No return
         """
         self.target_volume *= 2
 
