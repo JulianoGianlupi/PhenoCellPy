@@ -13,8 +13,8 @@ class Cycle:
     --------
 
     time_step_cycle()
-        Timesteps the cycle model. Returns a tuple (cell changed phases, cell died, cell divided). See `time_step_cycle`
-        for further information.
+        Time-steps the cycle model. Returns a tuple (cell changed phases, cell died, cell divided). See
+        :func:`time_step_cycle` for further information.
 
     go_to_next_phase()
         Goes to the next phase in the cycle
@@ -32,17 +32,28 @@ class Cycle:
         Name of the cycle
 
     dt : float
-        Time-step size (in units of `time_unit`)
+        Time-step size (in units of `time_unit`). Must be >0.
 
     time_unit : str
         Time unit. TODO: Defines time convertions
 
     phases : list
-        Ordered list of phases this cycle goes through. Must be a list of
+        Ordered list of phases this cycle goes through. Must be a list of :class:`Phases.Phase` objects.
+
+    quiescent_phase : :class:`Phases.Phase`, None, or False
+        If false the cycle won't have a (stand-alone) quiescent phase defined. If None the default
+        :class:`Phases.QuiescentPhase` will be used as the stand-alone quiescent phase. If it is a :class:`Phases.Phase`
+        object it will be used as the stand-alone quiescent phase.
+
+    current_phase : :class:`Phases.Phase`
+        The current (active) phase of the cycle.
+
+    time_in_cycle : float
+        Total time elapsed for the cycle
 
     """
     def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", phases: list = None,
-                 quiescent_phase: Phases.Phase or bool = None):
+                 quiescent_phase: Phases.Phase or False = None):
 
         self.name = name
 
@@ -59,6 +70,8 @@ class Cycle:
             self.quiecent_phase = Phases.QuiescentPhase(dt=self.dt)
         elif quiescent_phase is not None and not quiescent_phase:
             self.quiecent_phase = False
+        elif not isinstance(quiescent_phase, Phases.Phase):
+            raise ValueError(f"`quiescent_phase` must Phases.Phase object, False, or None. Got {quiescent_phase}")
         else:
             self.quiecent_phase = quiescent_phase
         self.current_phase = self.phases[0]
