@@ -210,7 +210,7 @@ class Phase:
             self.target_volume = target_volume
 
         if update_volume_rate is None:
-            self.update_volume_rate = 0.1
+            self.update_volume_rate = 1
         else:
             self.update_volume_rate = update_volume_rate
 
