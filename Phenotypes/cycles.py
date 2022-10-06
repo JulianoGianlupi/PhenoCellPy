@@ -166,7 +166,7 @@ class Cycle:
         phases = ""
         for p in self.phases:
             phases += f"{p}, "
-        if len(phases)>2:
+        if len(phases) > 2:
             phases = phases[:-2]
         return f"{self.name} cycle, phases: {phases}"
 
