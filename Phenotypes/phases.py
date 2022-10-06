@@ -290,6 +290,9 @@ class Phase:
 
         return False, False
 
+    def __str__(self):
+        return f"{self.name} phase"
+
 
 class QuiescentPhase(Phase):
 

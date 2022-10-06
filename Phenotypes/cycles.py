@@ -162,6 +162,14 @@ class Cycle:
         self.current_phase = self.quiescent_phase
         self.current_phase.time_in_phase = 0
 
+    def __str__(self):
+        phases = ""
+        for p in self.phases:
+            phases += f"{p}, "
+        if len(phases)>2:
+            phases = phases[:-2]
+        return f"{self.name} cycle, phases: {phases}"
+
 
 class SimpleLiveCycle(Cycle):
     """
