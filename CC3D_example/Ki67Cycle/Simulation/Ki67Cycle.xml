@@ -4,7 +4,7 @@
       
       <!-- Basic properties simulation -->
       <NumberOfProcessors>1</NumberOfProcessors>
-      <DebugOutputFrequency>10</DebugOutputFrequency>
+      <DebugOutputFrequency>200</DebugOutputFrequency>
       <!-- <NonParallelModule Name="Potts"/> -->
    </Metadata>
    
