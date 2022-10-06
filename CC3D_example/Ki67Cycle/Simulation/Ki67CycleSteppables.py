@@ -3,7 +3,7 @@ from cc3d import CompuCellSetup
 
 from cc3d.core.PySteppables import *
 
-from numpy import mean
+from numpy import median
 
 # todo: make this robust and non-local
 import sys
@@ -13,6 +13,11 @@ sys.path.extend(['D:\\github\\PhenoCellPy', 'D:/github/PhenoCellPy'])
 
 import Phenotypes as pheno
 
+
+# todo:
+#  - data output
+#  - overload the positive phase transition to only occur when the cell has the necessary volume
+#  --- add an attribute to the phases called "simulated_cell_vol" (or something) for that check
 
 class ConstraintInitializerSteppable(SteppableBasePy):
     def __init__(self, frequency=1):
@@ -52,13 +57,17 @@ class MitosisSteppable(MitosisSteppableBase):
     def start(self):
 
         if self.plot:
-            self.plot_win_vol = self.add_new_plot_window(title='Average Volume',
+            self.plot_win_vol = self.add_new_plot_window(title='Volume metrics',
                                                          x_axis_title='MonteCarlo Step (MCS)',
                                                          y_axis_title='Variables', x_scale_type='linear',
                                                          y_scale_type='linear',
-                                                         grid=True)
+                                                         grid=True,
+                                                         config_options={"legend": True})
 
-            self.plot_win_vol.add_plot("MVol", style='Lines', color='red', size=5)
+            self.plot_win_vol.add_plot("Median Vol", style='Lines', color='yellow', size=5)
+            self.plot_win_vol.add_plot("Minimum Vol", style='Lines', color='blue', size=5)
+            self.plot_win_vol.add_plot("Maximum Vol", style='Lines', color='red', size=5)
+
 
             self.plot_win_number = self.add_new_plot_window(title='Number of cells',
                                                             x_axis_title='MonteCarlo Step (MCS)',
@@ -122,7 +131,9 @@ class MitosisSteppable(MitosisSteppableBase):
             self.plot_win_phase.add_data_point("N", 1, n_one)
 
             if not mcs % 50:
-                self.plot_win_vol.add_data_point("MVol", mcs, mean(volumes))
+                self.plot_win_vol.add_data_point("Median Vol", mcs, median(volumes))
+                self.plot_win_vol.add_data_point("Maximum Vol", mcs, max(volumes))
+                self.plot_win_vol.add_data_point("Minimum Vol", mcs, min(volumes))
 
         for cell in cells_to_divide:
             self.divide_cell_random_orientation(cell)
