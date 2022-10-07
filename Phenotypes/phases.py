@@ -279,16 +279,16 @@ class Phase:
         self.time_in_phase += self.dt
 
         if self.update_volume:
-            self.update_volume(self.update_volume_args)
+            self.update_volume(*self.update_volume_args)
 
         if self.arrest_function is not None:
-            if self.arrest_function(self.arrest_function_args):
+            if self.arrest_function(*self.arrest_function_args):
                 return False, True
 
-        transition = self.transition_to_next_phase(self.transition_to_next_phase_args)
+        transition = self.transition_to_next_phase(*self.transition_to_next_phase_args)
 
         if transition and self.exit_function is not None:
-            quies = self.exit_function(self.exit_function_args)
+            quies = self.exit_function(*self.exit_function_args)
             return transition, quies
         elif transition:
             return transition, False
