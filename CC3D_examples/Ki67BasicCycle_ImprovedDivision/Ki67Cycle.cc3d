@@ -1,0 +1,5 @@
+<Simulation version="4.2.5">
+   <XMLScript Type="XMLScript">Simulation/Ki67Cycle.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/Ki67Cycle.py</PythonScript>
+   <Resource Type="Python">Simulation/Ki67CycleSteppables.py</Resource>
+</Simulation>
