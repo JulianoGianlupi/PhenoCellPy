@@ -11,11 +11,6 @@ sys.path.extend([abspath("../../..")])  # todo: make this more refined
 
 import Phenotypes as pheno
 
-
-# todo:
-#  - data output
-
-
 def Ki67pos_transition(*args):
     # print(len(args), print(args))
     # args = [cc3d cell volume, phase's target volume, time in phase, phase duration

@@ -12,10 +12,6 @@ sys.path.extend([abspath("../../..")])  # todo: make this more refined
 
 import Phenotypes as pheno
 
-
-# todo:
-#  - data output
-
 class ConstraintInitializerSteppable(SteppableBasePy):
     def __init__(self, frequency=1):
         SteppableBasePy.__init__(self, frequency)
