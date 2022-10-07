@@ -19,6 +19,13 @@ import Phenotypes as pheno
 #  - overload the positive phase transition to only occur when the cell has the necessary volume
 #  --- add an attribute to the phases called "simulated_cell_vol" (or something) for that check
 
+
+def Ki67pos_transition(*args):
+    # print(len(args), print(args))
+    # args = [cc3d cell volume, phase's target volume, time in phase, phase duration
+    return args[0] >= args[1] and args[2] > args[3]
+
+
 class ConstraintInitializerSteppable(SteppableBasePy):
     def __init__(self, frequency=1):
         SteppableBasePy.__init__(self, frequency)
@@ -35,14 +42,18 @@ class ConstraintInitializerSteppable(SteppableBasePy):
 
         dt = 5  # 5 min/mcs
 
-        ki67_basic = pheno.cycles.Ki67Basic(dt=dt, target_volumes=[side * side, side * side],
-                                            volumes=[side * side, side * side])
+        ki67_basic_modified_transition = pheno.cycles.Ki67Basic(dt=dt, target_volumes=[side * side, side * side],
+                                                                volumes=[side * side, side * side],
+                                                                simulated_cell_volume=side * side,
+                                                                transitions_to_next_phase=[None, Ki67pos_transition],
+                                                                transitions_to_next_phase_args=[None,
+                                                                                                [-9, 1, -9, 1]])
 
         for cell in self.cell_list:
             cell.targetVolume = side * side
             cell.lambdaVolume = 2.0
             # print(hasattr(cell, "__dict__"))
-            pheno.utils.add_cycle_to_CC3D_cell(cell, ki67_basic)
+            pheno.utils.add_cycle_to_CC3D_cell(cell, ki67_basic_modified_transition)
             # print(hasattr(cell, "cycle"))
             cell.dict["phase_index_plus_1"] = cell.dict["cycle"].current_phase.index + 1
 
@@ -67,7 +78,6 @@ class MitosisSteppable(MitosisSteppableBase):
             self.plot_win_vol.add_plot("Median Vol", style='Lines', color='yellow', size=5)
             self.plot_win_vol.add_plot("Minimum Vol", style='Lines', color='blue', size=5)
             self.plot_win_vol.add_plot("Maximum Vol", style='Lines', color='red', size=5)
-
 
             self.plot_win_number = self.add_new_plot_window(title='Number of cells',
                                                             x_axis_title='MonteCarlo Step (MCS)',
@@ -105,10 +115,22 @@ class MitosisSteppable(MitosisSteppableBase):
 
         for cell in self.cell_list:
             volumes.append(cell.volume)
+            cell.dict["cycle"].current_phase.simulated_cell_volume = cell.volume
+            # print(len(args))
             if cell.dict["cycle"].current_phase.index == 0:
                 n_zero += 1
             elif cell.dict["cycle"].current_phase.index == 1:
                 n_one += 1
+                # args = [cc3d cell volume, phase's target volume, time in phase, phase duration
+                args = [
+                    cell.volume,
+                    cell.dict["cycle"].current_phase.target_volume,
+                    cell.dict["cycle"].current_phase.time_in_phase + cell.dict["cycle"].dt,
+                    cell.dict["cycle"].current_phase.phase_duration]
+
+                cell.dict["cycle"].current_phase.transition_to_next_phase_args = args
+                # print("_", len(cell.dict["cycle"].current_phase.transition_to_next_phase_args))
+
             changed_phase, died, divides = cell.dict["cycle"].time_step_cycle()
 
             if cell.targetVolume < cell.dict["cycle"].current_phase.volume:
@@ -151,10 +173,12 @@ class MitosisSteppable(MitosisSteppableBase):
         self.parent_cell.dict["cycle"].current_phase.target_volume = self.parent_cell.targetVolume
         self.parent_cell.dict["cycle"].current_phase.volume = self.parent_cell.targetVolume
         self.parent_cell.dict["phase_index_plus_1"] = self.parent_cell.dict["cycle"].current_phase.index + 1
+        self.parent_cell.dict["cycle"].current_phase.simulated_cell_volume = self.parent_cell.volume
 
         self.child_cell.dict["cycle"].current_phase.target_volume = self.parent_cell.targetVolume
         self.child_cell.dict["cycle"].current_phase.volume = self.parent_cell.targetVolume
         self.child_cell.dict["phase_index_plus_1"] = self.child_cell.dict["cycle"].current_phase.index + 1
+        self.child_cell.dict["cycle"].current_phase.simulated_cell_volume = self.child_cell.volume
         if len(self.cell_list) < 10:
             print("@@@\nCHILD ATTRIBS\n@@@\n", self.child_cell.volume, self.child_cell.dict["cycle"].time_in_cycle,
                   self.child_cell.dict["cycle"].current_phase,
