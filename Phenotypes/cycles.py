@@ -198,7 +198,8 @@ class Ki67Basic(Cycle):
     """
 
     def __init__(self, name="Ki67 Basic", dt=0.1, time_unit="min", quiescent_phase=False,
-                 division_at_phase_exits=None, removal_at_phase_exits=None, fixed_durations=None,
+                 division_at_phase_exits=[False, True], removal_at_phase_exits=[False, False],
+                 fixed_durations=[False, True],
                  phase_durations: list = (4.59 * 60, 15.5 * 60.0), entry_functions=(None, None),
                  entry_functions_args=(None, None), exit_functions=(None, None), exit_functions_args=(None, None),
                  arrest_functions=(None, None), arrest_functions_args=(None, None),
@@ -207,93 +208,10 @@ class Ki67Basic(Cycle):
                  update_volumes_args: list = (None, None), update_volume_rates=(None, None),
                  simulated_cell_volume=None):
 
-        # todo: put all these checks in a function
-        if len(target_volumes) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(target_volumes)} target volumes defined")
-        elif type(target_volumes) != list and type(target_volumes) != tuple:
-            raise TypeError(f"`target_volumes` must be a list or tuple, got {type(target_volumes)}")
-
-        if division_at_phase_exits is None:
-            division_at_phase_exits = [False, True]
-        elif len(division_at_phase_exits) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(division_at_phase_exits)} division flags defined")
-
-        if removal_at_phase_exits is None:
-            removal_at_phase_exits = [False, False]
-        elif len(removal_at_phase_exits) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(removal_at_phase_exits)} removal flags defined")
-
-        if fixed_durations is None:
-            fixed_durations = [False, True]
-        elif type(fixed_durations) != list and type(fixed_durations) != tuple:
-            raise TypeError(f"`fixed_durations` must be a list or tuple, got {type(fixed_durations)}")
-        elif len(fixed_durations) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(fixed_durations)} fixed duration flags defined")
-
-        if len(phase_durations) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(phase_durations)} durations defined")
-        elif type(phase_durations) != list and type(phase_durations) != tuple:
-            raise TypeError(f"`phase_durations` must be a list or tuple, got {type(phase_durations)}")
-
-        if len(entry_functions) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(entry_functions)} entry functions defined")
-        elif type(entry_functions) != list and type(entry_functions) != tuple:
-            raise TypeError(f"`entry_functions` must be a list or tuple, got {type(entry_functions)}")
-
-        if len(entry_functions_args) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(entry_functions_args)} entry functions args defined")
-        elif type(entry_functions_args) != list and type(entry_functions_args) != tuple:
-            raise TypeError(f"`entry_functions_args` must be a list or tuple, got {type(entry_functions_args)}")
-        #
-        if len(exit_functions) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(exit_functions)} entry functions defined")
-        elif type(exit_functions) != list and type(exit_functions) != tuple:
-            raise TypeError(f"`entry_functions` must be a list or tuple, got {type(exit_functions)}")
-
-        if len(exit_functions_args) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(exit_functions_args)} entry functions args defined")
-        elif type(exit_functions_args) != list and type(exit_functions_args) != tuple:
-            raise TypeError(f"`entry_functions_args` must be a list or tuple, got {type(exit_functions_args)}")
-        #
-        if len(arrest_functions) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(arrest_functions)} entry functions defined")
-        elif type(arrest_functions) != list and type(arrest_functions) != tuple:
-            raise TypeError(f"`entry_functions` must be a list or tuple, got {type(exit_functions)}")
-
-        if len(arrest_functions_args) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(arrest_functions_args)} entry functions args defined")
-        elif type(arrest_functions_args) != list and type(arrest_functions_args) != tuple:
-            raise TypeError(f"`entry_functions_args` must be a list or tuple, got {type(arrest_functions_args)}")
-        #
-        if len(transitions_to_next_phase) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(transitions_to_next_phase)} entry functions defined")
-        elif type(transitions_to_next_phase) != list and type(transitions_to_next_phase) != tuple:
-            raise TypeError(f"`entry_functions` must be a list or tuple, got {type(transitions_to_next_phase)}")
-
-        if len(transitions_to_next_phase_args) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(transitions_to_next_phase_args)} entry functions args "
-                             f"defined")
-        elif type(transitions_to_next_phase_args) != list and type(transitions_to_next_phase_args) != tuple:
-            raise TypeError(f"`entry_functions_args` must be a list or tuple, got {type(arrest_functions_args)}")
-
-        #
-        if len(update_volumes) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(update_volumes)} update volume functions defined")
-        elif type(update_volumes) != list and type(update_volumes) != tuple:
-            raise TypeError(f"`update_volumes` must be a list or tuple, got {type(update_volumes)}")
-
-        if len(update_volumes_args) != 2:
-            raise ValueError(
-                f"Ki67 Basic has two phases, {len(update_volumes_args)} update volume functions args "
-                f"defined")
-        elif type(update_volumes_args) != list and type(update_volumes_args) != tuple:
-            raise TypeError(f"`update_volumes_args` must be a list or tuple, got {type(update_volumes_args)}")
-
-        #
-        if len(update_volume_rates) != 2:
-            raise ValueError(f"Ki67 Basic has two phases, {len(update_volume_rates)} update volume rates defined")
-        elif type(update_volume_rates) != list and type(update_volume_rates) != tuple:
-            raise TypeError(f"`update_volume_rates` must be a list or tuple, got {type(update_volumes)}")
+        self._check_arguments(2, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
+                              phase_durations, entry_functions, entry_functions_args, exit_functions,
+                              exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
+                              transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
 
         Ki67_positive = Phases.Ki67Positive(index=1, dt=dt, previous_phase_index=0, next_phase_index=0,
                                             target_volume=target_volumes[1], volume=volumes[1], time_unit=time_unit,
@@ -305,6 +223,111 @@ class Ki67Basic(Cycle):
         phases = [Ki67_negative, Ki67_positive]
 
         super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+
+    @staticmethod
+    def _check_arguments(number_phases, cycle_name, target_volumes, division_at_phase_exits,
+                         removal_at_phase_exits, fixed_durations, phase_durations, entry_functions,
+                         entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         update_volumes, update_volumes_args, update_volume_rates):
+
+        if len(target_volumes) != number_phases:
+            raise ValueError(f"{cycle_name} has {number_phases} phases, {len(target_volumes)} target volumes defined")
+        elif type(target_volumes) != list and type(target_volumes) != tuple:
+            raise TypeError(f"`target_volumes` must be a list or tuple, got {type(target_volumes)}")
+
+        if len(division_at_phase_exits) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(division_at_phase_exits)} division flags defined")
+        elif type(division_at_phase_exits) != list and type(division_at_phase_exits) != tuple:
+            raise TypeError(f"`division_at_phase_exits` must be a list or tuple, got {type(division_at_phase_exits)}")
+
+        if len(removal_at_phase_exits) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(removal_at_phase_exits)} removal flags defined")
+        elif type(removal_at_phase_exits) != list and type(removal_at_phase_exits) != tuple:
+            raise TypeError(f"`removal_at_phase_exits` must be a list or tuple, got {type(removal_at_phase_exits)}")
+
+        if type(fixed_durations) != list and type(fixed_durations) != tuple:
+            raise TypeError(f"`fixed_durations` must be a list or tuple, got {type(fixed_durations)}")
+        elif len(fixed_durations) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(fixed_durations)} fixed duration flags defined")
+
+        if len(phase_durations) != number_phases:
+            raise ValueError(f"{cycle_name} has {number_phases} phases, {len(phase_durations)} durations defined")
+        elif type(phase_durations) != list and type(phase_durations) != tuple:
+            raise TypeError(f"`phase_durations` must be a list or tuple, got {type(phase_durations)}")
+
+        if len(entry_functions) != number_phases:
+            raise ValueError(f"{cycle_name} has {number_phases} phases, {len(entry_functions)} entry functions defined")
+        elif type(entry_functions) != list and type(entry_functions) != tuple:
+            raise TypeError(f"`entry_functions` must be a list or tuple, got {type(entry_functions)}")
+
+        if len(entry_functions_args) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(entry_functions_args)} entry functions args defined")
+        elif type(entry_functions_args) != list and type(entry_functions_args) != tuple:
+            raise TypeError(f"`entry_functions_args` must be a list or tuple, got {type(entry_functions_args)}")
+        #
+        if len(exit_functions) != number_phases:
+            raise ValueError(f"{cycle_name} has {number_phases} phases, {len(exit_functions)} exit functions defined")
+        elif type(exit_functions) != list and type(exit_functions) != tuple:
+            raise TypeError(f"`exit_functions` must be a list or tuple, got {type(exit_functions)}")
+
+        if len(exit_functions_args) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(exit_functions_args)} entry functions args defined")
+        elif type(exit_functions_args) != list and type(exit_functions_args) != tuple:
+            raise TypeError(f"`entry_functions_args` must be a list or tuple, got {type(exit_functions_args)}")
+        #
+        if len(arrest_functions) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(arrest_functions)} arrest functions defined")
+        elif type(arrest_functions) != list and type(arrest_functions) != tuple:
+            raise TypeError(f"`arrest_functions` must be a list or tuple, got {type(exit_functions)}")
+
+        if len(arrest_functions_args) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(arrest_functions_args)} arrest functions args defined")
+        elif type(arrest_functions_args) != list and type(arrest_functions_args) != tuple:
+            raise TypeError(f"`arrest_functions_args` must be a list or tuple, got {type(arrest_functions_args)}")
+        #
+        if len(transitions_to_next_phase) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(transitions_to_next_phase)} transition functions defined")
+        elif type(transitions_to_next_phase) != list and type(transitions_to_next_phase) != tuple:
+            raise TypeError(
+                f"`transitions_to_next_phase` must be a list or tuple, got {type(transitions_to_next_phase)}")
+
+        if len(transitions_to_next_phase_args) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(transitions_to_next_phase_args)} transition functions args "
+                f"defined")
+        elif type(transitions_to_next_phase_args) != list and type(transitions_to_next_phase_args) != tuple:
+            raise TypeError(
+                f"`transitions_to_next_phase_args` must be a list or tuple, got {type(arrest_functions_args)}")
+
+        #
+        if len(update_volumes) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(update_volumes)} update volume functions defined")
+        elif type(update_volumes) != list and type(update_volumes) != tuple:
+            raise TypeError(f"`update_volumes` must be a list or tuple, got {type(update_volumes)}")
+
+        if len(update_volumes_args) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(update_volumes_args)} update volume functions args "
+                f"defined")
+        elif type(update_volumes_args) != list and type(update_volumes_args) != tuple:
+            raise TypeError(f"`update_volumes_args` must be a list or tuple, got {type(update_volumes_args)}")
+
+        #
+        if len(update_volume_rates) != number_phases:
+            raise ValueError(
+                f"{cycle_name} has {number_phases} phases, {len(update_volume_rates)} update volume rates defined")
+        elif type(update_volume_rates) != list and type(update_volume_rates) != tuple:
+            raise TypeError(f"`update_volume_rates` must be a list or tuple, got {type(update_volumes)}")
 
 
 cycle_names = ["Simple Live", "Ki67 Basic"]
