@@ -5,11 +5,9 @@ from cc3d.core.PySteppables import *
 
 from numpy import median
 
-# todo: make this robust and non-local
 import sys
-
-# sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
-sys.path.extend(['D:\\github\\PhenoCellPy', 'D:/github/PhenoCellPy'])
+from os.path import abspath
+sys.path.extend([abspath("../../..")])  # todo: make this more refined
 
 import Phenotypes as pheno
 
