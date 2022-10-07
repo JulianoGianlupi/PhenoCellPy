@@ -187,14 +187,12 @@ class Phase:
                             f"'arrest_function_args' to be a list, got {type(arrest_function_args)}.")
 
         if transition_to_next_phase is None:
-            self.custom_transition_function = False
-            self.transition_to_next_phase_args = None
+            self.transition_to_next_phase_args = [None]
             if fixed_duration:
                 self.transition_to_next_phase = self._transition_to_next_phase_deterministic
             else:
                 self.transition_to_next_phase = self._transition_to_next_phase_stochastic
         else:
-            self.custom_transition_function = True
             if type(transition_to_next_phase_args) != list:
                 raise TypeError("Custom exit function selected but no args given. Was expecting "
                                 "'transition_to_next_phase_args' to be a list, got "
@@ -242,24 +240,26 @@ class Phase:
         if self.volume < self.target_volume:
             self.volume += self.update_volume_rate
 
-    def _transition_to_next_phase_stochastic(self):
+    def _transition_to_next_phase_stochastic(self, none):
         """
         Default stochastic phase transition function.
 
         Calculates a Poisson probability based on dt and self.phase_duration (p=1-exp(-dt/phase_duration), rolls a
         random number, and returns random number < probability.
 
+        :param none: Not used. Place holder in case of user defined function with args
         :return: bool. random number < probability of transition
         """
         prob = 1 - exp(-self.dt / self.phase_duration)
         return uniform() < prob
 
-    def _transition_to_next_phase_deterministic(self):
+    def _transition_to_next_phase_deterministic(self, none):
         """
         Default deterministic phase transition function.
 
         If the time spent in this phase is greater than the phase duration, go to the next phase.
 
+        :param none: Not used. Place holder in case of user defined function with args
         :return:
         """
         return self.time_in_phase > self.phase_duration
@@ -285,10 +285,7 @@ class Phase:
             if self.arrest_function(self.arrest_function_args):
                 return False, True
 
-        if self.custom_transition_function:
-            transition = self.transition_to_next_phase(self.transition_to_next_phase_args)
-        else:
-            transition = self.transition_to_next_phase()
+        transition = self.transition_to_next_phase(self.transition_to_next_phase_args)
 
         if transition and self.exit_function is not None:
             quies = self.exit_function(self.exit_function_args)
@@ -306,12 +303,13 @@ class QuiescentPhase(Phase):
     """Default Quiescent Phase. Inherits Phase()"""
 
     def __init__(self, index: int = 9999, previous_phase_index: int = None, next_phase_index: int = 0,
-                 dt: float = None, time_unit: str = "min", name: str = "quiescent", division_at_phase_exit: bool = False,
+                 dt: float = None, time_unit: str = "min", name: str = "quiescent",
+                 division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 4.59 * 60,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
                  transition_to_next_phase=None, transition_to_next_phase_args: list = None,
-                 target_volume: float = None,volume: float = None, update_volume=None, update_volume_args: list = None,
+                 target_volume: float = None, volume: float = None, update_volume=None, update_volume_args: list = None,
                  update_volume_rate: float = None, simulated_cell_volume: float = None):
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
