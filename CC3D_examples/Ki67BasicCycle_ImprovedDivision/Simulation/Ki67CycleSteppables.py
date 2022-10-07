@@ -14,8 +14,6 @@ import Phenotypes as pheno
 
 # todo:
 #  - data output
-#  - overload the positive phase transition to only occur when the cell has the necessary volume
-#  --- add an attribute to the phases called "simulated_cell_vol" (or something) for that check
 
 
 def Ki67pos_transition(*args):
