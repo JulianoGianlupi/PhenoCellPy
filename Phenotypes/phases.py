@@ -222,7 +222,7 @@ class Phase:
 
         if update_volume is None:
             self.update_volume = self._update_volume
-            self.update_volume_args = None
+            self.update_volume_args = [None]
         else:
             self.update_volume = update_volume
             self.update_volume_args = update_volume_args
