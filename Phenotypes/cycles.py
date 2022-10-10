@@ -445,7 +445,7 @@ class FlowCytometryBasic(Cycle):
 
     def __init__(self, name="Flow Cytometry Basic", dt=0.1, time_unit="min", quiescent_phase=False,
                  division_at_phase_exits=(False, False, True), removal_at_phase_exits=(False, False, False),
-                 fixed_durations=(False, False, True), phase_durations: list = (5.15 * 60, 8 * 60.0, 5 * 60),
+                 fixed_durations=(False, False, False), phase_durations: list = (5.15 * 60, 8 * 60.0, 5 * 60),
                  entry_functions=(None, None, None), entry_functions_args=(None, None, None),
                  exit_functions=(None, None, None),
                  exit_functions_args=(None, None, None), arrest_functions=(None, None, None),
@@ -517,6 +517,9 @@ class FlowCytometryBasic(Cycle):
                          simulated_cell_volume=simulated_cell_volume)
 
         phases = [G0G1, S, G2M]
+
+        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+
 
 
 cycle_names = ["Simple Live", "Ki67 Basic"]
