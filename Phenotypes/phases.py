@@ -539,6 +539,7 @@ class G2M(Phase):
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args)
 
+
 if __name__ == '__main__':
     test_ki = Ki67Positive(dt=0.1)
     print(test_ki.index)
