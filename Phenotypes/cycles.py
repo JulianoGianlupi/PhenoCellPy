@@ -283,7 +283,7 @@ class SimpleLiveCycle(Cycle):
 
     def __init__(self, time_unit: str = "min", name: str = "Simple Live", dt=1):
         phases = [Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
-                               name="alive", division_at_phase_exit=True, phase_duration=60/0.0432)]
+                               name="alive", division_at_phase_exit=True, phase_duration=60 / 0.0432)]
         super().__init__(name=name, time_unit=time_unit, phases=phases, quiescent_phase=False, dt=dt)
 
 
@@ -368,7 +368,6 @@ class Ki67Advanced(Cycle):
                  target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None),
                  update_volumes_args: list = (None, None, None), update_volume_rates=(None, None, None),
                  simulated_cell_volume=None):
-
         _check_arguments(3, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
                          phase_durations, entry_functions, entry_functions_args, exit_functions,
                          exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
@@ -434,6 +433,90 @@ class Ki67Advanced(Cycle):
                                                             simulated_cell_volume=simulated_cell_volume)
         phases = [Ki67_negative, Ki67_positive_pre, Ki67_positive_post]
         super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+
+
+class FlowCytometryBasic(Cycle):
+    """
+    Basic flow cytometry model.
+
+    Cell cycle consists of G0/G1 -> S -> G2/M -> G0/G1. Reference cycle lengths from
+    https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    """
+
+    def __init__(self, name="Flow Cytometry Basic", dt=0.1, time_unit="min", quiescent_phase=False,
+                 division_at_phase_exits=(False, False, True), removal_at_phase_exits=(False, False, False),
+                 fixed_durations=(False, False, True), phase_durations: list = (5.15 * 60, 8 * 60.0, 5 * 60),
+                 entry_functions=(None, None, None), entry_functions_args=(None, None, None),
+                 exit_functions=(None, None, None),
+                 exit_functions_args=(None, None, None), arrest_functions=(None, None, None),
+                 arrest_functions_args=(None, None, None),
+                 transitions_to_next_phase=(None, None, None),
+                 transitions_to_next_phase_args: list = (None, None, None),
+                 target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None),
+                 update_volumes_args: list = (None, None, None), update_volume_rates=(None, None, None),
+                 simulated_cell_volume=None):
+        _check_arguments(3, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
+                         phase_durations, entry_functions, entry_functions_args, exit_functions,
+                         exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
+                         transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
+        G0G1 = Phases.G0G1(dt=dt,
+                           time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
+                           removal_at_phase_exit=removal_at_phase_exits[0],
+                           fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
+                           entry_function=entry_functions[0],
+                           entry_function_args=entry_functions_args[0],
+                           exit_function=exit_functions[0],
+                           exit_function_args=exit_functions_args[0],
+                           arrest_function=arrest_functions[0],
+                           arrest_function_args=arrest_functions_args[0],
+                           transition_to_next_phase=transitions_to_next_phase[0],
+                           transition_to_next_phase_args=transitions_to_next_phase_args[0],
+                           target_volume=target_volumes[0], volume=volumes[0],
+                           update_volume=update_volumes[0], update_volume_args=update_volumes_args[0],
+                           update_volume_rate=update_volume_rates[0],
+                           simulated_cell_volume=simulated_cell_volume)
+
+        S = Phases.S(dt=dt,
+                     time_unit=time_unit,
+                     division_at_phase_exit=division_at_phase_exits[1],
+                     removal_at_phase_exit=removal_at_phase_exits[1],
+                     fixed_duration=fixed_durations[1],
+                     phase_duration=phase_durations[1],
+                     entry_function=entry_functions[1],
+                     entry_function_args=entry_functions_args[1],
+                     exit_function=exit_functions[1],
+                     exit_function_args=exit_functions_args[1],
+                     arrest_function=arrest_functions[1],
+                     arrest_function_args=arrest_functions_args[1],
+                     transition_to_next_phase=transitions_to_next_phase[1],
+                     transition_to_next_phase_args=transitions_to_next_phase_args[1],
+                     target_volume=target_volumes[1], volume=volumes[1],
+                     update_volume=update_volumes[1],
+                     update_volume_args=update_volumes_args[1],
+                     update_volume_rate=update_volume_rates[1],
+                     simulated_cell_volume=simulated_cell_volume)
+        G2M = Phases.G2M(dt=dt,
+                         time_unit=time_unit,
+                         division_at_phase_exit=division_at_phase_exits[2],
+                         removal_at_phase_exit=removal_at_phase_exits[2],
+                         fixed_duration=fixed_durations[2],
+                         phase_duration=phase_durations[2],
+                         entry_function=entry_functions[2],
+                         entry_function_args=entry_functions_args[2],
+                         exit_function=exit_functions[2],
+                         exit_function_args=exit_functions_args[2],
+                         arrest_function=arrest_functions[2],
+                         arrest_function_args=arrest_functions_args[2],
+                         transition_to_next_phase=transitions_to_next_phase[2],
+                         transition_to_next_phase_args=
+                         transitions_to_next_phase_args[2],
+                         target_volume=target_volumes[2], volume=volumes[2],
+                         update_volume=update_volumes[2],
+                         update_volume_args=update_volumes_args[2],
+                         update_volume_rate=update_volume_rates[2],
+                         simulated_cell_volume=simulated_cell_volume)
+
+        phases = [G0G1, S, G2M]
 
 
 cycle_names = ["Simple Live", "Ki67 Basic"]
