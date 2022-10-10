@@ -131,3 +131,4 @@ dmypy.json
 
 # cc3d files
 _settings.sqlite
+/TF_examples/Ki67BasicCycle/mitosis_example.py
