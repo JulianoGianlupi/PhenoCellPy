@@ -159,7 +159,7 @@ class Cycle:
 
     def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", phases: list = None,
                  quiescent_phase: Phases.Phase or False = None):
-
+        # todo: add __init__ parameters for custom functions for each class
         self.name = name
 
         self.time_unit = time_unit
