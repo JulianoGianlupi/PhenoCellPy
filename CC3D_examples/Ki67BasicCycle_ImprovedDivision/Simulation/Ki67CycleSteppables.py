@@ -7,9 +7,11 @@ from numpy import median, quantile, nan
 
 import sys
 from os.path import abspath, dirname, join
+
 sys.path.extend([abspath("../../..")])  # todo: make this more refined
 
 import Phenotypes as pheno
+
 
 def Ki67pos_transition(*args):
     # print(len(args), print(args))
@@ -87,11 +89,11 @@ class MitosisSteppable(MitosisSteppableBase):
             self.plot_win_vol.add_plot("Maximum Vol", style='Lines', color='red', size=5)
 
             self.plot_win_time = self.add_new_plot_window(title='Time spent in each phase',
-                                                         x_axis_title='MonteCarlo Step (MCS)',
-                                                         y_axis_title='Variables', x_scale_type='linear',
-                                                         y_scale_type='linear',
-                                                         grid=True,
-                                                         config_options={"legend": True})
+                                                          x_axis_title='MonteCarlo Step (MCS)',
+                                                          y_axis_title='Variables', x_scale_type='linear',
+                                                          y_scale_type='linear',
+                                                          grid=True,
+                                                          config_options={"legend": True})
 
             self.plot_win_time.add_plot("Median Time in Ki67-", style='Lines', color='yellow', size=5)
             self.plot_win_time.add_plot("Median Time in Ki67+", style='Lines', color='blue', size=5)
@@ -223,7 +225,7 @@ class MitosisSteppable(MitosisSteppableBase):
                                            f"{in_0_10th}, {in_0_90th}, {in_0_25th}, {in_0_75th}\n")
                 self.time_plus_file.write(f"{mcs}, {in_1_median}, {in_1_min}, {in_1_max}, "
                                           f"{in_1_10th}, {in_1_90th}, {in_1_25th}, {in_1_75th}\n")
-
+                # todo: wrong order of negative/positive. header is "MCS, N, N+, N-\n"
                 self.number_cells_file.write(f"{mcs}, {len(self.cell_list)}, {n_zero}, {n_one}\n")
 
             if self.plot:
