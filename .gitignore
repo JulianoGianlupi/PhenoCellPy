@@ -131,3 +131,4 @@ dmypy.json
 
 # cc3d files
 _settings.sqlite
+screenshot_data/
