@@ -31,7 +31,7 @@ class ConstraintInitializerSteppable(SteppableBasePy):
 
         dt = 5  # 5 min/mcs
 
-        ki67_basic = pheno.cycles.Ki67Basic(dt=dt, target_volumes=[side * side, side * side],
+        ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt, target_volumes=[side * side, side * side],
                                             volumes=[side * side, side * side])
 
         for cell in self.cell_list:
