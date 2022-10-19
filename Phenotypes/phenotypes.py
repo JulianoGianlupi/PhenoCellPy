@@ -2,12 +2,9 @@ import Phenotypes.phases as Phases
 
 
 # todo:
-#  - finish generic cycle class
-#  - implement phase transition
-#  - implement quiescent phenotype
 #  - implement physicell's phenotypes
 #  - documentation
-#  - functions to attach to object
+#  - add biomodels ontology anotation
 
 def _check_arguments(number_phases, cycle_name, target_volumes, division_at_phase_exits,
                      removal_at_phase_exits, fixed_durations, phase_durations, entry_functions,
@@ -637,6 +634,38 @@ class FlowCytometryAdvanced(Phenotype):
         phases = [G0G1, S, G2, M]
 
         super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+
+
+class ApoptosisStandard(Phenotype):
+
+    """
+    The standard apoptotic model
+    """
+
+    def __init__(self, name="Standard apoptosis model", dt=0.1, time_unit="min", quiescent_phase=False,
+                 division_at_phase_exits=(False), removal_at_phase_exits=(True), fixed_durations=(True),
+                 phase_durations=(8.6*60), entry_functions=(None), entry_functions_args=(None),
+                 exit_functions_args=(None), arrest_functions=(None), arrest_functions_args=(None),
+                 transitions_to_next_phase=(None), transitions_to_next_phase_args=(None), target_volumes=(0),
+                 volumes=(None), update_volumes=(None), update_volumes_args=(None), update_volume_rates=(None),
+                 simulated_cell_volume=None):
+        return
+
+    # def ___init__(self, name="Flow Cytometry Advanced", dt=0.1, time_unit="min", quiescent_phase=False,
+    #              division_at_phase_exits=(False, False, False, True),
+    #              removal_at_phase_exits=(False, False, False, False),
+    #              fixed_durations=(False, False, False, False),
+    #              phase_durations: list = (4.98 * 60, 8 * 60.0, 4 * 60, 1 * 60),
+    #              entry_functions=(None, None, None, None), entry_functions_args=(None, None, None, None),
+    #              exit_functions=(None, None, None, None),
+    #              exit_functions_args=(None, None, None), arrest_functions=(None, None, None, None),
+    #              arrest_functions_args=(None, None, None, None),
+    #              transitions_to_next_phase=(None, None, None, None),
+    #              transitions_to_next_phase_args: list = (None, None, None, None),
+    #              target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None, None),
+    #              update_volumes_args: list = (None, None, None, None), update_volume_rates=(None, None, None, None),
+    #              simulated_cell_volume=None):
+    #     return
 
 
 cycle_names = ["Simple Live", "Ki67 Basic"]
