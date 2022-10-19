@@ -1,6 +1,14 @@
 import Phenotypes.phases as Phases
 
 
+# todo:
+#  - finish generic cycle class
+#  - implement phase transition
+#  - implement quiescent phenotype
+#  - implement physicell's phenotypes
+#  - documentation
+#  - functions to attach to object
+
 def _check_arguments(number_phases, cycle_name, target_volumes, division_at_phase_exits,
                      removal_at_phase_exits, fixed_durations, phase_durations, entry_functions,
                      entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
@@ -105,10 +113,10 @@ def _check_arguments(number_phases, cycle_name, target_volumes, division_at_phas
         raise TypeError(f"`update_volume_rates` must be a list or tuple, got {type(update_volumes)}")
 
 
-class Cycle:
+class Phenotype:
     """
 
-    Base class to define a cell cycle.
+    Base class to define a cell phenotype.
 
     TODO: more description
 
@@ -276,7 +284,7 @@ class Cycle:
         return f"{self.name} cycle, phases: {phases}"
 
 
-class SimpleLiveCycle(Cycle):
+class SimpleLiveCycle(Phenotype):
     """
         Simplest life cycle, it has only one phase. When "progressing" to the next phase it divides.
         """
@@ -287,7 +295,7 @@ class SimpleLiveCycle(Cycle):
         super().__init__(name=name, time_unit=time_unit, phases=phases, quiescent_phase=False, dt=dt)
 
 
-class Ki67Basic(Cycle):
+class Ki67Basic(Phenotype):
     """
 
     Simple proliferating-quiescent phase. Does not use the stand-alone quiescent phase. Cell divides upon leaving Ki67+
@@ -354,7 +362,7 @@ class Ki67Basic(Cycle):
         super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
 
 
-class Ki67Advanced(Cycle):
+class Ki67Advanced(Phenotype):
 
     def __init__(self, name="Ki67 Advanced", dt=0.1, time_unit="min", quiescent_phase=False,
                  division_at_phase_exits=(False, True, False), removal_at_phase_exits=(False, False, False),
@@ -435,7 +443,7 @@ class Ki67Advanced(Cycle):
         super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
 
 
-class FlowCytometryBasic(Cycle):
+class FlowCytometryBasic(Phenotype):
     """
     Basic flow cytometry model.
 
@@ -521,7 +529,7 @@ class FlowCytometryBasic(Cycle):
         super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
 
 
-class FlowCytometryAdvanced(Cycle):
+class FlowCytometryAdvanced(Phenotype):
     """
     Basic flow cytometry model.
 
@@ -643,7 +651,7 @@ def get_cycle_by_name(name):
     elif name == "Ki67 Basic":
         return Ki67Basic
 
-    return Cycle
+    return Phenotype
 
 
 if __name__ == "__main__":
