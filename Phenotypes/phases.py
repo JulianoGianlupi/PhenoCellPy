@@ -1,5 +1,6 @@
 from numpy import exp
 from numpy.random import uniform
+from warnings import warn
 
 
 class Phase:
@@ -82,6 +83,19 @@ class Phase:
     target_volume : float
         The target volume of the cell in this phase
 
+    cytoplasmic_volume : float
+        The cytoplasm's volume
+
+    cytoplasmic_solid_fraction: float
+        The ratio of cytoplasmic volume that should be solid, 0<=cytoplasmic_solid_fraction<=1
+
+    cyto_nucl_ratio: float
+        The volume of the nucleus in relation to the cytoplasmic volume.
+        nuclear volume =  cyto_nucl_ratio * cytoplasmic_volume
+
+    nuclear_solid_fraction: float
+        The ratio of nucler volume that should be solid, 0<=nuclear_solid_fraction<=1
+
     simulated_cell_volume : float
         The volume of the simulated cell object in this phase
 
@@ -111,10 +125,15 @@ class Phase:
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
                  transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = None,
-                 volume: float = None, update_volume=None, update_volume_args: list = None,
+                 volume: float = None, cytoplasmic_ratio=None, cytoplasmic_solid_fraction=None, cyto_nucl_ratio=None,
+                 nuclear_solid_fraction=None, update_volume=None, update_volume_args: list = None,
                  update_volume_rate: float = None, simulated_cell_volume: float = None):
 
         """
+        :param cytoplasmic_ratio:
+        :param cytoplasmic_solid_fraction:
+        :param cyto_nucl_ratio:
+        :param nuclear_solid_fraction:
         :param update_volume_rate:
         :param target_volume:
         :param volume:
@@ -210,6 +229,26 @@ class Phase:
         else:
             self.target_volume = target_volume
 
+        if cytoplasmic_ratio is None:
+            self.cytoplasm_ratio = 0.9
+        else:
+            self.cytoplasm_ratio = cytoplasmic_ratio
+
+        if cytoplasmic_solid_fraction is None:
+            self.cytoplasmic_solid_fraction = 0
+        else:
+            self.cytoplasmic_solid_fraction = cytoplasmic_solid_fraction
+
+        if cyto_nucl_ratio is None:
+            self.cyto_nucl_ratio = (1 / self.cytoplasm_ratio) - 1
+        else:
+            self.cyto_nucl_ratio = cyto_nucl_ratio
+
+        if nuclear_solid_fraction is None:
+            self.nuclear_solid_fraction = 0
+        else:
+            self.nuclear_solid_fraction = nuclear_solid_fraction
+
         if simulated_cell_volume is None:
             self.simulated_cell_volume = 1
         else:
@@ -227,6 +266,84 @@ class Phase:
             self.update_volume = update_volume
             self.update_volume_args = update_volume_args
 
+    @property
+    def cytoplasm_ratio(self):
+        return self.__cyto_ratio
+
+    @cytoplasm_ratio.setter
+    def cytoplasm_ratio(self, value):
+        if not 0 <= value <= 1:
+            raise ValueError(f"`cytoplasmic_ratio` must be in the range [0, 1]. "
+                             f"Got {value}")
+        self.__cyto_ratio = value
+
+    @property
+    def cyto_nucl_ratio(self):
+        return self.__cyto_nucl_ratio
+
+    @cyto_nucl_ratio.setter
+    def cyto_nucl_ratio(self, value):
+        if value < 0:
+            raise ValueError(f"`cyto_nucl_ratio` must be >=0")
+        self.__cyto_nucl_ratio = value
+
+    @property
+    def cytoplasmic_solid_fraction(self):
+        return self.__csf
+
+    @cytoplasmic_solid_fraction.setter
+    def cytoplasmic_solid_fraction(self, value):
+        if not 0 <= value <= 1:
+            raise ValueError(f"`cytoplasmic_solid_fraction` must be in the range [0, 1]. "
+                             f"Got {value}")
+
+        if self.cytoplasm_ratio * self.target_volume + \
+                self.cyto_nucl_ratio * self.cytoplasm_ratio * self.target_volume > self.target_volume:
+            message = "WARNING: `cytoplasmic_volume` + `cyto_nucl_ratio` * `cytoplasmic_volume` > `target_volume`. " \
+                      "Resetting `target_volume` = `cytoplasmic_volume` + `cyto_nucl_ratio` * `cytoplasmic_volume`"
+            warn(message)
+            # target volume = target cyto volume + target nucl volume =
+            #     = cytoplasm_ratio * target volume + cyto_nucl_ratio * cytoplasm_ratio * target volume =
+            #     = target volume * (cytoplasm_ratio + cyto_nucl_ratio * cytoplasm_ratio)
+            #     = target volume * (cytoplasm_ratio * (1 + cyto_nucl_ratio))
+            self.target_volume = ((1 + self.cyto_nucl_ratio) * self.cytoplasm_ratio) * self.target_volume
+
+        self.__csf = value
+
+    @property
+    def nuclear_solid_fraction(self):
+        return self.__nsf
+
+    @nuclear_solid_fraction.setter
+    def nuclear_solid_fraction(self, value):
+        if not 0 <= value <= 1:
+            raise ValueError(f"`nuclear_solid_fraction` must be in the range [0,1]. Got {value}")
+        self.__nsf = value
+
+    @property
+    def cytoplasm_volume(self):
+        return self.cytoplasm_ratio * self.volume
+
+    @property
+    def cytoplasm_solid_volume(self):
+        return self.cytoplasmic_solid_fraction * self.cytoplasm_volume
+
+    @property
+    def cytoplasm_fluid_volume(self):
+        return (1 - self.cytoplasmic_solid_fraction) * self.cytoplasm_volume
+
+    @property
+    def nuclear_volume(self):
+        return self.cyto_nucl_ratio * self.cytoplasm_volume
+
+    @property
+    def nuclear_solid_volume(self):
+        return self.nuclear_solid_fraction * self.nuclear_volume
+
+    @property
+    def nuclear_fluid_volume(self):
+        return (1 - self.nuclear_solid_fraction) * self.nuclear_volume
+
     def _update_volume(self, none):
         """
         Updates the volume if cell is below target.
@@ -237,8 +354,8 @@ class Phase:
         :param none: Not used. Place holder in case of user defined function with args
         :return:
         """
-        if self.volume < self.target_volume:
-            self.volume += self.update_volume_rate
+
+        self.volume += self.dt * self.update_volume_rate * (self.target_volume - self.volume)
 
     def _transition_to_next_phase_stochastic(self, none):
         """
@@ -297,6 +414,7 @@ class Phase:
 
     def _double_target_volume(self):
         self.target_volume *= 2
+        self.cytoplasmic_target_volume *= 2
 
     def __str__(self):
         return f"{self.name} phase"
@@ -315,16 +433,15 @@ class QuiescentPhase(Phase):
                  target_volume: float = None, volume: float = None, update_volume=None, update_volume_args: list = None,
                  update_volume_rate: float = None, simulated_cell_volume: float = None):
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
-                         entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
-                         removal_at_phase_exit=removal_at_phase_exit, target_volume=target_volume, volume=volume,
-                         update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume, exit_function=exit_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args)
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
+                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
+                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
         return
 
 
@@ -348,16 +465,15 @@ class Ki67Negative(Phase):
                  volume: float = None, update_volume=None, update_volume_args: list = None,
                  update_volume_rate: float = None, simulated_cell_volume: float = None):
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
-                         entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
-                         removal_at_phase_exit=removal_at_phase_exit, target_volume=target_volume, volume=volume,
-                         update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume, exit_function=exit_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args)
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
+                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
+                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
 
 
 class Ki67Positive(Phase):
@@ -394,16 +510,15 @@ class Ki67Positive(Phase):
             update_volume_rate = target_volume / (phase_duration / dt)
 
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
-                         entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
-                         removal_at_phase_exit=removal_at_phase_exit, target_volume=target_volume, volume=volume,
-                         update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume, exit_function=exit_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args)
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
+                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
+                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
 
 
 class Ki67PositivePreMitotic(Ki67Positive):
@@ -449,19 +564,19 @@ class Ki67PositivePostMitotic(Phase):
                             f"list got {type(entry_function_args)}")
 
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
-                         entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
-                         removal_at_phase_exit=removal_at_phase_exit, target_volume=target_volume, volume=volume,
-                         update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume, exit_function=exit_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args)
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
+                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
+                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
 
     def _standard_Ki67_positive_postmit_entry_function(self, *args):
         self.target_volume /= 2
+
 
 class G0G1(Phase):
     def __init__(self, index: int = 0, previous_phase_index: int = 2, next_phase_index: int = 1,
@@ -474,16 +589,16 @@ class G0G1(Phase):
                  volume: float = None, update_volume=None, update_volume_args: list = None,
                  update_volume_rate: float = None, simulated_cell_volume: float = None):
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
-                         entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
-                         removal_at_phase_exit=removal_at_phase_exit, target_volume=target_volume, volume=volume,
-                         update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume, exit_function=exit_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args)
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
+                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
+                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+
 
 class S(Phase):
     def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2,
@@ -506,16 +621,16 @@ class S(Phase):
             update_volume_rate = target_volume / (phase_duration / dt)
 
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
-                         entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
-                         removal_at_phase_exit=removal_at_phase_exit, target_volume=target_volume, volume=volume,
-                         update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume, exit_function=exit_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args)
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
+                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
+                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+
 
 class G2M(Phase):
     def __init__(self, index: int = 2, previous_phase_index: int = 1, next_phase_index: int = 0,
@@ -528,16 +643,15 @@ class G2M(Phase):
                  volume: float = None, update_volume=None, update_volume_args: list = None,
                  update_volume_rate: float = None, simulated_cell_volume: float = None):
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
-                         entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
-                         removal_at_phase_exit=removal_at_phase_exit, target_volume=target_volume, volume=volume,
-                         update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume, exit_function=exit_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args)
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
+                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
+                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
 
 
 if __name__ == '__main__':
