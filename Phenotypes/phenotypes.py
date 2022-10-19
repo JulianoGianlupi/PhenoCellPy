@@ -287,8 +287,9 @@ class SimpleLiveCycle(Phenotype):
         """
 
     def __init__(self, time_unit: str = "min", name: str = "Simple Live", dt=1):
-        phases = [Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
-                               name="alive", division_at_phase_exit=True, phase_duration=60 / 0.0432)]
+        phases = [
+            Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit, name="alive",
+                         division_at_phase_exit=True, phase_duration=60 / 0.0432)]
         super().__init__(name=name, time_unit=time_unit, phases=phases, quiescent_phase=False, dt=dt)
 
 
