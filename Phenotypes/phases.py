@@ -414,7 +414,6 @@ class Phase:
 
     def _double_target_volume(self):
         self.target_volume *= 2
-        self.cytoplasmic_target_volume *= 2
 
     def __str__(self):
         return f"{self.name} phase"
