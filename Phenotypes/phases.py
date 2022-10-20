@@ -357,6 +357,9 @@ class Phase:
 
         self.volume += self.dt * self.update_volume_rate * (self.target_volume - self.volume)
 
+        if self.volume < 0:
+            self.volume = 0
+
     def _transition_to_next_phase_stochastic(self, none):
         """
         Default stochastic phase transition function.
@@ -367,6 +370,10 @@ class Phase:
         :param none: Not used. Place holder in case of user defined function with args
         :return: bool. random number < probability of transition
         """
+
+        # the approximation 1-exp(-x) ~ x can be used. That approximation has a difference of 0.005 at x=0.1, which I'd
+        # find acceptable. TODO: implement a check on self.dt / self.phase_duration, if it is < .1 use the approximation
+
         prob = 1 - exp(-self.dt / self.phase_duration)
         return uniform() < prob
 
@@ -651,6 +658,37 @@ class G2M(Phase):
                          transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
                          volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
                          update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+
+
+class Apoptosis(Phase):
+    def __init__(self, index: int = 2, previous_phase_index: int = 1, next_phase_index: int = 0,
+                 dt: float = 0.1, time_unit: str = "min", name: str = "G2/M",
+                 division_at_phase_exit: bool = True,
+                 removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 5 * 60.0,
+                 entry_function=None, entry_function_args: list = None, exit_function=None,
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = None,
+                 volume: float = None, update_volume=None, update_volume_args: list = None,
+                 update_volume_rate: float = None, simulated_cell_volume: float = None):
+
+        # todo: define change volume rate
+
+        if entry_function is None:
+            entry_function = self._standard_apoptosis_entry
+
+        super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
+                         phase_duration=phase_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
+                         exit_function_args=exit_function_args, arrest_function=arrest_function,
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
+                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
+                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+
+    def _standard_apoptosis_entry(self):
+        return
 
 
 if __name__ == '__main__':
