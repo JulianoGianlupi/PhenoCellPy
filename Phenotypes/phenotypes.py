@@ -657,7 +657,7 @@ class ApoptosisStandard(Phenotype):
                          exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
                          transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
 
-        apopto = Phases.Apoptosis(name="Apoptosis", index=0, previous_phase_index=0, next_phase_index=0, dt=dt,
+        apopto = Phases.Apoptosis(name="Apoptosis", index=0, previous_phase_index=0, next_phase_index=1, dt=dt,
                                   time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
                                   removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
                                   phase_duration=phase_durations[0], entry_function=entry_functions[0],
@@ -669,7 +669,13 @@ class ApoptosisStandard(Phenotype):
                                   target_volume=target_volumes[0], volume=volumes[0], update_volume=update_volumes[0],
                                   update_volume_args=update_volumes_args[0], update_volume_rate=update_volume_rates[0],
                                   simulated_cell_volume=simulated_cell_volume[0])
-        phases = [apopto]
+
+        # a phase to help lyse the simulated cell, shouldn't do anything
+        debris = Phases.Phase(name="Debris", index=1, previous_phase_index=0, next_phase_index=1, dt=dt,
+                              time_unit=time_unit, division_at_phase_exit=False, removal_at_phase_exit=True,
+                              fixed_duration=True, phase_duration=1e6, target_volume=0)
+
+        phases = [apopto, debris]
 
         super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
 

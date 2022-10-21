@@ -3,6 +3,35 @@ from numpy.random import uniform
 from warnings import warn
 
 
+class CellVolumes:
+    # total
+    total = 0
+
+    # fluid volumes
+    fluid = 0
+    fluid_change_rate = 0
+    target_fluid_fraction = 0
+    fluid_fraction = 0
+
+    # nuclear volumes
+    nuclear = 0
+    nuclear_solid = 0
+    target_solid_nuclear = 0
+    nuclear_biomass_change_rate = 0
+
+    # cytoplasm volumes
+    cytoplasm = 0
+    cyto_nucl_ratio = 1
+    target_solid_cytoplasm = 0
+    cytoplasm_solid = 0
+    cytoplasm_fluid = 0
+    cytoplasm_biomass_change_rate = 0
+
+    # calcified
+    calcified_fraction = 0
+    calcification_rate = 0
+
+
 class Phase:
     """
     Base class to define phases of a cell cycle.
@@ -90,8 +119,8 @@ class Phase:
         The ratio of cytoplasmic volume that should be solid, 0<=cytoplasmic_solid_fraction<=1
 
     cyto_nucl_ratio: float
-        The volume of the nucleus in relation to the cytoplasmic volume.
-        nuclear volume =  cyto_nucl_ratio * cytoplasmic_volume
+        The volume of the cytoplasm in relation to the nuclear volume.
+        cytoplasm volume =  cyto_nucl_ratio * nuclear_volume
 
     nuclear_solid_fraction: float
         The ratio of nucler volume that should be solid, 0<=nuclear_solid_fraction<=1
@@ -218,6 +247,8 @@ class Phase:
                                 f"{type(transition_to_next_phase_args)}.")
             self.transition_to_next_phase_args = transition_to_next_phase_args
             self.transition_to_next_phase = transition_to_next_phase
+
+        self.new_volume = CellVolumes()
 
         if volume is None:
             self.volume = 1
@@ -661,16 +692,18 @@ class G2M(Phase):
 
 
 class Apoptosis(Phase):
-    def __init__(self, index: int = 2, previous_phase_index: int = 1, next_phase_index: int = 0,
-                 dt: float = 0.1, time_unit: str = "min", name: str = "G2/M",
-                 division_at_phase_exit: bool = True,
-                 removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 5 * 60.0,
+    def __init__(self, index: int = 0, previous_phase_index: int = 0, next_phase_index: int = 0,
+                 dt: float = 0.1, time_unit: str = "min", name: str = "Apoptosis",
+                 division_at_phase_exit: bool = False,
+                 removal_at_phase_exit: bool = True, fixed_duration: bool = True, phase_duration: float = 8.6 * 60.0,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
-                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = None,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = 0,
                  volume: float = None, update_volume=None, update_volume_args: list = None,
-                 update_volume_rate: float = None, simulated_cell_volume: float = None):
-
+                 update_volume_rate: float = None, simulated_cell_volume: float = None,
+                 cytoplasmic_biomass_change_rate: float = 1 / 60, nuclear_biomass_change_rate: float = 0.35 / 60,
+                 unlysed_fluid_change_rate: float = 3 / 60, lysed_fluid_change_rate: float = 0,
+                 calcification_rate: float = 0, relative_rupture_volume: float = 2):
         # todo: define change volume rate
 
         if entry_function is None:
