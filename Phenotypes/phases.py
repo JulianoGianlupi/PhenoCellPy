@@ -4,11 +4,9 @@ from warnings import warn
 
 
 class CellVolumes:
-    # total
-    total = 0
 
     # fluid volumes
-    fluid = 0
+    # fluid = 0
     fluid_change_rate = 0
     target_fluid_fraction = 0
     fluid_fraction = 0
@@ -30,6 +28,40 @@ class CellVolumes:
     # calcified
     calcified_fraction = 0
     calcification_rate = 0
+
+    def __int__(self, total=None, fluid=None):
+
+        if total is not None:
+            self.__total = total
+        else:
+            self.__total = 1
+
+        if fluid is not None:
+            self.__fluid = fluid
+        else:
+            self.__fluid = 1
+
+    @property
+    def total(self):
+        return self.__total
+
+    @total.setter
+    def total(self, value):
+        if value >= 0:
+            self.__total = value
+        else:
+            self.__total = 0
+
+    @property
+    def fluid(self):
+        return self.__fluid
+
+    @fluid.setter
+    def fluid(self, value):
+        if value >= 0:
+            self.__fluid = value
+        else:
+            self.__fluid = 0
 
 
 class Phase:
@@ -390,6 +422,48 @@ class Phase:
 
         if self.volume < 0:
             self.volume = 0
+
+    def _new_update_volume(self):
+
+        self.new_volume.fluid += self.dt * self.new_volume.fluid_change_rate * \
+                                 (self.new_volume.target_fluid_fraction * self.new_volume.total - self.new_volume.fluid)
+        # if <0 set to 0
+        if self.new_volume.fluid < 0:
+            self.new_volume.fluid = 0
+
+        self.new_volume.nuclear_fluid = (self.new_volume.nuclear / (self.new_volume.total + 1e-16)) * \
+                                        self.new_volume.fluid
+
+        self.new_volume.cytoplasm_fluid = self.new_volume.fluid - self.new_volume.nuclear_fluid
+
+        self.new_volume.nuclear_solid += self.dt * self.new_volume.nuclear_biomass_change_rate * \
+                                         (self.new_volume.target_solid_nuclear - self.new_volume.nuclear_solid)
+        if self.new_volume.nuclear_fluid < 0:
+            self.new_volume.nuclear_solid = 0
+
+        self.new_volume.target_solid_cytoplasm = self.new_volume.cyto_nucl_ratio * self.new_volume.nuclear_solid
+
+        self.new_volume.cytoplasm_solid += self.dt * self.new_volume.cytoplasm_biomass_change_rate * \
+                                           (self.new_volume.target_solid_cytoplasm - self.new_volume.cytoplasm_solid)
+
+        if self.new_volume.cytoplasm_solid < 0:
+            self.new_volume.cytoplasm_solid = 0
+
+        # bookkeeping
+        self.new_volume.solid = self.new_volume.cytoplasm_solid + self.new_volume.nuclear_solid
+
+        self.new_volume.nuclear = self.new_volume.nuclear_solid + self.new_volume.nuclear_fluid
+
+        self.new_volume.cytoplasm = self.new_volume.cytoplasm_solid + self.new_volume.cytoplasm_fluid
+
+        # calcify
+
+        self.new_volume.calcified_fraction = self.dt * self.new_volume.calcification_rate * \
+                                             (1 - self.new_volume.calcified_fraction)
+
+        self.new_volume.total = self.new_volume.cytoplasm + self.new_volume.nuclear
+
+        self.new_volume.fluid_fraction = self.new_volume.fluid / (self.new_volume.total + 1e-16)
 
     def _transition_to_next_phase_stochastic(self, none):
         """
