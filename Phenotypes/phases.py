@@ -7,9 +7,9 @@ class CellVolumes:
 
     # fluid volumes
     # fluid = 0
-    fluid_change_rate = 0
-    target_fluid_fraction = 0
-    fluid_fraction = 0
+    # fluid_change_rate = 0
+    # target_fluid_fraction = 0
+    # fluid_fraction = 0
 
     # nuclear volumes
     nuclear = 0
@@ -29,28 +29,51 @@ class CellVolumes:
     calcified_fraction = 0
     calcification_rate = 0
 
-    def __int__(self, total=None, fluid=None):
+    def __int__(self, fluid=None, fluid_change_rate=None, target_fluid_fraction=None, nuclear_fluid=None,
+                nuclear_solid=None):
 
-        if total is not None:
-            self.__total = total
-        else:
-            self.__total = 1
+        # if total is not None:
+        #     self.__total = total
+        # else:
+        #     self.__total = 1
 
         if fluid is not None:
             self.__fluid = fluid
         else:
             self.__fluid = 1
 
+        if fluid_change_rate is None:
+            self.fluid_change_rate = 0
+        else:
+            self.fluid_change_rate = fluid_change_rate
+
+        if target_fluid_fraction is None:
+            self.__target_fluid_fraction = 1
+        else:
+            if not 0 <= target_fluid_fraction <= 1:
+                raise ValueError(f"`target_fluid_fraction` must be in the range [0,1]. Got {target_fluid_fraction}")
+            self.__target_fluid_fraction = target_fluid_fraction
+
+        if nuclear_fluid is None:
+            self.nuclear_fluid = 1
+        else:
+            if nuclear_solid is not None:
+                raise ValueError("Either both `nuclear_solid` and `nuclear_fluid` are defined or both must be left as "
+                                 "the default values")
+            self.nuclear_fluid = nuclear_fluid
+
+        if nuclear_solid is None:
+            self.nuclear_solid = 0
+        else:
+
+            if nuclear_fluid is not None:
+                raise ValueError("Either both `nuclear_solid` and `nuclear_fluid` are defined or both must be left as "
+                                 "the default values")
+            self.nuclear_solid = nuclear_solid
+
     @property
     def total(self):
-        return self.__total
-
-    @total.setter
-    def total(self, value):
-        if value >= 0:
-            self.__total = value
-        else:
-            self.__total = 0
+        return self.cytoplasm + self.nuclear
 
     @property
     def fluid(self):
@@ -63,7 +86,23 @@ class CellVolumes:
         else:
             self.__fluid = 0
 
+    @property
+    def fluid_fraction(self):
+        return self.new_volume.fluid / (self.new_volume.total + 1e-16)
 
+    @property
+    def target_fluid_fraction(self):
+        return self.__target_fluid_fraction
+
+    @target_fluid_fraction.setter
+    def target_fluid_fraction(self, value):
+        if not 0 <= value <= 1:
+            raise ValueError(f"`target_fluid_fraction` must be in the range [0,1]. Got {value}")
+        self.__target_fluid_fraction = value
+
+    @property
+    def nuclear(self):
+        return self.nuclear_solid + self.nuclear_fluid
 class Phase:
     """
     Base class to define phases of a cell cycle.
@@ -438,7 +477,7 @@ class Phase:
 
         self.new_volume.nuclear_solid += self.dt * self.new_volume.nuclear_biomass_change_rate * \
                                          (self.new_volume.target_solid_nuclear - self.new_volume.nuclear_solid)
-        if self.new_volume.nuclear_fluid < 0:
+        if self.new_volume.nuclear_solid < 0:
             self.new_volume.nuclear_solid = 0
 
         self.new_volume.target_solid_cytoplasm = self.new_volume.cyto_nucl_ratio * self.new_volume.nuclear_solid
@@ -452,7 +491,7 @@ class Phase:
         # bookkeeping
         self.new_volume.solid = self.new_volume.cytoplasm_solid + self.new_volume.nuclear_solid
 
-        self.new_volume.nuclear = self.new_volume.nuclear_solid + self.new_volume.nuclear_fluid
+        # self.new_volume.nuclear = self.new_volume.nuclear_solid + self.new_volume.nuclear_fluid
 
         self.new_volume.cytoplasm = self.new_volume.cytoplasm_solid + self.new_volume.cytoplasm_fluid
 
@@ -463,7 +502,7 @@ class Phase:
 
         self.new_volume.total = self.new_volume.cytoplasm + self.new_volume.nuclear
 
-        self.new_volume.fluid_fraction = self.new_volume.fluid / (self.new_volume.total + 1e-16)
+        # self.new_volume.fluid_fraction = self.new_volume.fluid / (self.new_volume.total + 1e-16)
 
     def _transition_to_next_phase_stochastic(self, none):
         """
