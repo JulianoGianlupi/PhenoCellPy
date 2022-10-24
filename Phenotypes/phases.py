@@ -5,8 +5,31 @@ from warnings import warn
 
 class NewCellVolumes:
 
-    def __init__(self):
-        return
+    def __init__(self, cytoplasm=None, target_cytoplasm=None, target_cytoplasm_fluid_fraction=None):
+
+        if target_cytoplasm is None:
+            self.__tc = .5
+        else:
+            if target_cytoplasm <= 0:
+                raise ValueError(f"`target_cytoplasm` must be > 0, got {target_cytoplasm}")
+            self.__tc = target_cytoplasm
+
+        if target_cytoplasm_fluid_fraction is None:
+            self.__tcff = 1
+        else:
+            if not 0 <= target_cytoplasm_fluid_fraction <= 1:
+                raise ValueError(f"`target_cytoplasm_fluid_fraction` must be in range [0,1], got "
+                                 f"{target_cytoplasm_fluid_fraction}")
+            self.__tcff = target_cytoplasm_fluid_fraction
+
+        if cytoplasm is None:
+            self.__cf = self.__tcff * self.__tc
+            self.__cs = (1 - self.__tcff) * self.__tc
+        else:
+            if cytoplasm < 0:
+                raise ValueError(f"`cytoplasm` must be >= 0, got {cytoplasm}")
+            self.__cf = self.__tcff * cytoplasm
+            self.__cs = (1 - self.__tcff) * cytoplasm
 
     @property
     def total(self):
@@ -107,7 +130,12 @@ class NewCellVolumes:
 
     @target_nuclear_fluid_fraction.setter
     def target_nuclear_fluid_fraction(self, value):
-        self.__tnff = value if value >= 0 else 0
+        if 0 <= value <= 1:
+            self.__tnff = value
+        elif value < 0:
+            self.__tnff = 0
+        else:
+            self.__tnff = 1
 
     def update_cytoplasm(self, dt, change_rate):
         self.cytoplasm_fluid += dt * change_rate * (self.target_cytoplasm_fluid_fraction * self.target_cytoplasm -
