@@ -266,7 +266,7 @@ class Phase:
                                           target_nuclear_fluid_fraction=nuclear_target_fluid_fraction,
                                           calcified_fraction=calcified_fraction)
 
-    def _update_volume(self, none):
+    def _old_update_volume(self, none):
         """
         Updates the volume if cell is below target.
 
@@ -282,7 +282,8 @@ class Phase:
         if self.volume < 0:
             self.volume = 0
 
-    def _new_new_update_volume(self):
+    def _update_volume(self, none):
+
         self.new_new_volume.update_volume(self.dt, self.cytoplasm_biomass_change_rate, self.nuclear_biomass_change_rate,
                                           self.calcification_rate)
 
