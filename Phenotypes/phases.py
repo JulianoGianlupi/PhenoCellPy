@@ -125,18 +125,25 @@ class Phase:
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 10,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
-                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = None,
-                 volume: float = None, update_volume=None, update_volume_args: list = None,
-                 update_volume_rate: float = None, simulated_cell_volume: float = None,
-                 cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None, calcification_rate=None):
-
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, update_volume=None,
+                 update_volume_args: list = None, update_volume_rate: float = None, simulated_cell_volume: float = None,
+                 cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None, calcification_rate=None,
+                 cytoplasm_volume=None, cytoplasm_target_volume=None, cytoplasm_target_fluid_fraction=None,
+                 nuclear_volume=None, nuclear_target_volume=None, nuclear_target_fluid_fraction=None,
+                 calcified_fraction=None):
+        # todo: replace the old volume things with the new volume things
         """
+        :param cytoplasm_volume:
+        :param cytoplasm_target_volume:
+        :param cytoplasm_target_fluid_fraction:
+        :param nuclear_volume:
+        :param nuclear_target_volume:
+        :param nuclear_target_fluid_fraction:
+        :param calcified_fraction:
         :param calcification_rate:
         :param cytoplasm_biomass_change_rate:
         :param nuclear_biomass_change_rate:
         :param update_volume_rate:
-        :param target_volume:
-        :param volume:
         :param update_volume:
         :param update_volume_args:
         :param index:
@@ -370,9 +377,9 @@ class QuiescentPhase(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
-                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
+                         update_volume_args=update_volume_args, update_volume_rate=update_volume_rate,
+                         simulated_cell_volume=simulated_cell_volume)
         return
 
 
@@ -402,9 +409,9 @@ class Ki67Negative(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
-                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
+                         update_volume_args=update_volume_args, update_volume_rate=update_volume_rate,
+                         simulated_cell_volume=simulated_cell_volume)
 
 
 class Ki67Positive(Phase):
@@ -447,9 +454,9 @@ class Ki67Positive(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
-                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
+                         update_volume_args=update_volume_args, update_volume_rate=update_volume_rate,
+                         simulated_cell_volume=simulated_cell_volume)
 
 
 class Ki67PositivePreMitotic(Ki67Positive):
@@ -501,9 +508,9 @@ class Ki67PositivePostMitotic(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
-                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
+                         update_volume_args=update_volume_args, update_volume_rate=update_volume_rate,
+                         simulated_cell_volume=simulated_cell_volume)
 
     def _standard_Ki67_positive_postmit_entry_function(self, *args):
         self.target_volume /= 2
@@ -526,9 +533,9 @@ class G0G1(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
-                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
+                         update_volume_args=update_volume_args, update_volume_rate=update_volume_rate,
+                         simulated_cell_volume=simulated_cell_volume)
 
 
 class S(Phase):
@@ -558,9 +565,9 @@ class S(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
-                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
+                         update_volume_args=update_volume_args, update_volume_rate=update_volume_rate,
+                         simulated_cell_volume=simulated_cell_volume)
 
 
 class G2M(Phase):
@@ -580,9 +587,9 @@ class G2M(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
-                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
+                         update_volume_args=update_volume_args, update_volume_rate=update_volume_rate,
+                         simulated_cell_volume=simulated_cell_volume)
 
 
 class Apoptosis(Phase):
@@ -610,9 +617,9 @@ class Apoptosis(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, target_volume=target_volume,
-                         volume=volume, update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
+                         update_volume_args=update_volume_args, update_volume_rate=update_volume_rate,
+                         simulated_cell_volume=simulated_cell_volume)
 
     def _standard_apoptosis_entry(self):
         return

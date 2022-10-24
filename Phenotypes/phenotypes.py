@@ -673,7 +673,7 @@ class ApoptosisStandard(Phenotype):
         # a phase to help lyse the simulated cell, shouldn't do anything
         debris = Phases.Phase(index=1, previous_phase_index=0, next_phase_index=1, dt=dt, time_unit=time_unit,
                               name="Debris", division_at_phase_exit=False, removal_at_phase_exit=True,
-                              fixed_duration=True, phase_duration=1e6, target_volume=0)
+                              fixed_duration=True, phase_duration=1e6)
 
         phases = [apopto, debris]
 
