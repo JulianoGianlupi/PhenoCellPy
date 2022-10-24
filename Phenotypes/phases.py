@@ -5,7 +5,8 @@ from warnings import warn
 
 class NewCellVolumes:
 
-    def __init__(self, cytoplasm=None, target_cytoplasm=None, target_cytoplasm_fluid_fraction=None):
+    def __init__(self, cytoplasm=None, target_cytoplasm=None, target_cytoplasm_fluid_fraction=None,
+                 target_nuclear=None, target_nuclear_fluid_fraction=None, nuclear=None):
 
         if target_cytoplasm is None:
             self.__tc = .5
@@ -31,6 +32,30 @@ class NewCellVolumes:
             self.__cf = self.__tcff * cytoplasm
             self.__cs = (1 - self.__tcff) * cytoplasm
 
+        if target_nuclear is None:
+            self.__tn = .5
+        else:
+            if target_nuclear < 0:
+                raise ValueError(f"`target_nuclear` must be >= 0, got {target_nuclear}")
+            self.__tn = target_nuclear
+
+        if target_nuclear_fluid_fraction is None:
+            self.__tnff = 1
+        else:
+            if not 0 <= target_nuclear_fluid_fraction <= 1:
+                raise ValueError(f"`target_nuclear_fluid_fraction` must be in range [0,1], got "
+                                 f"{target_nuclear_fluid_fraction}")
+            self.__tnff = target_nuclear_fluid_fraction
+
+        if nuclear is None:
+            self.__nf = self.__tnff * self.__tc
+            self.__ns = (1 - self.__tnff) * self.__tc
+        else:
+            if nuclear < 0:
+                raise ValueError(f"`nuclear` must be >= 0, got {nuclear}")
+            self.__nf = self.__tnff * nuclear
+            self.__ns = (1 - self.__tnff) * nuclear
+
     @property
     def total(self):
         return self.cytoplasm + self.nuclear
@@ -45,15 +70,15 @@ class NewCellVolumes:
 
     @property
     def fluid_fraction(self):
-        return self.fluid/self.total
+        return self.fluid / self.total
 
     @property
     def solid_fraction(self):
-        return self.solid/self.total
+        return self.solid / self.total
 
     @property
     def cytoplasm_to_nuclear_ratio(self):
-        return self.cytoplasm/self.nuclear
+        return self.cytoplasm / self.nuclear
 
     @property
     def cytoplasm(self):
@@ -65,7 +90,7 @@ class NewCellVolumes:
 
     @target_cytoplasm.setter
     def target_cytoplasm(self, value):
-        self.__tc = value if value >=0 else 0
+        self.__tc = value if value >= 0 else 0
 
     @property
     def cytoplasm_fluid(self):
@@ -146,7 +171,7 @@ class NewCellVolumes:
     def update_nuclear(self, dt, change_rate):
         self.nuclear_fluid += dt * change_rate * (self.target_nuclear_fluid_fraction * self.target_nuclear -
                                                   self.nuclear_fluid)
-        self.nuclear_solid += dt * change_rate * ((1-self.target_nuclear_fluid_fraction) * self.target_nuclear -
+        self.nuclear_solid += dt * change_rate * ((1 - self.target_nuclear_fluid_fraction) * self.target_nuclear -
                                                   self.nuclear_solid)
 
 
