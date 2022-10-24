@@ -4,7 +4,6 @@ from numpy.random import uniform
 from Phenotypes.cell_volume import CellVolumes
 
 # todo:
-#  - remove the option of user defined volume update
 #  - keep updating the old volume to new volume
 
 class Phase:
@@ -81,17 +80,10 @@ class Phase:
     time_in_phase : float
         Time spent in this phase
 
-    volume : float
-        The volume of the cell in this phase
-
     simulated_cell_volume : float
         The volume of the simulated cell object in this phase
 
-    update_volume_rate : float
-        Amount of volume the cell will grow by if it is below the target and the default update volume function is used.
 
-    update_volume_args : list
-        Args used by custom `update_volume` function
 
     entry_function_args : list
         args for `entry_function`
@@ -112,12 +104,11 @@ class Phase:
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 10,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
-                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, update_volume=None,
-                 update_volume_args: list = None, simulated_cell_volume: float = None,
-                 cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None, calcification_rate=None,
-                 cytoplasm_volume=None, cytoplasm_target_volume=None, cytoplasm_target_fluid_fraction=None,
-                 nuclear_volume=None, nuclear_target_volume=None, nuclear_target_fluid_fraction=None,
-                 calcified_fraction=None):
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
+                 nuclear_biomass_change_rate=None, calcification_rate=None, cytoplasm_volume=None,
+                 cytoplasm_target_volume=None, cytoplasm_target_fluid_fraction=None, nuclear_volume=None,
+                 nuclear_target_volume=None, nuclear_target_fluid_fraction=None, calcified_fraction=None):
         # todo: replace the old volume things with the new volume things
         """
         :param cytoplasm_volume:
@@ -130,8 +121,6 @@ class Phase:
         :param calcification_rate:
         :param cytoplasm_biomass_change_rate:
         :param nuclear_biomass_change_rate:
-        :param update_volume:
-        :param update_volume_args:
         :param index:
         :param previous_phase_index:
         :param next_phase_index:
@@ -226,14 +215,6 @@ class Phase:
             self.nuclear_biomass_change_rate = 1
         else:
             self.nuclear_biomass_change_rate = nuclear_biomass_change_rate
-
-        if update_volume is None:
-            self.update_volume = self._update_volume
-            self.update_volume_args = [None]
-        else:
-            self.update_volume = update_volume
-            self.update_volume_args = update_volume_args
-
         if calcification_rate is None:
             self.calcification_rate = 0
         else:
@@ -247,23 +228,23 @@ class Phase:
                                           target_nuclear_fluid_fraction=nuclear_target_fluid_fraction,
                                           calcified_fraction=calcified_fraction)
 
-    def _old_update_volume(self, none):
-        """
-        Updates the volume if cell is below target.
+    # def _old_update_volume(self, none):
+    #     """
+    #     Updates the volume if cell is below target.
+    #
+    #     If the Phase's volume is below the Phase's target this function increments `self.volume` by
+    #     `self.update_volume_rate`.
+    #
+    #     :param none: Not used. Place holder in case of user defined function with args
+    #     :return:
+    #     """
+    #
+    #     self.volume += self.dt * self.update_volume_rate * (self.target_volume - self.volume)
+    #
+    #     if self.volume < 0:
+    #         self.volume = 0
 
-        If the Phase's volume is below the Phase's target this function increments `self.volume` by
-        `self.update_volume_rate`.
-
-        :param none: Not used. Place holder in case of user defined function with args
-        :return:
-        """
-
-        self.volume += self.dt * self.update_volume_rate * (self.target_volume - self.volume)
-
-        if self.volume < 0:
-            self.volume = 0
-
-    def _update_volume(self, none):
+    def update_volume(self):
 
         self.new_new_volume.update_volume(self.dt, self.cytoplasm_biomass_change_rate, self.nuclear_biomass_change_rate,
                                           self.calcification_rate)
@@ -311,7 +292,7 @@ class Phase:
         self.time_in_phase += self.dt
 
         if self.update_volume:
-            self.update_volume(*self.update_volume_args)
+            self.update_volume()
 
         if self.arrest_function is not None:
             if self.arrest_function(*self.arrest_function_args):
@@ -354,8 +335,8 @@ class QuiescentPhase(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
-                         update_volume_args=update_volume_args, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume)
         return
 
 
@@ -385,8 +366,8 @@ class Ki67Negative(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
-                         update_volume_args=update_volume_args, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume)
 
 
 class Ki67Positive(Phase):
@@ -429,8 +410,8 @@ class Ki67Positive(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
-                         update_volume_args=update_volume_args, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume)
 
 
 class Ki67PositivePreMitotic(Ki67Positive):
@@ -482,8 +463,8 @@ class Ki67PositivePostMitotic(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
-                         update_volume_args=update_volume_args, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume)
 
     def _standard_Ki67_positive_postmit_entry_function(self, *args):
         self.target_volume /= 2
@@ -506,8 +487,8 @@ class G0G1(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
-                         update_volume_args=update_volume_args, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume)
 
 
 class S(Phase):
@@ -537,8 +518,8 @@ class S(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
-                         update_volume_args=update_volume_args, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume)
 
 
 class G2M(Phase):
@@ -558,8 +539,8 @@ class G2M(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
-                         update_volume_args=update_volume_args, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume)
 
 
 class Apoptosis(Phase):
@@ -587,8 +568,8 @@ class Apoptosis(Phase):
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args, update_volume=update_volume,
-                         update_volume_args=update_volume_args, simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume)
 
     def _standard_apoptosis_entry(self):
         return
