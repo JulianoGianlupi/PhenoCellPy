@@ -467,7 +467,8 @@ class Ki67PositivePostMitotic(Phase):
                          simulated_cell_volume=simulated_cell_volume)
 
     def _standard_Ki67_positive_postmit_entry_function(self, *args):
-        self.target_volume /= 2
+        self.new_new_volume.target_cytoplasm /= 2
+        self.new_new_volume.target_nuclear /= 2
 
 
 class G0G1(Phase):
