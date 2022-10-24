@@ -344,15 +344,11 @@ class Ki67Basic(Phenotype):
                                             fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
                                             entry_function=entry_functions[0],
                                             entry_function_args=entry_functions_args[0],
-                                            exit_function=exit_functions[0],
-                                            exit_function_args=exit_functions_args[0],
+                                            exit_function=exit_functions[0], exit_function_args=exit_functions_args[0],
                                             arrest_function=arrest_functions[0],
                                             arrest_function_args=arrest_functions_args[0],
                                             transition_to_next_phase=transitions_to_next_phase[0],
                                             transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                                            target_volume=target_volumes[0], volume=volumes[0],
-                                            update_volume=update_volumes[0], update_volume_args=update_volumes_args[0],
-                                            update_volume_rate=update_volume_rates[0],
                                             simulated_cell_volume=simulated_cell_volume)
 
         phases = [Ki67_negative, Ki67_positive]
@@ -385,15 +381,11 @@ class Ki67Advanced(Phenotype):
                                             fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
                                             entry_function=entry_functions[0],
                                             entry_function_args=entry_functions_args[0],
-                                            exit_function=exit_functions[0],
-                                            exit_function_args=exit_functions_args[0],
+                                            exit_function=exit_functions[0], exit_function_args=exit_functions_args[0],
                                             arrest_function=arrest_functions[0],
                                             arrest_function_args=arrest_functions_args[0],
                                             transition_to_next_phase=transitions_to_next_phase[0],
                                             transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                                            target_volume=target_volumes[0], volume=volumes[0],
-                                            update_volume=update_volumes[0], update_volume_args=update_volumes_args[0],
-                                            update_volume_rate=update_volume_rates[0],
                                             simulated_cell_volume=simulated_cell_volume)
 
         Ki67_positive_pre = Phases.Ki67PositivePreMitotic(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
