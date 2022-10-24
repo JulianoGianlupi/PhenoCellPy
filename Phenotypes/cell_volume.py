@@ -191,6 +191,7 @@ class CellVolumes:
     def update_calcified(self, dt, change_rate):
         self.calcified_fraction = dt * change_rate * (1 - self.calcified_fraction)
 
-    def update_volume(self, dt, cytoplasm_change_rate, nuclear_change_rate):
+    def update_volume(self, dt, cytoplasm_change_rate, nuclear_change_rate, calcification_rate):
         self.update_cytoplasm(dt, cytoplasm_change_rate)
         self.update_nuclear(dt, nuclear_change_rate)
+        self.update_calcified(dt, calcification_rate)

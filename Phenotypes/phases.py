@@ -128,9 +128,10 @@ class Phase:
                  transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = None,
                  volume: float = None, update_volume=None, update_volume_args: list = None,
                  update_volume_rate: float = None, simulated_cell_volume: float = None,
-                 cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None):
+                 cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None, calcification_rate=None):
 
         """
+        :param calcification_rate:
         :param cytoplasm_biomass_change_rate:
         :param nuclear_biomass_change_rate:
         :param update_volume_rate:
@@ -218,8 +219,6 @@ class Phase:
             self.transition_to_next_phase_args = transition_to_next_phase_args
             self.transition_to_next_phase = transition_to_next_phase
 
-        self.new_new_volume = CellVolumes()
-
         if volume is None:
             self.volume = 1
         else:
@@ -240,12 +239,31 @@ class Phase:
         else:
             self.update_volume_rate = update_volume_rate
 
+        if cytoplasm_biomass_change_rate is None:
+            self.cytoplasm_biomass_change_rate = 1
+        else:
+            self.cytoplasm_biomass_change_rate = cytoplasm_biomass_change_rate
+
+        if nuclear_biomass_change_rate is None:
+            self.nuclear_biomass_change_rate = 1
+        else:
+            self.nuclear_biomass_change_rate = nuclear_biomass_change_rate
+
         if update_volume is None:
             self.update_volume = self._update_volume
             self.update_volume_args = [None]
         else:
             self.update_volume = update_volume
             self.update_volume_args = update_volume_args
+
+        if calcification_rate is None:
+            self.calcification_rate = 0
+        else:
+            if calcification_rate < 0:
+                raise ValueError(f"`calcification_rate` must be >= 0, got {calcification_rate}")
+            self.calcification_rate = calcification_rate
+
+        self.new_new_volume = CellVolumes()
 
     def _update_volume(self, none):
         """
@@ -264,7 +282,8 @@ class Phase:
             self.volume = 0
 
     def _new_new_update_volume(self):
-        self.new_new_volume.update_volume(self.dt, self.cytoplasm_biomass_change_rate, self.nuclear_biomass_change_rate)
+        self.new_new_volume.update_volume(self.dt, self.cytoplasm_biomass_change_rate, self.nuclear_biomass_change_rate,
+                                          self.calcification_rate)
 
     def _transition_to_next_phase_stochastic(self, none):
         """
