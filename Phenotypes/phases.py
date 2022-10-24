@@ -226,16 +226,6 @@ class Phase:
             self.transition_to_next_phase_args = transition_to_next_phase_args
             self.transition_to_next_phase = transition_to_next_phase
 
-        if volume is None:
-            self.volume = 1
-        else:
-            self.volume = volume
-
-        if target_volume is None:
-            self.target_volume = 1
-        else:
-            self.target_volume = target_volume
-
         if simulated_cell_volume is None:
             self.simulated_cell_volume = 1
         else:
@@ -270,7 +260,11 @@ class Phase:
                 raise ValueError(f"`calcification_rate` must be >= 0, got {calcification_rate}")
             self.calcification_rate = calcification_rate
 
-        self.new_new_volume = CellVolumes()
+        self.new_new_volume = CellVolumes(cytoplasm=cytoplasm_volume, target_cytoplasm=cytoplasm_target_volume,
+                                          target_cytoplasm_fluid_fraction=cytoplasm_target_fluid_fraction,
+                                          nuclear=nuclear_volume, target_nuclear=nuclear_target_volume,
+                                          target_nuclear_fluid_fraction=nuclear_target_fluid_fraction,
+                                          calcified_fraction=calcified_fraction)
 
     def _update_volume(self, none):
         """
