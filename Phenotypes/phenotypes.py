@@ -327,15 +327,11 @@ class Ki67Basic(Phenotype):
                                             fixed_duration=fixed_durations[1], phase_duration=phase_durations[1],
                                             entry_function=entry_functions[1],
                                             entry_function_args=entry_functions_args[1],
-                                            exit_function=exit_functions[1],
-                                            exit_function_args=exit_functions_args[1],
+                                            exit_function=exit_functions[1], exit_function_args=exit_functions_args[1],
                                             arrest_function=arrest_functions[1],
                                             arrest_function_args=arrest_functions_args[1],
                                             transition_to_next_phase=transitions_to_next_phase[1],
                                             transition_to_next_phase_args=transitions_to_next_phase_args[1],
-                                            target_volume=target_volumes[1], volume=volumes[1],
-                                            update_volume=update_volumes[1], update_volume_args=update_volumes_args[1],
-                                            update_volume_rate=update_volume_rates[1],
                                             simulated_cell_volume=simulated_cell_volume)
 
         Ki67_negative = Phases.Ki67Negative(index=0, previous_phase_index=1, next_phase_index=1, dt=dt,
