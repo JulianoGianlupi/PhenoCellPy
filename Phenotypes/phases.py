@@ -3,7 +3,7 @@ from numpy.random import uniform
 from warnings import warn
 
 
-class NewCellVolumes:
+class CellVolumes:
     def __init__(self, cytoplasm=None, target_cytoplasm=None, target_cytoplasm_fluid_fraction=None,
                  target_nuclear=None, target_nuclear_fluid_fraction=None, nuclear=None, calcified_fraction=None):
 
@@ -415,7 +415,7 @@ class Phase:
             self.transition_to_next_phase_args = transition_to_next_phase_args
             self.transition_to_next_phase = transition_to_next_phase
 
-        self.new_new_volume = NewCellVolumes()
+        self.new_new_volume = CellVolumes()
 
         if volume is None:
             self.volume = 1
