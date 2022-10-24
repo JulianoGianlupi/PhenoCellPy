@@ -347,7 +347,8 @@ class Phase:
         return False, False
 
     def _double_target_volume(self):
-        self.target_volume *= 2
+        self.new_new_volume.target_nuclear *= 2
+        self.new_new_volume.target_cytoplasm *= 2
 
     def __str__(self):
         return f"{self.name} phase"
