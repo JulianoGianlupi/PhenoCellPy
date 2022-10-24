@@ -4,9 +4,8 @@ from warnings import warn
 
 
 class NewCellVolumes:
-    # todo: calcified
     def __init__(self, cytoplasm=None, target_cytoplasm=None, target_cytoplasm_fluid_fraction=None,
-                 target_nuclear=None, target_nuclear_fluid_fraction=None, nuclear=None):
+                 target_nuclear=None, target_nuclear_fluid_fraction=None, nuclear=None, calcified_fraction=None):
 
         if target_cytoplasm is None:
             self.__tc = .5
@@ -55,6 +54,13 @@ class NewCellVolumes:
                 raise ValueError(f"`nuclear` must be >= 0, got {nuclear}")
             self.__nf = self.__tnff * nuclear
             self.__ns = (1 - self.__tnff) * nuclear
+
+        if calcified_fraction is None:
+            self.__cal_frac = 0
+        else:
+            if not 0 <= calcified_fraction <= 1:
+                raise ValueError(f"`calcified_fraction` must be in range [0,1], got {calcified_fraction}")
+            self.__cal_frac = calcified_fraction
 
     @property
     def total(self):
@@ -162,6 +168,19 @@ class NewCellVolumes:
         else:
             self.__tnff = 1
 
+    @property
+    def calcified_fraction(self):
+        return self.__cal_frac
+
+    @calcified_fraction.setter
+    def calcified_fraction(self, value):
+        if 0 <= value <= 1:
+            self.__cal_frac = value
+        elif value < 0:
+            self.__cal_frac = 0
+        else:
+            self.__cal_frac = 1
+
     def update_cytoplasm(self, dt, change_rate):
         self.cytoplasm_fluid += dt * change_rate * (self.target_cytoplasm_fluid_fraction * self.target_cytoplasm -
                                                     self.cytoplasm_fluid)
@@ -173,6 +192,14 @@ class NewCellVolumes:
                                                   self.nuclear_fluid)
         self.nuclear_solid += dt * change_rate * ((1 - self.target_nuclear_fluid_fraction) * self.target_nuclear -
                                                   self.nuclear_solid)
+
+    def update_calcified(self, dt, change_rate):
+        self.calcified_fraction = dt * change_rate * (1 - self.calcified_fraction)
+
+    def update_volume(self, dt, cytoplasm_change_rate, nuclear_change_rate):
+        self.update_cytoplasm(dt, cytoplasm_change_rate)
+        self.update_nuclear(dt, nuclear_change_rate)
+
 
 class Phase:
     """
@@ -296,15 +323,13 @@ class Phase:
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
                  transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = None,
-                 volume: float = None, cytoplasmic_ratio=None, cytoplasmic_solid_fraction=None, cyto_nucl_ratio=None,
-                 nuclear_solid_fraction=None, update_volume=None, update_volume_args: list = None,
-                 update_volume_rate: float = None, simulated_cell_volume: float = None):
+                 volume: float = None, update_volume=None, update_volume_args: list = None,
+                 update_volume_rate: float = None, simulated_cell_volume: float = None,
+                 cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None):
 
         """
-        :param cytoplasmic_ratio:
-        :param cytoplasmic_solid_fraction:
-        :param cyto_nucl_ratio:
-        :param nuclear_solid_fraction:
+        :param cytoplasm_biomass_change_rate:
+        :param nuclear_biomass_change_rate:
         :param update_volume_rate:
         :param target_volume:
         :param volume:
@@ -436,8 +461,7 @@ class Phase:
             self.volume = 0
 
     def _new_new_update_volume(self):
-        self.new_new_volume.update_cytoplasm(self.dt, self.cytoplasm_biomass_change_rate)
-        self.new_new_volume.update_nuclear(self.dt, self.nuclear_biomass_change_rate)
+        self.new_new_volume.update_volume(self.dt, self.cytoplasm_biomass_change_rate, self.nuclear_biomass_change_rate)
 
     def _transition_to_next_phase_stochastic(self, none):
         """
