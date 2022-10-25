@@ -298,13 +298,28 @@ class Phenotype:
         if not isinstance(self.quiescent_phase, Phases.Phase):
             return
 
+        # get the current cytoplasm, nuclear, calcified volumes
+        cyto_solid = self.current_phase.new_volume.cytoplasm_solid
+        cyto_fluid = self.current_phase.new_volume.cytoplasm_solid
 
-        volume = self.current_phase.volume
-        self.quiescent_phase.volume = volume
-        self.quiescent_phase.target_volume = volume
+        nucl_solid = self.current_phase.new_volume.nuclear_solid
+        nucl_fluid = self.current_phase.new_volume.nuclear_fluid
 
+        calc_frac = self.current_phase.new_volume.calcified_fraction
 
+        # setting the quiescent phase volume parameters. As the cell is now quiescent it shouldn't want to change its
+        # volume, so we set the targets to be the current measurements
+        self.quiescent_phase.new_volume.cytoplasm_solid = cyto_solid
+        self.quiescent_phase.new_volume.cytoplasm_fluid = cyto_fluid
+        self.quiescent_phase.new_volume.target_cytoplasm = cyto_fluid + cyto_solid
+        self.quiescent_phase.new_volume.target_cytoplasm_fluid_fraction = cyto_fluid/cyto_solid
 
+        self.quiescent_phase.new_volume.nuclear_solid = nucl_solid
+        self.quiescent_phase.new_volume.nuclear_fluid = nucl_fluid
+        self.quiescent_phase.new_volume.target_nuclear = nucl_solid + nucl_solid
+        self.quiescent_phase.new_volume.target_nuclear_fluid_fraction = nucl_fluid/nucl_solid
+
+        # set the phase to be quiescent
         self.current_phase = self.quiescent_phase
         self.current_phase.time_in_phase = 0
 
