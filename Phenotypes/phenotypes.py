@@ -12,7 +12,6 @@ def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal
                      nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
                      cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
                      nuclear_target_fluid_fraction, calcified_fraction, cytoplasm_biomass_change_rate):
-
     if len(division_at_phase_exits) != number_phases:
         raise ValueError(
             f"{cycle_name} has {number_phases} phases, {len(division_at_phase_exits)} division flags defined")
@@ -371,12 +370,12 @@ class Phenotype:
         self.quiescent_phase.new_volume.cytoplasm_solid = cyto_solid
         self.quiescent_phase.new_volume.cytoplasm_fluid = cyto_fluid
         self.quiescent_phase.new_volume.target_cytoplasm = cyto_fluid + cyto_solid
-        self.quiescent_phase.new_volume.target_cytoplasm_fluid_fraction = cyto_fluid/cyto_solid
+        self.quiescent_phase.new_volume.target_cytoplasm_fluid_fraction = cyto_fluid / cyto_solid
 
         self.quiescent_phase.new_volume.nuclear_solid = nucl_solid
         self.quiescent_phase.new_volume.nuclear_fluid = nucl_fluid
         self.quiescent_phase.new_volume.target_nuclear = nucl_solid + nucl_solid
-        self.quiescent_phase.new_volume.target_nuclear_fluid_fraction = nucl_fluid/nucl_solid
+        self.quiescent_phase.new_volume.target_nuclear_fluid_fraction = nucl_fluid / nucl_solid
 
         # set the phase to be quiescent
         self.current_phase = self.quiescent_phase
@@ -425,12 +424,11 @@ class Ki67Basic(Phenotype):
                  transitions_to_next_phase=(None, None), transitions_to_next_phase_args: list = (None, None),
                  simulated_cell_volume=None, cytoplasm_biomass_change_rate=(None, None),
                  nuclear_biomass_change_rate=(None, None), calcification_rate=(None, None),
-                 cytoplasm_volume=(None, None),
-                 cytoplasm_target_volume=(None, None), cytoplasm_target_fluid_fraction=(None, None),
-                 nuclear_volume=(None, None),
-                 nuclear_target_volume=(None, None), nuclear_target_fluid_fraction=(None, None),
-                 calcified_fraction=(None, None)):
-
+                 cytoplasm_volume=(.5, .5),
+                 cytoplasm_target_volume=(.5, .5), cytoplasm_target_fluid_fraction=(1, 1),
+                 nuclear_volume=(.5, .5),
+                 nuclear_target_volume=(.5, .5), nuclear_target_fluid_fraction=(1, 1),
+                 calcified_fraction=(0, 0)):
         _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
                          arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
@@ -495,14 +493,17 @@ class Ki67Advanced(Phenotype):
                  division_at_phase_exits=(False, True, False), removal_at_phase_exits=(False, False, False),
                  fixed_durations=(False, True, True), phase_durations: list = (3.62 * 60, 13.0 * 60.0, 2.5 * 60),
                  entry_functions=(None, None, None), entry_functions_args=(None, None, None),
-                 exit_functions=(None, None, None),
-                 exit_functions_args=(None, None, None), arrest_functions=(None, None, None),
-                 arrest_functions_args=(None, None, None),
+                 exit_functions=(None, None, None), exit_functions_args=(None, None, None),
+                 arrest_functions=(None, None, None), arrest_functions_args=(None, None, None),
                  transitions_to_next_phase=(None, None, None),
-                 transitions_to_next_phase_args: list = (None, None, None),
-                 target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None),
-                 update_volumes_args: list = (None, None, None), update_volume_rates=(None, None, None),
-                 simulated_cell_volume=None):
+                 transitions_to_next_phase_args: list = (None, None, None), simulated_cell_volume=None,
+                 cytoplasm_biomass_change_rate=(None, None, None),
+                 nuclear_biomass_change_rate=(None, None, None), calcification_rate=(None, None, None),
+                 cytoplasm_volume=(.5, .5, .5),
+                 cytoplasm_target_volume=(.5, .5, .5), cytoplasm_target_fluid_fraction=(1, 1, 1),
+                 nuclear_volume=(.5, .5, .5),
+                 nuclear_target_volume=(.5, .5, .5), nuclear_target_fluid_fraction=(1, 1, 1),
+                 calcified_fraction=(0, 0, 0)):
         _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
                          arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
@@ -521,7 +522,17 @@ class Ki67Advanced(Phenotype):
                                             arrest_function_args=arrest_functions_args[0],
                                             transition_to_next_phase=transitions_to_next_phase[0],
                                             transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                                            simulated_cell_volume=simulated_cell_volume)
+                                            simulated_cell_volume=simulated_cell_volume,
+                                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
+                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
+                                            calcification_rate=calcification_rate[0],
+                                            cytoplasm_volume=cytoplasm_volume[0],
+                                            cytoplasm_target_volume=cytoplasm_target_volume[0],
+                                            cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[0],
+                                            nuclear_volume=nuclear_volume[0],
+                                            nuclear_target_volume=nuclear_target_volume[0],
+                                            nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[0],
+                                            calcified_fraction=calcified_fraction[0])
 
         Ki67_positive_pre = Phases.Ki67PositivePreMitotic(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
                                                           time_unit=time_unit,
@@ -536,8 +547,22 @@ class Ki67Advanced(Phenotype):
                                                           arrest_function=arrest_functions[1],
                                                           arrest_function_args=arrest_functions_args[1],
                                                           transition_to_next_phase=transitions_to_next_phase[1],
-                                                          transition_to_next_phase_args=transitions_to_next_phase_args[
-                                                              1], simulated_cell_volume=simulated_cell_volume)
+                                                          transition_to_next_phase_args=
+                                                          transitions_to_next_phase_args[1],
+                                                          simulated_cell_volume=simulated_cell_volume,
+                                                          cytoplasm_biomass_change_rate=
+                                                          cytoplasm_biomass_change_rate[1],
+                                                          nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
+                                                          calcification_rate=calcification_rate[1],
+                                                          cytoplasm_volume=cytoplasm_volume[1],
+                                                          cytoplasm_target_volume=cytoplasm_target_volume[1],
+                                                          cytoplasm_target_fluid_fraction=
+                                                          cytoplasm_target_fluid_fraction[1],
+                                                          nuclear_volume=nuclear_volume[1],
+                                                          nuclear_target_volume=nuclear_target_volume[1],
+                                                          nuclear_target_fluid_fraction=
+                                                          nuclear_target_fluid_fraction[0],
+                                                          calcified_fraction=calcified_fraction[0])
 
         Ki67_positive_post = Phases.Ki67PositivePostMitotic(index=2, previous_phase_index=1, next_phase_index=0, dt=dt,
                                                             time_unit=time_unit,
@@ -554,7 +579,20 @@ class Ki67Advanced(Phenotype):
                                                             transition_to_next_phase=transitions_to_next_phase[2],
                                                             transition_to_next_phase_args=
                                                             transitions_to_next_phase_args[2],
-                                                            simulated_cell_volume=simulated_cell_volume)
+                                                            simulated_cell_volume=simulated_cell_volume,
+                                                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[
+                                                                2],
+                                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[2],
+                                                            calcification_rate=calcification_rate[2],
+                                                            cytoplasm_volume=cytoplasm_volume[2],
+                                                            cytoplasm_target_volume=cytoplasm_target_volume[2],
+                                                            cytoplasm_target_fluid_fraction=
+                                                            cytoplasm_target_fluid_fraction[2],
+                                                            nuclear_volume=nuclear_volume[2],
+                                                            nuclear_target_volume=nuclear_target_volume[2],
+                                                            nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[
+                                                                2],
+                                                            calcified_fraction=calcified_fraction[2])
         phases = [Ki67_negative, Ki67_positive_pre, Ki67_positive_post]
         super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
