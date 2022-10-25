@@ -184,7 +184,7 @@ class Phenotype:
             raise ValueError(f"`quiescent_phase` must Phases.Phase object, False, or None. Got {quiescent_phase}")
         else:
             self.quiescent_phase = quiescent_phase
-        self.current_phase = self.phases[starting_phase_index] # todo: add option to randomize
+        self.current_phase = self.phases[starting_phase_index]  # todo: add option to randomize
         self.time_in_cycle = 0
 
     def time_step_cycle(self):
@@ -229,7 +229,6 @@ class Phenotype:
         self.set_phase(self.current_phase.next_phase_index)
         if self.current_phase.entry_function is not None:
             self.current_phase.entry_function(self.current_phase.entry_function_args)
-        # self.current_phase.time_in_phase = 0
         return True, dies, divides
 
     def set_phase(self, idx):
@@ -245,7 +244,6 @@ class Phenotype:
         :param idx: index of list :attr:`phases`, which phase to go to.
         :return: No return
         """
-        # todo: get the (new) relevant volumes and do the things
 
         # get the current cytoplasm, nuclear, calcified volumes
         cyto_solid = self.current_phase.new_volume.cytoplasm_solid
@@ -299,9 +297,14 @@ class Phenotype:
         """
         if not isinstance(self.quiescent_phase, Phases.Phase):
             return
+
+
         volume = self.current_phase.volume
         self.quiescent_phase.volume = volume
         self.quiescent_phase.target_volume = volume
+
+
+
         self.current_phase = self.quiescent_phase
         self.current_phase.time_in_phase = 0
 
