@@ -292,8 +292,7 @@ class Phase:
         """
         self.time_in_phase += self.dt
 
-        if self.update_volume:
-            self.update_volume()
+        self.update_volume()
 
         if self.arrest_function is not None:
             if self.arrest_function(*self.arrest_function_args):
