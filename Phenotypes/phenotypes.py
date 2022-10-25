@@ -364,9 +364,14 @@ class Ki67Basic(Phenotype):
                  entry_functions=(None, None), entry_functions_args=(None, None), exit_functions=(None, None),
                  exit_functions_args=(None, None), arrest_functions=(None, None), arrest_functions_args=(None, None),
                  transitions_to_next_phase=(None, None), transitions_to_next_phase_args: list = (None, None),
-                 target_volumes: list = (1, 1), volumes: list = (1, 1), update_volumes=(None, None),
-                 update_volumes_args: list = (None, None), update_volume_rates=(None, None),
-                 simulated_cell_volume=None):
+                 simulated_cell_volume=None, cytoplasm_biomass_change_rate=(None, None),
+                 nuclear_biomass_change_rate=(None, None), calcification_rate=(None, None),
+                 cytoplasm_volume=(None, None),
+                 cytoplasm_target_volume=(None, None), cytoplasm_target_fluid_fraction=(None, None),
+                 nuclear_volume=(None, None),
+                 nuclear_target_volume=(None, None), nuclear_target_fluid_fraction=(None, None),
+                 calcified_fraction=(None, None)):
+
         _check_arguments(2, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
                          phase_durations, entry_functions, entry_functions_args, exit_functions,
                          exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
