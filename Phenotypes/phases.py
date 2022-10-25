@@ -612,19 +612,20 @@ class G2M(Phase):
 
 
 class Apoptosis(Phase):
-    def __init__(self, index: int = 0, previous_phase_index: int = 0, next_phase_index: int = 0,
-                 dt: float = 0.1, time_unit: str = "min", name: str = "Apoptosis",
-                 division_at_phase_exit: bool = False,
+    def __init__(self, index: int = 0, previous_phase_index: int = 0, next_phase_index: int = 0, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "Apoptosis", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = True, fixed_duration: bool = True, phase_duration: float = 8.6 * 60.0,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
-                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = 0,
-                 volume: float = None, update_volume=None, update_volume_args: list = None,
-                 update_volume_rate: float = None, simulated_cell_volume: float = None,
-                 cytoplasmic_biomass_change_rate: float = 1 / 60, nuclear_biomass_change_rate: float = 0.35 / 60,
-                 unlysed_fluid_change_rate: float = 3 / 60, lysed_fluid_change_rate: float = 0,
-                 calcification_rate: float = 0, relative_rupture_volume: float = 2):
-        # todo: define change volume rate
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate: float = 1 / 60,
+                 nuclear_biomass_change_rate: float = 0.35 / 60, unlysed_fluid_change_rate: float = 3 / 60,
+                 lysed_fluid_change_rate: float = 0, calcification_rate: float = 0, relative_rupture_volume: float = 2,
+                 cytoplasm_volume=None,
+                 cytoplasm_target_volume=0, cytoplasm_target_fluid_fraction=None, nuclear_volume=None,
+                 nuclear_target_volume=0, nuclear_target_fluid_fraction=None, calcified_fraction=None):
+        # todo: figure out what unlysed_fluid_change_rate, lysed_fluid_change_rate, relative_rupture_volume are supposed
+        #  to do
 
         if entry_function is None:
             entry_function = self._standard_apoptosis_entry
@@ -637,7 +638,15 @@ class Apoptosis(Phase):
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
                          transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume)
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate,
+                         calcification_rate=calcification_rate, cytoplasm_volume=cytoplasm_volume,
+                         cytoplasm_target_volume=cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction,
+                         nuclear_volume=nuclear_volume, nuclear_target_volume=nuclear_target_volume,
+                         nuclear_target_fluid_fraction=nuclear_target_fluid_fraction,
+                         calcified_fraction=calcified_fraction)
 
     def _standard_apoptosis_entry(self):
         return
