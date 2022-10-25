@@ -547,15 +547,16 @@ class G0G1(Phase):
 
 
 class S(Phase):
-    def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2,
-                 dt: float = 0.1, time_unit: str = "min", name: str = "S",
-                 division_at_phase_exit: bool = True,
+    def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "S", division_at_phase_exit: bool = True,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 8 * 60.0,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
-                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = None,
-                 volume: float = None, update_volume=None, update_volume_args: list = None,
-                 update_volume_rate: float = None, simulated_cell_volume: float = None):
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
+                 nuclear_biomass_change_rate=None, calcification_rate=None, cytoplasm_volume=None,
+                 cytoplasm_target_volume=None, cytoplasm_target_fluid_fraction=None, nuclear_volume=None,
+                 nuclear_target_volume=None, nuclear_target_fluid_fraction=None, calcified_fraction=None):
 
         if entry_function is None:
             entry_function = self._double_target_volume
@@ -563,8 +564,16 @@ class S(Phase):
         elif type(entry_function_args) != list:
             raise TypeError("'entry_function' was defined but no value for 'entry_function_args' was given. Expected "
                             f"list got {type(entry_function_args)}")
-        if update_volume_rate is None:
-            update_volume_rate = target_volume / (phase_duration / dt)
+
+        if cytoplasm_biomass_change_rate is None and cytoplasm_target_volume is not None:
+            cytoplasm_biomass_change_rate = cytoplasm_target_volume / (phase_duration / dt)
+        else:
+            cytoplasm_biomass_change_rate = 1
+
+        if nuclear_biomass_change_rate is None and nuclear_target_volume is not None:
+            nuclear_biomass_change_rate = nuclear_target_volume / (phase_duration / dt)
+        else:
+            nuclear_biomass_change_rate = 1
 
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
@@ -574,7 +583,15 @@ class S(Phase):
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
                          transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume)
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate,
+                         calcification_rate=calcification_rate, cytoplasm_volume=cytoplasm_volume,
+                         cytoplasm_target_volume=cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction,
+                         nuclear_volume=nuclear_volume, nuclear_target_volume=nuclear_target_volume,
+                         nuclear_target_fluid_fraction=nuclear_target_fluid_fraction,
+                         calcified_fraction=calcified_fraction)
 
 
 class G2M(Phase):
