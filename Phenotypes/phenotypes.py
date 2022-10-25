@@ -449,7 +449,17 @@ class Ki67Basic(Phenotype):
                                             arrest_function_args=arrest_functions_args[1],
                                             transition_to_next_phase=transitions_to_next_phase[1],
                                             transition_to_next_phase_args=transitions_to_next_phase_args[1],
-                                            simulated_cell_volume=simulated_cell_volume)
+                                            simulated_cell_volume=simulated_cell_volume,
+                                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[1],
+                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
+                                            calcification_rate=calcification_rate[1],
+                                            cytoplasm_volume=cytoplasm_volume[1],
+                                            cytoplasm_target_volume=cytoplasm_target_volume[1],
+                                            cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[1],
+                                            nuclear_volume=nuclear_volume[1],
+                                            nuclear_target_volume=nuclear_target_volume[1],
+                                            nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[1],
+                                            calcified_fraction=calcified_fraction[1])
 
         Ki67_negative = Phases.Ki67Negative(index=0, previous_phase_index=1, next_phase_index=1, dt=dt,
                                             time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
@@ -462,7 +472,17 @@ class Ki67Basic(Phenotype):
                                             arrest_function_args=arrest_functions_args[0],
                                             transition_to_next_phase=transitions_to_next_phase[0],
                                             transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                                            simulated_cell_volume=simulated_cell_volume)
+                                            simulated_cell_volume=simulated_cell_volume,
+                                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
+                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
+                                            calcification_rate=calcification_rate[0],
+                                            cytoplasm_volume=cytoplasm_volume[0],
+                                            cytoplasm_target_volume=cytoplasm_target_volume[0],
+                                            cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[0],
+                                            nuclear_volume=nuclear_volume[0],
+                                            nuclear_target_volume=nuclear_target_volume[0],
+                                            nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[0],
+                                            calcified_fraction=calcified_fraction[0])
 
         phases = [Ki67_negative, Ki67_positive]
 
