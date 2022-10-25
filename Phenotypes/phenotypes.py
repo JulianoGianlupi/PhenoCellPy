@@ -700,18 +700,20 @@ class FlowCytometryAdvanced(Phenotype):
 
     def __init__(self, name="Flow Cytometry Advanced", dt=0.1, time_unit="min", quiescent_phase=False,
                  division_at_phase_exits=(False, False, False, True),
-                 removal_at_phase_exits=(False, False, False, False),
-                 fixed_durations=(False, False, False, False),
+                 removal_at_phase_exits=(False, False, False, False), fixed_durations=(False, False, False, False),
                  phase_durations: list = (4.98 * 60, 8 * 60.0, 4 * 60, 1 * 60),
                  entry_functions=(None, None, None, None), entry_functions_args=(None, None, None, None),
-                 exit_functions=(None, None, None, None),
-                 exit_functions_args=(None, None, None), arrest_functions=(None, None, None, None),
-                 arrest_functions_args=(None, None, None, None),
+                 exit_functions=(None, None, None, None), exit_functions_args=(None, None, None),
+                 arrest_functions=(None, None, None, None), arrest_functions_args=(None, None, None, None),
                  transitions_to_next_phase=(None, None, None, None),
-                 transitions_to_next_phase_args: list = (None, None, None, None),
-                 target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None, None),
-                 update_volumes_args: list = (None, None, None, None), update_volume_rates=(None, None, None, None),
-                 simulated_cell_volume=None):
+                 transitions_to_next_phase_args: list = (None, None, None, None), simulated_cell_volume=None,
+                 cytoplasm_biomass_change_rate=(None, None, None, None),
+                 nuclear_biomass_change_rate=(None, None, None, None), calcification_rate=(None, None, None, None),
+                 cytoplasm_volume=(.5, .5, .5, .5),
+                 cytoplasm_target_volume=(.5, .5, .5, .5), cytoplasm_target_fluid_fraction=(1, 1, 1, 1),
+                 nuclear_volume=(.5, .5, .5, .5),
+                 nuclear_target_volume=(.5, .5, .5, .5), nuclear_target_fluid_fraction=(1, 1, 1, 1),
+                 calcified_fraction=(0, 0, 0, 0)):
         _check_arguments(4, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
                          arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
@@ -727,7 +729,17 @@ class FlowCytometryAdvanced(Phenotype):
                            arrest_function_args=arrest_functions_args[0],
                            transition_to_next_phase=transitions_to_next_phase[0],
                            transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                           simulated_cell_volume=simulated_cell_volume)
+                           simulated_cell_volume=simulated_cell_volume,
+                           cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
+                           nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
+                           calcification_rate=calcification_rate[0],
+                           cytoplasm_volume=cytoplasm_volume[0],
+                           cytoplasm_target_volume=cytoplasm_target_volume[0],
+                           cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[0],
+                           nuclear_volume=nuclear_volume[0],
+                           nuclear_target_volume=nuclear_target_volume[0],
+                           nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[0],
+                           calcified_fraction=calcified_fraction[0])
 
         S = Phases.S(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[1],
                      removal_at_phase_exit=removal_at_phase_exits[1], fixed_duration=fixed_durations[1],
@@ -737,7 +749,17 @@ class FlowCytometryAdvanced(Phenotype):
                      arrest_function_args=arrest_functions_args[1],
                      transition_to_next_phase=transitions_to_next_phase[1],
                      transition_to_next_phase_args=transitions_to_next_phase_args[1],
-                     simulated_cell_volume=simulated_cell_volume)
+                     simulated_cell_volume=simulated_cell_volume,
+                     cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[1],
+                     nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
+                     calcification_rate=calcification_rate[1],
+                     cytoplasm_volume=cytoplasm_volume[1],
+                     cytoplasm_target_volume=cytoplasm_target_volume[1],
+                     cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[1],
+                     nuclear_volume=nuclear_volume[1],
+                     nuclear_target_volume=nuclear_target_volume[1],
+                     nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[1],
+                     calcified_fraction=calcified_fraction[1])
 
         G2 = Phases.G0G1(index=2, previous_phase_index=1, next_phase_index=3, dt=dt, time_unit=time_unit, name="G2",
                          division_at_phase_exit=division_at_phase_exits[2],
@@ -748,7 +770,17 @@ class FlowCytometryAdvanced(Phenotype):
                          arrest_function_args=arrest_functions_args[2],
                          transition_to_next_phase=transitions_to_next_phase[2],
                          transition_to_next_phase_args=transitions_to_next_phase_args[2],
-                         simulated_cell_volume=simulated_cell_volume)
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[2],
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate[2],
+                         calcification_rate=calcification_rate[2],
+                         cytoplasm_volume=cytoplasm_volume[2],
+                         cytoplasm_target_volume=cytoplasm_target_volume[2],
+                         cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[2],
+                         nuclear_volume=nuclear_volume[2],
+                         nuclear_target_volume=nuclear_target_volume[2],
+                         nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[2],
+                         calcified_fraction=calcified_fraction[2])
 
         M = Phases.G2M(index=3, previous_phase_index=2, next_phase_index=0, dt=dt, time_unit=time_unit, name="M",
                        division_at_phase_exit=division_at_phase_exits[3],
@@ -759,7 +791,17 @@ class FlowCytometryAdvanced(Phenotype):
                        arrest_function_args=arrest_functions_args[3],
                        transition_to_next_phase=transitions_to_next_phase[3],
                        transition_to_next_phase_args=transitions_to_next_phase_args[3],
-                       simulated_cell_volume=simulated_cell_volume)
+                       simulated_cell_volume=simulated_cell_volume,
+                       cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[3],
+                       nuclear_biomass_change_rate=nuclear_biomass_change_rate[3],
+                       calcification_rate=calcification_rate[3],
+                       cytoplasm_volume=cytoplasm_volume[3],
+                       cytoplasm_target_volume=cytoplasm_target_volume[3],
+                       cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[3],
+                       nuclear_volume=nuclear_volume[3],
+                       nuclear_target_volume=nuclear_target_volume[3],
+                       nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[3],
+                       calcified_fraction=calcified_fraction[3])
 
         phases = [G0G1, S, G2, M]
 
