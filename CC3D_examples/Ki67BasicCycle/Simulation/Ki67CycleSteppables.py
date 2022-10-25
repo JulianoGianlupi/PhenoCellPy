@@ -31,8 +31,13 @@ class ConstraintInitializerSteppable(SteppableBasePy):
 
         dt = 5  # 5 min/mcs
 
-        ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt, target_volumes=[side * side, side * side],
-                                            volumes=[side * side, side * side])
+        ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt, cytoplasm_target_volume=[side*side, side*side],
+                                                cytoplasm_volume=[side*side, side*side],
+                                                cytoplasm_target_fluid_fraction=[1, 1],
+                                                # as the simulated cell "doesn't have" a nucleus we don't need to give
+                                                # it a volume
+                                                nuclear_volume=[0, 0],
+                                                nuclear_target_volume=[0, 0])
 
         for cell in self.cell_list:
             cell.targetVolume = side * side
@@ -139,8 +144,8 @@ class MitosisSteppable(MitosisSteppableBase):
                 time_spent_in_1.append(cell.dict["cycle"].current_phase.time_in_phase)
             changed_phase, died, divides = cell.dict["cycle"].time_step_cycle()
 
-            if cell.targetVolume < cell.dict["cycle"].current_phase.volume:
-                cell.targetVolume = cell.dict["cycle"].current_phase.volume
+            if cell.targetVolume < cell.dict["cycle"].current_phase.new_volume.total:
+                cell.targetVolume = cell.dict["cycle"].current_phase.new_volume.total
 
             if changed_phase:
                 cell.dict["phase_index_plus_1"] = cell.dict["cycle"].current_phase.index + 1
@@ -240,13 +245,12 @@ class MitosisSteppable(MitosisSteppableBase):
         self.parent_cell.targetVolume = 100  # todo: use parameter
 
         self.clone_parent_2_child()
-
-        self.parent_cell.dict["cycle"].current_phase.target_volume = self.parent_cell.targetVolume
-        self.parent_cell.dict["cycle"].current_phase.volume = self.parent_cell.targetVolume
+        self.parent_cell.dict["cycle"].current_phase.new_volume.target_cytoplasm = self.parent_cell.targetVolume
+        self.parent_cell.dict["cycle"].current_phase.new_volume.cytoplasm_fluid = self.parent_cell.targetVolume
         self.parent_cell.dict["phase_index_plus_1"] = self.parent_cell.dict["cycle"].current_phase.index + 1
 
-        self.child_cell.dict["cycle"].current_phase.target_volume = self.parent_cell.targetVolume
-        self.child_cell.dict["cycle"].current_phase.volume = self.parent_cell.targetVolume
+        self.child_cell.dict["cycle"].current_phase.new_volume.target_cytoplasm = self.parent_cell.targetVolume
+        self.child_cell.dict["cycle"].current_phase.new_volume.cytoplasm_fluid = self.parent_cell.targetVolume
         self.child_cell.dict["phase_index_plus_1"] = self.child_cell.dict["cycle"].current_phase.index + 1
         if len(self.cell_list) < 10:
             print("@@@\nCHILD ATTRIBS\n@@@\n", self.child_cell.volume, self.child_cell.dict["cycle"].time_in_cycle,
