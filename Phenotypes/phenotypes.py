@@ -6,15 +6,12 @@ import Phenotypes.phases as Phases
 #  - documentation
 #  - add biomodels ontology anotation
 
-def _check_arguments(number_phases, cycle_name, target_volumes, division_at_phase_exits,
-                     removal_at_phase_exits, fixed_durations, phase_durations, entry_functions,
-                     entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
-                     arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
-                     update_volumes, update_volumes_args, update_volume_rates):
-    if len(target_volumes) != number_phases:
-        raise ValueError(f"{cycle_name} has {number_phases} phases, {len(target_volumes)} target volumes defined")
-    elif type(target_volumes) != list and type(target_volumes) != tuple:
-        raise TypeError(f"`target_volumes` must be a list or tuple, got {type(target_volumes)}")
+def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
+                     phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
+                     arrest_functions, arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                     nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                     cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                     nuclear_target_fluid_fraction, calcified_fraction):
 
     if len(division_at_phase_exits) != number_phases:
         raise ValueError(
@@ -89,25 +86,79 @@ def _check_arguments(number_phases, cycle_name, target_volumes, division_at_phas
             f"`transitions_to_next_phase_args` must be a list or tuple, got {type(arrest_functions_args)}")
 
     #
-    if len(update_volumes) != number_phases:
+    if len(nuclear_biomass_change_rate) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(update_volumes)} update volume functions defined")
-    elif type(update_volumes) != list and type(update_volumes) != tuple:
-        raise TypeError(f"`update_volumes` must be a list or tuple, got {type(update_volumes)}")
-
-    if len(update_volumes_args) != number_phases:
-        raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(update_volumes_args)} update volume functions args "
+            f"{cycle_name} has {number_phases} phases, {len(nuclear_biomass_change_rate)} nuclear biomass change rates "
             f"defined")
-    elif type(update_volumes_args) != list and type(update_volumes_args) != tuple:
-        raise TypeError(f"`update_volumes_args` must be a list or tuple, got {type(update_volumes_args)}")
+    elif type(nuclear_biomass_change_rate) != list and type(nuclear_biomass_change_rate) != tuple:
+        raise TypeError(
+            f"`nuclear_biomass_change_rate` must be a list or tuple, got {type(nuclear_biomass_change_rate)}")
 
     #
-    if len(update_volume_rates) != number_phases:
+    if len(calcification_rate) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(update_volume_rates)} update volume rates defined")
-    elif type(update_volume_rates) != list and type(update_volume_rates) != tuple:
-        raise TypeError(f"`update_volume_rates` must be a list or tuple, got {type(update_volumes)}")
+            f"{cycle_name} has {number_phases} phases, {len(calcification_rate)} calcification rates "
+            f"defined")
+    elif type(calcification_rate) != list and type(calcification_rate) != tuple:
+        raise TypeError(
+            f"`calcification_rate` must be a list or tuple, got {type(calcification_rate)}")
+
+    #
+    if len(cytoplasm_volume) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_volume)} cytoplasm volumes defined")
+    elif type(cytoplasm_volume) != list and type(cytoplasm_volume) != tuple:
+        raise TypeError(
+            f"`cytoplasm_volume` must be a list or tuple, got {type(cytoplasm_volume)}")
+
+    #
+    if len(cytoplasm_target_volume) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_target_volume)} cytoplasm target volumes defined")
+    elif type(cytoplasm_target_volume) != list and type(cytoplasm_target_volume) != tuple:
+        raise TypeError(
+            f"`cytoplasm_target_volume` must be a list or tuple, got {type(cytoplasm_target_volume)}")
+
+        #
+    if len(cytoplasm_target_fluid_fraction) != number_phases:
+        raise ValueError(
+            f"{cytoplasm_target_fluid_fraction} has {number_phases} phases, {len(cytoplasm_target_fluid_fraction)} "
+            f"cytoplasm target fluid fractions defined")
+    elif type(cytoplasm_target_fluid_fraction) != list and type(cytoplasm_target_fluid_fraction) != tuple:
+        raise TypeError(
+            f"`cytoplasm_target_fluid_fraction` must be a list or tuple, got {type(cytoplasm_target_fluid_fraction)}")
+
+        #
+    if len(nuclear_volume) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(nuclear_volume)} nuclear volumes defined")
+    elif type(nuclear_volume) != list and type(nuclear_volume) != tuple:
+        raise TypeError(
+            f"`nuclear_volume` must be a list or tuple, got {type(nuclear_volume)}")
+
+        #
+    if len(nuclear_target_volume) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(nuclear_target_volume)} nuclear target volumes defined")
+    elif type(nuclear_target_volume) != list and type(nuclear_target_volume) != tuple:
+        raise TypeError(
+            f"`nuclear_target_volume` must be a list or tuple, got {type(nuclear_target_volume)}")
+    #
+    if len(nuclear_target_fluid_fraction) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(nuclear_target_fluid_fraction)} nuclear target fluid "
+            f"fractions defined")
+    elif type(nuclear_target_fluid_fraction) != list and type(nuclear_target_fluid_fraction) != tuple:
+        raise TypeError(
+            f"`nuclear_target_fluid_fraction` must be a list or tuple, got {type(nuclear_target_fluid_fraction)}")
+
+    #
+    if len(calcified_fraction) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(calcified_fraction)} calcified fractions defined")
+    elif type(calcified_fraction) != list and type(calcified_fraction) != tuple:
+        raise TypeError(
+            f"`calcified_fraction` must be a list or tuple, got {type(calcified_fraction)}")
 
 
 class Phenotype:
@@ -372,10 +423,12 @@ class Ki67Basic(Phenotype):
                  nuclear_target_volume=(None, None), nuclear_target_fluid_fraction=(None, None),
                  calcified_fraction=(None, None)):
 
-        _check_arguments(2, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions,
-                         exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
+        _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                         nuclear_target_fluid_fraction, calcified_fraction)
 
         Ki67_positive = Phases.Ki67Positive(index=1, previous_phase_index=0, next_phase_index=0, dt=dt,
                                             time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[1],
@@ -422,10 +475,12 @@ class Ki67Advanced(Phenotype):
                  target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None),
                  update_volumes_args: list = (None, None, None), update_volume_rates=(None, None, None),
                  simulated_cell_volume=None):
-        _check_arguments(3, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions,
-                         exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
+        _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                         nuclear_target_fluid_fraction, calcified_fraction)
 
         Ki67_negative = Phases.Ki67Negative(index=0, previous_phase_index=2, next_phase_index=1, dt=dt,
                                             time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
@@ -496,10 +551,12 @@ class FlowCytometryBasic(Phenotype):
                  target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None),
                  update_volumes_args: list = (None, None, None), update_volume_rates=(None, None, None),
                  simulated_cell_volume=None):
-        _check_arguments(3, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions,
-                         exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
+        _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                         nuclear_target_fluid_fraction, calcified_fraction)
         G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
                            removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
                            phase_duration=phase_durations[0], entry_function=entry_functions[0],
@@ -556,10 +613,12 @@ class FlowCytometryAdvanced(Phenotype):
                  target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None, None),
                  update_volumes_args: list = (None, None, None, None), update_volume_rates=(None, None, None, None),
                  simulated_cell_volume=None):
-        _check_arguments(4, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions,
-                         exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
+        _check_arguments(4, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                         nuclear_target_fluid_fraction, calcified_fraction)
 
         G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
                            removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
@@ -621,10 +680,12 @@ class ApoptosisStandard(Phenotype):
                  transitions_to_next_phase=(None,), transitions_to_next_phase_args=(None,), target_volumes=(0,),
                  volumes=(None,), update_volumes=(None,), update_volumes_args=(None,), update_volume_rates=(None,),
                  simulated_cell_volume=None):
-        _check_arguments(1, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions,
-                         exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
+        _check_arguments(1, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                         nuclear_target_fluid_fraction, calcified_fraction)
 
         apopto = Phases.Apoptosis(name="Apoptosis", index=0, previous_phase_index=0, next_phase_index=1, dt=dt,
                                   time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
