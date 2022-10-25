@@ -816,11 +816,16 @@ class ApoptosisStandard(Phenotype):
     def __init__(self, name="Standard apoptosis model", dt=0.1, time_unit="min", quiescent_phase=False,
                  division_at_phase_exits=(False,), removal_at_phase_exits=(True,), fixed_durations=(True,),
                  phase_durations=(8.6 * 60,), entry_functions=(None,), entry_functions_args=(None,),
-                 exit_functions=(None,),
-                 exit_functions_args=(None,), arrest_functions=(None,), arrest_functions_args=(None,),
-                 transitions_to_next_phase=(None,), transitions_to_next_phase_args=(None,), target_volumes=(0,),
-                 volumes=(None,), update_volumes=(None,), update_volumes_args=(None,), update_volume_rates=(None,),
-                 simulated_cell_volume=None):
+                 exit_functions=(None,), exit_functions_args=(None,), arrest_functions=(None,),
+                 arrest_functions_args=(None,), transitions_to_next_phase=(None,),
+                 transitions_to_next_phase_args=(None,), simulated_cell_volume=None,
+                 cytoplasm_biomass_change_rate=(1 / 60,),
+                 nuclear_biomass_change_rate=(0.35 / 60,), calcification_rate=(None,),
+                 cytoplasm_volume=(None,),
+                 cytoplasm_target_volume=(0,), cytoplasm_target_fluid_fraction=(1,),
+                 nuclear_volume=(None,),
+                 nuclear_target_volume=(0,), nuclear_target_fluid_fraction=(1,),
+                 calcified_fraction=(0,)):
         _check_arguments(1, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
                          arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
@@ -828,8 +833,8 @@ class ApoptosisStandard(Phenotype):
                          cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
                          nuclear_target_fluid_fraction, calcified_fraction, cytoplasm_biomass_change_rate)
 
-        apopto = Phases.Apoptosis(name="Apoptosis", index=0, previous_phase_index=0, next_phase_index=1, dt=dt,
-                                  time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
+        apopto = Phases.Apoptosis(index=0, previous_phase_index=0, next_phase_index=1, dt=dt, time_unit=time_unit,
+                                  name="Apoptosis", division_at_phase_exit=division_at_phase_exits[0],
                                   removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
                                   phase_duration=phase_durations[0], entry_function=entry_functions[0],
                                   entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
@@ -837,9 +842,17 @@ class ApoptosisStandard(Phenotype):
                                   arrest_function_args=arrest_functions_args[0],
                                   transition_to_next_phase=transitions_to_next_phase[0],
                                   transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                                  target_volume=target_volumes[0], volume=volumes[0], update_volume=update_volumes[0],
-                                  update_volume_args=update_volumes_args[0], update_volume_rate=update_volume_rates[0],
-                                  simulated_cell_volume=simulated_cell_volume[0])
+                                  simulated_cell_volume=simulated_cell_volume[0],
+                                  cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
+                                  nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
+                                  calcification_rate=calcification_rate[0],
+                                  cytoplasm_volume=cytoplasm_volume[0],
+                                  cytoplasm_target_volume=cytoplasm_target_volume[0],
+                                  cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[0],
+                                  nuclear_volume=nuclear_volume[0],
+                                  nuclear_target_volume=nuclear_target_volume[0],
+                                  nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[0],
+                                  calcified_fraction=calcified_fraction[0])
 
         # a phase to help lyse the simulated cell, shouldn't do anything
         debris = Phases.Phase(index=1, previous_phase_index=0, next_phase_index=1, dt=dt, time_unit=time_unit,
