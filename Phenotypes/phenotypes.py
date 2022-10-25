@@ -163,7 +163,7 @@ class Phenotype:
     """
 
     def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", phases: list = None,
-                 quiescent_phase: Phases.Phase or False = None):
+                 quiescent_phase: Phases.Phase or False = None, starting_phase_index=0):
         # todo: add __init__ parameters for custom functions for each class
         self.name = name
 
@@ -184,7 +184,7 @@ class Phenotype:
             raise ValueError(f"`quiescent_phase` must Phases.Phase object, False, or None. Got {quiescent_phase}")
         else:
             self.quiescent_phase = quiescent_phase
-        self.current_phase = self.phases[0]
+        self.current_phase = self.phases[starting_phase_index] # todo: add option to randomize
         self.time_in_cycle = 0
 
     def time_step_cycle(self):
@@ -245,12 +245,45 @@ class Phenotype:
         :param idx: index of list :attr:`phases`, which phase to go to.
         :return: No return
         """
-        volume = self.current_phase.volume
-        tg_volume = self.current_phase.target_volume
+        # todo: get the (new) relevant volumes and do the things
+
+        # get the current cytoplasm, nuclear, calcified volumes
+        cyto_solid = self.current_phase.new_volume.cytoplasm_solid
+        cyto_fluid = self.current_phase.new_volume.cytoplasm_solid
+
+        nucl_solid = self.current_phase.new_volume.nuclear_solid
+        nucl_fluid = self.current_phase.new_volume.nuclear_fluid
+
+        calc_frac = self.current_phase.new_volume.calcified_fraction
+
+        # get the target volumes
+
+        target_cytoplasm = self.current_phase.new_volume.target_cytoplasm
+        target_cyto_fluid_frac = self.current_phase.new_volume.target_cytoplasm_fluid_fraction
+
+        target_nuclear = self.current_phase.new_volume.target_nuclear
+        target_nucl_fluid_frac = self.current_phase.new_volume.target_nuclear_fluid_fraction
+
+        # set phase
+
         self.current_phase = self.phases[idx]
-        self.current_phase.volume = volume
-        self.current_phase.target_volume = tg_volume
         self.current_phase.time_in_phase = 0
+
+        # reset volume parameters
+
+        self.current_phase.new_volume.cytoplasm_solid = cyto_solid
+        self.current_phase.new_volume.cytoplasm_fluid = cyto_fluid
+
+        self.current_phase.new_volume.nuclear_solid = nucl_solid
+        self.current_phase.new_volume.nuclear_fluid = nucl_fluid
+
+        self.current_phase.new_volume.calcified_fraction = calc_frac
+
+        self.current_phase.new_volume.target_cytoplasm = target_cytoplasm
+        self.current_phase.new_volume.target_cytoplasm_fluid_fraction = target_cyto_fluid_frac
+
+        self.current_phase.new_volume.target_nuclear = target_nuclear
+        self.current_phase.new_volume.target_nuclear_fluid_fraction = target_nucl_fluid_frac
 
     def go_to_quiescence(self):
         """
@@ -290,7 +323,7 @@ class SimpleLiveCycle(Phenotype):
         phases = [
             Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit, name="alive",
                          division_at_phase_exit=True, phase_duration=60 / 0.0432)]
-        super().__init__(name=name, time_unit=time_unit, phases=phases, quiescent_phase=False, dt=dt)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=False)
 
 
 class Ki67Basic(Phenotype):
@@ -349,7 +382,7 @@ class Ki67Basic(Phenotype):
 
         phases = [Ki67_negative, Ki67_positive]
 
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
 
 class Ki67Advanced(Phenotype):
@@ -398,12 +431,7 @@ class Ki67Advanced(Phenotype):
                                                           arrest_function_args=arrest_functions_args[1],
                                                           transition_to_next_phase=transitions_to_next_phase[1],
                                                           transition_to_next_phase_args=transitions_to_next_phase_args[
-                                                              1],
-                                                          target_volume=target_volumes[1], volume=volumes[1],
-                                                          update_volume=update_volumes[1],
-                                                          update_volume_args=update_volumes_args[1],
-                                                          update_volume_rate=update_volume_rates[1],
-                                                          simulated_cell_volume=simulated_cell_volume)
+                                                              1], simulated_cell_volume=simulated_cell_volume)
 
         Ki67_positive_post = Phases.Ki67PositivePostMitotic(index=2, previous_phase_index=1, next_phase_index=0, dt=dt,
                                                             time_unit=time_unit,
@@ -420,13 +448,9 @@ class Ki67Advanced(Phenotype):
                                                             transition_to_next_phase=transitions_to_next_phase[2],
                                                             transition_to_next_phase_args=
                                                             transitions_to_next_phase_args[2],
-                                                            target_volume=target_volumes[2], volume=volumes[2],
-                                                            update_volume=update_volumes[2],
-                                                            update_volume_args=update_volumes_args[2],
-                                                            update_volume_rate=update_volume_rates[2],
                                                             simulated_cell_volume=simulated_cell_volume)
         phases = [Ki67_negative, Ki67_positive_pre, Ki67_positive_post]
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
 
 class FlowCytometryBasic(Phenotype):
@@ -453,66 +477,38 @@ class FlowCytometryBasic(Phenotype):
                          phase_durations, entry_functions, entry_functions_args, exit_functions,
                          exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
                          transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
-        G0G1 = Phases.G0G1(dt=dt,
-                           time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
-                           removal_at_phase_exit=removal_at_phase_exits[0],
-                           fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
-                           entry_function=entry_functions[0],
-                           entry_function_args=entry_functions_args[0],
-                           exit_function=exit_functions[0],
-                           exit_function_args=exit_functions_args[0],
-                           arrest_function=arrest_functions[0],
+        G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
+                           removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
+                           phase_duration=phase_durations[0], entry_function=entry_functions[0],
+                           entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
+                           exit_function_args=exit_functions_args[0], arrest_function=arrest_functions[0],
                            arrest_function_args=arrest_functions_args[0],
                            transition_to_next_phase=transitions_to_next_phase[0],
                            transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                           target_volume=target_volumes[0], volume=volumes[0],
-                           update_volume=update_volumes[0], update_volume_args=update_volumes_args[0],
-                           update_volume_rate=update_volume_rates[0],
                            simulated_cell_volume=simulated_cell_volume)
 
-        S = Phases.S(dt=dt,
-                     time_unit=time_unit,
-                     division_at_phase_exit=division_at_phase_exits[1],
-                     removal_at_phase_exit=removal_at_phase_exits[1],
-                     fixed_duration=fixed_durations[1],
-                     phase_duration=phase_durations[1],
-                     entry_function=entry_functions[1],
-                     entry_function_args=entry_functions_args[1],
-                     exit_function=exit_functions[1],
-                     exit_function_args=exit_functions_args[1],
-                     arrest_function=arrest_functions[1],
+        S = Phases.S(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[1],
+                     removal_at_phase_exit=removal_at_phase_exits[1], fixed_duration=fixed_durations[1],
+                     phase_duration=phase_durations[1], entry_function=entry_functions[1],
+                     entry_function_args=entry_functions_args[1], exit_function=exit_functions[1],
+                     exit_function_args=exit_functions_args[1], arrest_function=arrest_functions[1],
                      arrest_function_args=arrest_functions_args[1],
                      transition_to_next_phase=transitions_to_next_phase[1],
                      transition_to_next_phase_args=transitions_to_next_phase_args[1],
-                     target_volume=target_volumes[1], volume=volumes[1],
-                     update_volume=update_volumes[1],
-                     update_volume_args=update_volumes_args[1],
-                     update_volume_rate=update_volume_rates[1],
                      simulated_cell_volume=simulated_cell_volume)
-        G2M = Phases.G2M(dt=dt,
-                         time_unit=time_unit,
-                         division_at_phase_exit=division_at_phase_exits[2],
-                         removal_at_phase_exit=removal_at_phase_exits[2],
-                         fixed_duration=fixed_durations[2],
-                         phase_duration=phase_durations[2],
-                         entry_function=entry_functions[2],
-                         entry_function_args=entry_functions_args[2],
-                         exit_function=exit_functions[2],
-                         exit_function_args=exit_functions_args[2],
-                         arrest_function=arrest_functions[2],
+        G2M = Phases.G2M(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[2],
+                         removal_at_phase_exit=removal_at_phase_exits[2], fixed_duration=fixed_durations[2],
+                         phase_duration=phase_durations[2], entry_function=entry_functions[2],
+                         entry_function_args=entry_functions_args[2], exit_function=exit_functions[2],
+                         exit_function_args=exit_functions_args[2], arrest_function=arrest_functions[2],
                          arrest_function_args=arrest_functions_args[2],
                          transition_to_next_phase=transitions_to_next_phase[2],
-                         transition_to_next_phase_args=
-                         transitions_to_next_phase_args[2],
-                         target_volume=target_volumes[2], volume=volumes[2],
-                         update_volume=update_volumes[2],
-                         update_volume_args=update_volumes_args[2],
-                         update_volume_rate=update_volume_rates[2],
+                         transition_to_next_phase_args=transitions_to_next_phase_args[2],
                          simulated_cell_volume=simulated_cell_volume)
 
         phases = [G0G1, S, G2M]
 
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
 
 class FlowCytometryAdvanced(Phenotype):
@@ -537,109 +533,71 @@ class FlowCytometryAdvanced(Phenotype):
                  target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None, None),
                  update_volumes_args: list = (None, None, None, None), update_volume_rates=(None, None, None, None),
                  simulated_cell_volume=None):
-
         _check_arguments(4, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
                          phase_durations, entry_functions, entry_functions_args, exit_functions,
                          exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
                          transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
 
-        G0G1 = Phases.G0G1(dt=dt,
-                           time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
-                           removal_at_phase_exit=removal_at_phase_exits[0],
-                           fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
-                           entry_function=entry_functions[0],
-                           entry_function_args=entry_functions_args[0],
-                           exit_function=exit_functions[0],
-                           exit_function_args=exit_functions_args[0],
-                           arrest_function=arrest_functions[0],
+        G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
+                           removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
+                           phase_duration=phase_durations[0], entry_function=entry_functions[0],
+                           entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
+                           exit_function_args=exit_functions_args[0], arrest_function=arrest_functions[0],
                            arrest_function_args=arrest_functions_args[0],
                            transition_to_next_phase=transitions_to_next_phase[0],
                            transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                           target_volume=target_volumes[0], volume=volumes[0],
-                           update_volume=update_volumes[0], update_volume_args=update_volumes_args[0],
-                           update_volume_rate=update_volume_rates[0],
                            simulated_cell_volume=simulated_cell_volume)
 
-        S = Phases.S(dt=dt,
-                     time_unit=time_unit,
-                     division_at_phase_exit=division_at_phase_exits[1],
-                     removal_at_phase_exit=removal_at_phase_exits[1],
-                     fixed_duration=fixed_durations[1],
-                     phase_duration=phase_durations[1],
-                     entry_function=entry_functions[1],
-                     entry_function_args=entry_functions_args[1],
-                     exit_function=exit_functions[1],
-                     exit_function_args=exit_functions_args[1],
-                     arrest_function=arrest_functions[1],
+        S = Phases.S(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[1],
+                     removal_at_phase_exit=removal_at_phase_exits[1], fixed_duration=fixed_durations[1],
+                     phase_duration=phase_durations[1], entry_function=entry_functions[1],
+                     entry_function_args=entry_functions_args[1], exit_function=exit_functions[1],
+                     exit_function_args=exit_functions_args[1], arrest_function=arrest_functions[1],
                      arrest_function_args=arrest_functions_args[1],
                      transition_to_next_phase=transitions_to_next_phase[1],
                      transition_to_next_phase_args=transitions_to_next_phase_args[1],
-                     target_volume=target_volumes[1], volume=volumes[1],
-                     update_volume=update_volumes[1],
-                     update_volume_args=update_volumes_args[1],
-                     update_volume_rate=update_volume_rates[1],
                      simulated_cell_volume=simulated_cell_volume)
 
-        G2 = Phases.G0G1(name="G2", index=2, previous_phase_index=1, next_phase_index=3, dt=dt,
-                         time_unit=time_unit,
+        G2 = Phases.G0G1(index=2, previous_phase_index=1, next_phase_index=3, dt=dt, time_unit=time_unit, name="G2",
                          division_at_phase_exit=division_at_phase_exits[2],
-                         removal_at_phase_exit=removal_at_phase_exits[2],
-                         fixed_duration=fixed_durations[2],
-                         phase_duration=phase_durations[2],
-                         entry_function=entry_functions[2],
-                         entry_function_args=entry_functions_args[2],
-                         exit_function=exit_functions[2],
-                         exit_function_args=exit_functions_args[2],
-                         arrest_function=arrest_functions[2],
+                         removal_at_phase_exit=removal_at_phase_exits[2], fixed_duration=fixed_durations[2],
+                         phase_duration=phase_durations[2], entry_function=entry_functions[2],
+                         entry_function_args=entry_functions_args[2], exit_function=exit_functions[2],
+                         exit_function_args=exit_functions_args[2], arrest_function=arrest_functions[2],
                          arrest_function_args=arrest_functions_args[2],
                          transition_to_next_phase=transitions_to_next_phase[2],
                          transition_to_next_phase_args=transitions_to_next_phase_args[2],
-                         target_volume=target_volumes[2], volume=volumes[2],
-                         update_volume=update_volumes[2],
-                         update_volume_args=update_volumes_args[2],
-                         update_volume_rate=update_volume_rates[2],
                          simulated_cell_volume=simulated_cell_volume)
 
-        M = Phases.G2M(name="M", index=3, previous_phase_index=2, next_phase_index=0, dt=dt,
-                       time_unit=time_unit,
+        M = Phases.G2M(index=3, previous_phase_index=2, next_phase_index=0, dt=dt, time_unit=time_unit, name="M",
                        division_at_phase_exit=division_at_phase_exits[3],
-                       removal_at_phase_exit=removal_at_phase_exits[3],
-                       fixed_duration=fixed_durations[3],
-                       phase_duration=phase_durations[3],
-                       entry_function=entry_functions[3],
-                       entry_function_args=entry_functions_args[3],
-                       exit_function=exit_functions[3],
-                       exit_function_args=exit_functions_args[3],
-                       arrest_function=arrest_functions[3],
+                       removal_at_phase_exit=removal_at_phase_exits[3], fixed_duration=fixed_durations[3],
+                       phase_duration=phase_durations[3], entry_function=entry_functions[3],
+                       entry_function_args=entry_functions_args[3], exit_function=exit_functions[3],
+                       exit_function_args=exit_functions_args[3], arrest_function=arrest_functions[3],
                        arrest_function_args=arrest_functions_args[3],
                        transition_to_next_phase=transitions_to_next_phase[3],
                        transition_to_next_phase_args=transitions_to_next_phase_args[3],
-                       target_volume=target_volumes[3], volume=volumes[3],
-                       update_volume=update_volumes[3],
-                       update_volume_args=update_volumes_args[3],
-                       update_volume_rate=update_volume_rates[3],
                        simulated_cell_volume=simulated_cell_volume)
 
         phases = [G0G1, S, G2, M]
 
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
 
 class ApoptosisStandard(Phenotype):
-
     """
     The standard apoptotic model
     """
 
     def __init__(self, name="Standard apoptosis model", dt=0.1, time_unit="min", quiescent_phase=False,
                  division_at_phase_exits=(False,), removal_at_phase_exits=(True,), fixed_durations=(True,),
-                 phase_durations=(8.6*60,), entry_functions=(None,), entry_functions_args=(None,),
+                 phase_durations=(8.6 * 60,), entry_functions=(None,), entry_functions_args=(None,),
                  exit_functions=(None,),
                  exit_functions_args=(None,), arrest_functions=(None,), arrest_functions_args=(None,),
                  transitions_to_next_phase=(None,), transitions_to_next_phase_args=(None,), target_volumes=(0,),
                  volumes=(None,), update_volumes=(None,), update_volumes_args=(None,), update_volume_rates=(None,),
                  simulated_cell_volume=None):
-
         _check_arguments(1, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
                          phase_durations, entry_functions, entry_functions_args, exit_functions,
                          exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
@@ -665,7 +623,7 @@ class ApoptosisStandard(Phenotype):
 
         phases = [apopto, debris]
 
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
 
 cycle_names = ["Simple Live", "Ki67 Basic"]
