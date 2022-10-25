@@ -517,15 +517,16 @@ class Ki67PositivePostMitotic(Phase):
 
 
 class G0G1(Phase):
-    def __init__(self, index: int = 0, previous_phase_index: int = 2, next_phase_index: int = 1,
-                 dt: float = 0.1, time_unit: str = "min", name: str = "G0/G1",
-                 division_at_phase_exit: bool = True,
+    def __init__(self, index: int = 0, previous_phase_index: int = 2, next_phase_index: int = 1, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "G0/G1", division_at_phase_exit: bool = True,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 5.15 * 60.0,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
-                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = None,
-                 volume: float = None, update_volume=None, update_volume_args: list = None,
-                 update_volume_rate: float = None, simulated_cell_volume: float = None):
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
+                 nuclear_biomass_change_rate=None, calcification_rate=None, cytoplasm_volume=None,
+                 cytoplasm_target_volume=None, cytoplasm_target_fluid_fraction=None, nuclear_volume=None,
+                 nuclear_target_volume=None, nuclear_target_fluid_fraction=None, calcified_fraction=None):
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
                          removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
@@ -534,7 +535,15 @@ class G0G1(Phase):
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
                          arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
                          transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume)
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate,
+                         calcification_rate=calcification_rate, cytoplasm_volume=cytoplasm_volume,
+                         cytoplasm_target_volume=cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction,
+                         nuclear_volume=nuclear_volume, nuclear_target_volume=nuclear_target_volume,
+                         nuclear_target_fluid_fraction=nuclear_target_fluid_fraction,
+                         calcified_fraction=calcified_fraction)
 
 
 class S(Phase):
