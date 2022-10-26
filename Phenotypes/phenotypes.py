@@ -6,16 +6,12 @@ import Phenotypes.phases as Phases
 #  - documentation
 #  - add biomodels ontology anotation
 
-def _check_arguments(number_phases, cycle_name, target_volumes, division_at_phase_exits,
-                     removal_at_phase_exits, fixed_durations, phase_durations, entry_functions,
-                     entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
-                     arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
-                     update_volumes, update_volumes_args, update_volume_rates):
-    if len(target_volumes) != number_phases:
-        raise ValueError(f"{cycle_name} has {number_phases} phases, {len(target_volumes)} target volumes defined")
-    elif type(target_volumes) != list and type(target_volumes) != tuple:
-        raise TypeError(f"`target_volumes` must be a list or tuple, got {type(target_volumes)}")
-
+def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
+                     phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
+                     arrest_functions, arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                     nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                     cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                     nuclear_target_fluid_fraction, calcified_fraction, cytoplasm_biomass_change_rate):
     if len(division_at_phase_exits) != number_phases:
         raise ValueError(
             f"{cycle_name} has {number_phases} phases, {len(division_at_phase_exits)} division flags defined")
@@ -89,25 +85,87 @@ def _check_arguments(number_phases, cycle_name, target_volumes, division_at_phas
             f"`transitions_to_next_phase_args` must be a list or tuple, got {type(arrest_functions_args)}")
 
     #
-    if len(update_volumes) != number_phases:
+    if len(nuclear_biomass_change_rate) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(update_volumes)} update volume functions defined")
-    elif type(update_volumes) != list and type(update_volumes) != tuple:
-        raise TypeError(f"`update_volumes` must be a list or tuple, got {type(update_volumes)}")
-
-    if len(update_volumes_args) != number_phases:
-        raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(update_volumes_args)} update volume functions args "
+            f"{cycle_name} has {number_phases} phases, {len(nuclear_biomass_change_rate)} nuclear biomass change rates "
             f"defined")
-    elif type(update_volumes_args) != list and type(update_volumes_args) != tuple:
-        raise TypeError(f"`update_volumes_args` must be a list or tuple, got {type(update_volumes_args)}")
+    elif type(nuclear_biomass_change_rate) != list and type(nuclear_biomass_change_rate) != tuple:
+        raise TypeError(
+            f"`nuclear_biomass_change_rate` must be a list or tuple, got {type(nuclear_biomass_change_rate)}")
 
     #
-    if len(update_volume_rates) != number_phases:
+    if len(calcification_rate) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(update_volume_rates)} update volume rates defined")
-    elif type(update_volume_rates) != list and type(update_volume_rates) != tuple:
-        raise TypeError(f"`update_volume_rates` must be a list or tuple, got {type(update_volumes)}")
+            f"{cycle_name} has {number_phases} phases, {len(calcification_rate)} calcification rates "
+            f"defined")
+    elif type(calcification_rate) != list and type(calcification_rate) != tuple:
+        raise TypeError(
+            f"`calcification_rate` must be a list or tuple, got {type(calcification_rate)}")
+
+    #
+    if len(cytoplasm_volume) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_volume)} cytoplasm volumes defined")
+    elif type(cytoplasm_volume) != list and type(cytoplasm_volume) != tuple:
+        raise TypeError(
+            f"`cytoplasm_volume` must be a list or tuple, got {type(cytoplasm_volume)}")
+
+    #
+    if len(cytoplasm_target_volume) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_target_volume)} cytoplasm target volumes defined")
+    elif type(cytoplasm_target_volume) != list and type(cytoplasm_target_volume) != tuple:
+        raise TypeError(
+            f"`cytoplasm_target_volume` must be a list or tuple, got {type(cytoplasm_target_volume)}")
+
+        #
+    if len(cytoplasm_target_fluid_fraction) != number_phases:
+        raise ValueError(
+            f"{cytoplasm_target_fluid_fraction} has {number_phases} phases, {len(cytoplasm_target_fluid_fraction)} "
+            f"cytoplasm target fluid fractions defined")
+    elif type(cytoplasm_target_fluid_fraction) != list and type(cytoplasm_target_fluid_fraction) != tuple:
+        raise TypeError(
+            f"`cytoplasm_target_fluid_fraction` must be a list or tuple, got {type(cytoplasm_target_fluid_fraction)}")
+
+        #
+    if len(nuclear_volume) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(nuclear_volume)} nuclear volumes defined")
+    elif type(nuclear_volume) != list and type(nuclear_volume) != tuple:
+        raise TypeError(
+            f"`nuclear_volume` must be a list or tuple, got {type(nuclear_volume)}")
+
+        #
+    if len(nuclear_target_volume) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(nuclear_target_volume)} nuclear target volumes defined")
+    elif type(nuclear_target_volume) != list and type(nuclear_target_volume) != tuple:
+        raise TypeError(
+            f"`nuclear_target_volume` must be a list or tuple, got {type(nuclear_target_volume)}")
+    #
+    if len(nuclear_target_fluid_fraction) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(nuclear_target_fluid_fraction)} nuclear target fluid "
+            f"fractions defined")
+    elif type(nuclear_target_fluid_fraction) != list and type(nuclear_target_fluid_fraction) != tuple:
+        raise TypeError(
+            f"`nuclear_target_fluid_fraction` must be a list or tuple, got {type(nuclear_target_fluid_fraction)}")
+
+    #
+    if len(calcified_fraction) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(calcified_fraction)} calcified fractions defined")
+    elif type(calcified_fraction) != list and type(calcified_fraction) != tuple:
+        raise TypeError(
+            f"`calcified_fraction` must be a list or tuple, got {type(calcified_fraction)}")
+        #
+    if len(cytoplasm_biomass_change_rate) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_biomass_change_rate)} cytoplasm biomass change "
+            f"rates defined")
+    elif type(cytoplasm_biomass_change_rate) != list and type(cytoplasm_biomass_change_rate) != tuple:
+        raise TypeError(
+            f"`calcified_fraction` must be a list or tuple, got {type(cytoplasm_biomass_change_rate)}")
 
 
 class Phenotype:
@@ -157,13 +215,13 @@ class Phenotype:
     current_phase : :class:`Phases.Phase`
         The current (active) phase of the cycle.
 
-    time_in_cycle : float
+    time_in_phenotype : float
         Total time elapsed for the cycle
 
     """
 
     def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", phases: list = None,
-                 quiescent_phase: Phases.Phase or False = None):
+                 quiescent_phase: Phases.Phase or False = None, starting_phase_index=0):
         # todo: add __init__ parameters for custom functions for each class
         self.name = name
 
@@ -184,10 +242,10 @@ class Phenotype:
             raise ValueError(f"`quiescent_phase` must Phases.Phase object, False, or None. Got {quiescent_phase}")
         else:
             self.quiescent_phase = quiescent_phase
-        self.current_phase = self.phases[0]
-        self.time_in_cycle = 0
+        self.current_phase = self.phases[starting_phase_index]  # todo: add option to randomize
+        self.time_in_phenotype = 0
 
-    def time_step_cycle(self):
+    def time_step_phenotype(self):
         """
         Time-steps the cycle.
 
@@ -200,7 +258,7 @@ class Phenotype:
         :rtype: tuple of bool
         """
 
-        self.time_in_cycle += self.dt
+        self.time_in_phenotype += self.dt
 
         next_phase, quies = self.current_phase.time_step_phase()
 
@@ -228,8 +286,7 @@ class Phenotype:
         dies = self.current_phase.removal_at_phase_exit
         self.set_phase(self.current_phase.next_phase_index)
         if self.current_phase.entry_function is not None:
-            self.current_phase.entry_function(self.current_phase.entry_function_args)
-        # self.current_phase.time_in_phase = 0
+            self.current_phase.entry_function(*self.current_phase.entry_function_args)
         return True, dies, divides
 
     def set_phase(self, idx):
@@ -245,12 +302,44 @@ class Phenotype:
         :param idx: index of list :attr:`phases`, which phase to go to.
         :return: No return
         """
-        volume = self.current_phase.volume
-        tg_volume = self.current_phase.target_volume
+
+        # get the current cytoplasm, nuclear, calcified volumes
+        cyto_solid = self.current_phase.volume.cytoplasm_solid
+        cyto_fluid = self.current_phase.volume.cytoplasm_solid
+
+        nucl_solid = self.current_phase.volume.nuclear_solid
+        nucl_fluid = self.current_phase.volume.nuclear_fluid
+
+        calc_frac = self.current_phase.volume.calcified_fraction
+
+        # get the target volumes
+
+        target_cytoplasm = self.current_phase.volume.target_cytoplasm
+        target_cyto_fluid_frac = self.current_phase.volume.target_cytoplasm_fluid_fraction
+
+        target_nuclear = self.current_phase.volume.target_nuclear
+        target_nucl_fluid_frac = self.current_phase.volume.target_nuclear_fluid_fraction
+
+        # set phase
+
         self.current_phase = self.phases[idx]
-        self.current_phase.volume = volume
-        self.current_phase.target_volume = tg_volume
         self.current_phase.time_in_phase = 0
+
+        # reset volume parameters
+
+        self.current_phase.volume.cytoplasm_solid = cyto_solid
+        self.current_phase.volume.cytoplasm_fluid = cyto_fluid
+
+        self.current_phase.volume.nuclear_solid = nucl_solid
+        self.current_phase.volume.nuclear_fluid = nucl_fluid
+
+        self.current_phase.volume.calcified_fraction = calc_frac
+
+        self.current_phase.volume.target_cytoplasm = target_cytoplasm
+        self.current_phase.volume.target_cytoplasm_fluid_fraction = target_cyto_fluid_frac
+
+        self.current_phase.volume.target_nuclear = target_nuclear
+        self.current_phase.volume.target_nuclear_fluid_fraction = target_nucl_fluid_frac
 
     def go_to_quiescence(self):
         """
@@ -266,9 +355,29 @@ class Phenotype:
         """
         if not isinstance(self.quiescent_phase, Phases.Phase):
             return
-        volume = self.current_phase.volume
-        self.quiescent_phase.volume = volume
-        self.quiescent_phase.target_volume = volume
+
+        # get the current cytoplasm, nuclear, calcified volumes
+        cyto_solid = self.current_phase.volume.cytoplasm_solid
+        cyto_fluid = self.current_phase.volume.cytoplasm_solid
+
+        nucl_solid = self.current_phase.volume.nuclear_solid
+        nucl_fluid = self.current_phase.volume.nuclear_fluid
+
+        calc_frac = self.current_phase.volume.calcified_fraction
+
+        # setting the quiescent phase volume parameters. As the cell is now quiescent it shouldn't want to change its
+        # volume, so we set the targets to be the current measurements
+        self.quiescent_phase.volume.cytoplasm_solid = cyto_solid
+        self.quiescent_phase.volume.cytoplasm_fluid = cyto_fluid
+        self.quiescent_phase.volume.target_cytoplasm = cyto_fluid + cyto_solid
+        self.quiescent_phase.volume.target_cytoplasm_fluid_fraction = cyto_fluid / cyto_solid
+
+        self.quiescent_phase.volume.nuclear_solid = nucl_solid
+        self.quiescent_phase.volume.nuclear_fluid = nucl_fluid
+        self.quiescent_phase.volume.target_nuclear = nucl_solid + nucl_solid
+        self.quiescent_phase.volume.target_nuclear_fluid_fraction = nucl_fluid / nucl_solid
+
+        # set the phase to be quiescent
         self.current_phase = self.quiescent_phase
         self.current_phase.time_in_phase = 0
 
@@ -290,7 +399,7 @@ class SimpleLiveCycle(Phenotype):
         phases = [
             Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit, name="alive",
                          division_at_phase_exit=True, phase_duration=60 / 0.0432)]
-        super().__init__(name=name, time_unit=time_unit, phases=phases, quiescent_phase=False, dt=dt)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=False)
 
 
 class Ki67Basic(Phenotype):
@@ -313,13 +422,19 @@ class Ki67Basic(Phenotype):
                  entry_functions=(None, None), entry_functions_args=(None, None), exit_functions=(None, None),
                  exit_functions_args=(None, None), arrest_functions=(None, None), arrest_functions_args=(None, None),
                  transitions_to_next_phase=(None, None), transitions_to_next_phase_args: list = (None, None),
-                 target_volumes: list = (1, 1), volumes: list = (1, 1), update_volumes=(None, None),
-                 update_volumes_args: list = (None, None), update_volume_rates=(None, None),
-                 simulated_cell_volume=None):
-        _check_arguments(2, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions,
-                         exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
+                 simulated_cell_volume=None, cytoplasm_biomass_change_rate=(None, None),
+                 nuclear_biomass_change_rate=(None, None), calcification_rate=(None, None),
+                 cytoplasm_volume=(.5, .5),
+                 cytoplasm_target_volume=(.5, .5), cytoplasm_target_fluid_fraction=(1, 1),
+                 nuclear_volume=(.5, .5),
+                 nuclear_target_volume=(.5, .5), nuclear_target_fluid_fraction=(1, 1),
+                 calcified_fraction=(0, 0)):
+        _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                         nuclear_target_fluid_fraction, calcified_fraction, cytoplasm_biomass_change_rate)
 
         Ki67_positive = Phases.Ki67Positive(index=1, previous_phase_index=0, next_phase_index=0, dt=dt,
                                             time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[1],
@@ -327,16 +442,22 @@ class Ki67Basic(Phenotype):
                                             fixed_duration=fixed_durations[1], phase_duration=phase_durations[1],
                                             entry_function=entry_functions[1],
                                             entry_function_args=entry_functions_args[1],
-                                            exit_function=exit_functions[1],
-                                            exit_function_args=exit_functions_args[1],
+                                            exit_function=exit_functions[1], exit_function_args=exit_functions_args[1],
                                             arrest_function=arrest_functions[1],
                                             arrest_function_args=arrest_functions_args[1],
                                             transition_to_next_phase=transitions_to_next_phase[1],
                                             transition_to_next_phase_args=transitions_to_next_phase_args[1],
-                                            target_volume=target_volumes[1], volume=volumes[1],
-                                            update_volume=update_volumes[1], update_volume_args=update_volumes_args[1],
-                                            update_volume_rate=update_volume_rates[1],
-                                            simulated_cell_volume=simulated_cell_volume)
+                                            simulated_cell_volume=simulated_cell_volume,
+                                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[1],
+                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
+                                            calcification_rate=calcification_rate[1],
+                                            cytoplasm_volume=cytoplasm_volume[1],
+                                            cytoplasm_target_volume=cytoplasm_target_volume[1],
+                                            cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[1],
+                                            nuclear_volume=nuclear_volume[1],
+                                            nuclear_target_volume=nuclear_target_volume[1],
+                                            nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[1],
+                                            calcified_fraction=calcified_fraction[1])
 
         Ki67_negative = Phases.Ki67Negative(index=0, previous_phase_index=1, next_phase_index=1, dt=dt,
                                             time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
@@ -344,20 +465,26 @@ class Ki67Basic(Phenotype):
                                             fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
                                             entry_function=entry_functions[0],
                                             entry_function_args=entry_functions_args[0],
-                                            exit_function=exit_functions[0],
-                                            exit_function_args=exit_functions_args[0],
+                                            exit_function=exit_functions[0], exit_function_args=exit_functions_args[0],
                                             arrest_function=arrest_functions[0],
                                             arrest_function_args=arrest_functions_args[0],
                                             transition_to_next_phase=transitions_to_next_phase[0],
                                             transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                                            target_volume=target_volumes[0], volume=volumes[0],
-                                            update_volume=update_volumes[0], update_volume_args=update_volumes_args[0],
-                                            update_volume_rate=update_volume_rates[0],
-                                            simulated_cell_volume=simulated_cell_volume)
+                                            simulated_cell_volume=simulated_cell_volume,
+                                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
+                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
+                                            calcification_rate=calcification_rate[0],
+                                            cytoplasm_volume=cytoplasm_volume[0],
+                                            cytoplasm_target_volume=cytoplasm_target_volume[0],
+                                            cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[0],
+                                            nuclear_volume=nuclear_volume[0],
+                                            nuclear_target_volume=nuclear_target_volume[0],
+                                            nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[0],
+                                            calcified_fraction=calcified_fraction[0])
 
         phases = [Ki67_negative, Ki67_positive]
 
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
 
 class Ki67Advanced(Phenotype):
@@ -366,18 +493,23 @@ class Ki67Advanced(Phenotype):
                  division_at_phase_exits=(False, True, False), removal_at_phase_exits=(False, False, False),
                  fixed_durations=(False, True, True), phase_durations: list = (3.62 * 60, 13.0 * 60.0, 2.5 * 60),
                  entry_functions=(None, None, None), entry_functions_args=(None, None, None),
-                 exit_functions=(None, None, None),
-                 exit_functions_args=(None, None, None), arrest_functions=(None, None, None),
-                 arrest_functions_args=(None, None, None),
+                 exit_functions=(None, None, None), exit_functions_args=(None, None, None),
+                 arrest_functions=(None, None, None), arrest_functions_args=(None, None, None),
                  transitions_to_next_phase=(None, None, None),
-                 transitions_to_next_phase_args: list = (None, None, None),
-                 target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None),
-                 update_volumes_args: list = (None, None, None), update_volume_rates=(None, None, None),
-                 simulated_cell_volume=None):
-        _check_arguments(3, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions,
-                         exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
+                 transitions_to_next_phase_args: list = (None, None, None), simulated_cell_volume=None,
+                 cytoplasm_biomass_change_rate=(None, None, None),
+                 nuclear_biomass_change_rate=(None, None, None), calcification_rate=(None, None, None),
+                 cytoplasm_volume=(.5, .5, .5),
+                 cytoplasm_target_volume=(.5, .5, .5), cytoplasm_target_fluid_fraction=(1, 1, 1),
+                 nuclear_volume=(.5, .5, .5),
+                 nuclear_target_volume=(.5, .5, .5), nuclear_target_fluid_fraction=(1, 1, 1),
+                 calcified_fraction=(0, 0, 0)):
+        _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                         nuclear_target_fluid_fraction, calcified_fraction, cytoplasm_biomass_change_rate)
 
         Ki67_negative = Phases.Ki67Negative(index=0, previous_phase_index=2, next_phase_index=1, dt=dt,
                                             time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
@@ -385,16 +517,22 @@ class Ki67Advanced(Phenotype):
                                             fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
                                             entry_function=entry_functions[0],
                                             entry_function_args=entry_functions_args[0],
-                                            exit_function=exit_functions[0],
-                                            exit_function_args=exit_functions_args[0],
+                                            exit_function=exit_functions[0], exit_function_args=exit_functions_args[0],
                                             arrest_function=arrest_functions[0],
                                             arrest_function_args=arrest_functions_args[0],
                                             transition_to_next_phase=transitions_to_next_phase[0],
                                             transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                                            target_volume=target_volumes[0], volume=volumes[0],
-                                            update_volume=update_volumes[0], update_volume_args=update_volumes_args[0],
-                                            update_volume_rate=update_volume_rates[0],
-                                            simulated_cell_volume=simulated_cell_volume)
+                                            simulated_cell_volume=simulated_cell_volume,
+                                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
+                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
+                                            calcification_rate=calcification_rate[0],
+                                            cytoplasm_volume=cytoplasm_volume[0],
+                                            cytoplasm_target_volume=cytoplasm_target_volume[0],
+                                            cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[0],
+                                            nuclear_volume=nuclear_volume[0],
+                                            nuclear_target_volume=nuclear_target_volume[0],
+                                            nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[0],
+                                            calcified_fraction=calcified_fraction[0])
 
         Ki67_positive_pre = Phases.Ki67PositivePreMitotic(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
                                                           time_unit=time_unit,
@@ -409,13 +547,22 @@ class Ki67Advanced(Phenotype):
                                                           arrest_function=arrest_functions[1],
                                                           arrest_function_args=arrest_functions_args[1],
                                                           transition_to_next_phase=transitions_to_next_phase[1],
-                                                          transition_to_next_phase_args=transitions_to_next_phase_args[
-                                                              1],
-                                                          target_volume=target_volumes[1], volume=volumes[1],
-                                                          update_volume=update_volumes[1],
-                                                          update_volume_args=update_volumes_args[1],
-                                                          update_volume_rate=update_volume_rates[1],
-                                                          simulated_cell_volume=simulated_cell_volume)
+                                                          transition_to_next_phase_args=
+                                                          transitions_to_next_phase_args[1],
+                                                          simulated_cell_volume=simulated_cell_volume,
+                                                          cytoplasm_biomass_change_rate=
+                                                          cytoplasm_biomass_change_rate[1],
+                                                          nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
+                                                          calcification_rate=calcification_rate[1],
+                                                          cytoplasm_volume=cytoplasm_volume[1],
+                                                          cytoplasm_target_volume=cytoplasm_target_volume[1],
+                                                          cytoplasm_target_fluid_fraction=
+                                                          cytoplasm_target_fluid_fraction[1],
+                                                          nuclear_volume=nuclear_volume[1],
+                                                          nuclear_target_volume=nuclear_target_volume[1],
+                                                          nuclear_target_fluid_fraction=
+                                                          nuclear_target_fluid_fraction[0],
+                                                          calcified_fraction=calcified_fraction[0])
 
         Ki67_positive_post = Phases.Ki67PositivePostMitotic(index=2, previous_phase_index=1, next_phase_index=0, dt=dt,
                                                             time_unit=time_unit,
@@ -432,13 +579,22 @@ class Ki67Advanced(Phenotype):
                                                             transition_to_next_phase=transitions_to_next_phase[2],
                                                             transition_to_next_phase_args=
                                                             transitions_to_next_phase_args[2],
-                                                            target_volume=target_volumes[2], volume=volumes[2],
-                                                            update_volume=update_volumes[2],
-                                                            update_volume_args=update_volumes_args[2],
-                                                            update_volume_rate=update_volume_rates[2],
-                                                            simulated_cell_volume=simulated_cell_volume)
+                                                            simulated_cell_volume=simulated_cell_volume,
+                                                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[
+                                                                2],
+                                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[2],
+                                                            calcification_rate=calcification_rate[2],
+                                                            cytoplasm_volume=cytoplasm_volume[2],
+                                                            cytoplasm_target_volume=cytoplasm_target_volume[2],
+                                                            cytoplasm_target_fluid_fraction=
+                                                            cytoplasm_target_fluid_fraction[2],
+                                                            nuclear_volume=nuclear_volume[2],
+                                                            nuclear_target_volume=nuclear_target_volume[2],
+                                                            nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[
+                                                                2],
+                                                            calcified_fraction=calcified_fraction[2])
         phases = [Ki67_negative, Ki67_positive_pre, Ki67_positive_post]
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
 
 class FlowCytometryBasic(Phenotype):
@@ -453,78 +609,85 @@ class FlowCytometryBasic(Phenotype):
                  division_at_phase_exits=(False, False, True), removal_at_phase_exits=(False, False, False),
                  fixed_durations=(False, False, False), phase_durations: list = (5.15 * 60, 8 * 60.0, 5 * 60),
                  entry_functions=(None, None, None), entry_functions_args=(None, None, None),
-                 exit_functions=(None, None, None),
-                 exit_functions_args=(None, None, None), arrest_functions=(None, None, None),
-                 arrest_functions_args=(None, None, None),
+                 exit_functions=(None, None, None), exit_functions_args=(None, None, None),
+                 arrest_functions=(None, None, None), arrest_functions_args=(None, None, None),
                  transitions_to_next_phase=(None, None, None),
-                 transitions_to_next_phase_args: list = (None, None, None),
-                 target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None),
-                 update_volumes_args: list = (None, None, None), update_volume_rates=(None, None, None),
-                 simulated_cell_volume=None):
-        _check_arguments(3, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions,
-                         exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
-        G0G1 = Phases.G0G1(dt=dt,
-                           time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
-                           removal_at_phase_exit=removal_at_phase_exits[0],
-                           fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
-                           entry_function=entry_functions[0],
-                           entry_function_args=entry_functions_args[0],
-                           exit_function=exit_functions[0],
-                           exit_function_args=exit_functions_args[0],
-                           arrest_function=arrest_functions[0],
+                 transitions_to_next_phase_args: list = (None, None, None), simulated_cell_volume=None,
+                 cytoplasm_biomass_change_rate=(None, None, None),
+                 nuclear_biomass_change_rate=(None, None, None), calcification_rate=(None, None, None),
+                 cytoplasm_volume=(.5, .5, .5),
+                 cytoplasm_target_volume=(.5, .5, .5), cytoplasm_target_fluid_fraction=(1, 1, 1),
+                 nuclear_volume=(.5, .5, .5),
+                 nuclear_target_volume=(.5, .5, .5), nuclear_target_fluid_fraction=(1, 1, 1),
+                 calcified_fraction=(0, 0, 0)):
+        _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                         nuclear_target_fluid_fraction, calcified_fraction, cytoplasm_biomass_change_rate)
+        G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
+                           removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
+                           phase_duration=phase_durations[0], entry_function=entry_functions[0],
+                           entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
+                           exit_function_args=exit_functions_args[0], arrest_function=arrest_functions[0],
                            arrest_function_args=arrest_functions_args[0],
                            transition_to_next_phase=transitions_to_next_phase[0],
                            transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                           target_volume=target_volumes[0], volume=volumes[0],
-                           update_volume=update_volumes[0], update_volume_args=update_volumes_args[0],
-                           update_volume_rate=update_volume_rates[0],
-                           simulated_cell_volume=simulated_cell_volume)
+                           simulated_cell_volume=simulated_cell_volume,
+                           cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
+                           nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
+                           calcification_rate=calcification_rate[0],
+                           cytoplasm_volume=cytoplasm_volume[0],
+                           cytoplasm_target_volume=cytoplasm_target_volume[0],
+                           cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[0],
+                           nuclear_volume=nuclear_volume[0],
+                           nuclear_target_volume=nuclear_target_volume[0],
+                           nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[0],
+                           calcified_fraction=calcified_fraction[0])
 
-        S = Phases.S(dt=dt,
-                     time_unit=time_unit,
-                     division_at_phase_exit=division_at_phase_exits[1],
-                     removal_at_phase_exit=removal_at_phase_exits[1],
-                     fixed_duration=fixed_durations[1],
-                     phase_duration=phase_durations[1],
-                     entry_function=entry_functions[1],
-                     entry_function_args=entry_functions_args[1],
-                     exit_function=exit_functions[1],
-                     exit_function_args=exit_functions_args[1],
-                     arrest_function=arrest_functions[1],
+        S = Phases.S(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[1],
+                     removal_at_phase_exit=removal_at_phase_exits[1], fixed_duration=fixed_durations[1],
+                     phase_duration=phase_durations[1], entry_function=entry_functions[1],
+                     entry_function_args=entry_functions_args[1], exit_function=exit_functions[1],
+                     exit_function_args=exit_functions_args[1], arrest_function=arrest_functions[1],
                      arrest_function_args=arrest_functions_args[1],
                      transition_to_next_phase=transitions_to_next_phase[1],
                      transition_to_next_phase_args=transitions_to_next_phase_args[1],
-                     target_volume=target_volumes[1], volume=volumes[1],
-                     update_volume=update_volumes[1],
-                     update_volume_args=update_volumes_args[1],
-                     update_volume_rate=update_volume_rates[1],
-                     simulated_cell_volume=simulated_cell_volume)
-        G2M = Phases.G2M(dt=dt,
-                         time_unit=time_unit,
-                         division_at_phase_exit=division_at_phase_exits[2],
-                         removal_at_phase_exit=removal_at_phase_exits[2],
-                         fixed_duration=fixed_durations[2],
-                         phase_duration=phase_durations[2],
-                         entry_function=entry_functions[2],
-                         entry_function_args=entry_functions_args[2],
-                         exit_function=exit_functions[2],
-                         exit_function_args=exit_functions_args[2],
-                         arrest_function=arrest_functions[2],
+                     simulated_cell_volume=simulated_cell_volume,
+                     cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[1],
+                     nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
+                     calcification_rate=calcification_rate[1],
+                     cytoplasm_volume=cytoplasm_volume[1],
+                     cytoplasm_target_volume=cytoplasm_target_volume[1],
+                     cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[1],
+                     nuclear_volume=nuclear_volume[1],
+                     nuclear_target_volume=nuclear_target_volume[1],
+                     nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[1],
+                     calcified_fraction=calcified_fraction[1])
+        G2M = Phases.G2M(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[2],
+                         removal_at_phase_exit=removal_at_phase_exits[2], fixed_duration=fixed_durations[2],
+                         phase_duration=phase_durations[2], entry_function=entry_functions[2],
+                         entry_function_args=entry_functions_args[2], exit_function=exit_functions[2],
+                         exit_function_args=exit_functions_args[2], arrest_function=arrest_functions[2],
                          arrest_function_args=arrest_functions_args[2],
                          transition_to_next_phase=transitions_to_next_phase[2],
-                         transition_to_next_phase_args=
-                         transitions_to_next_phase_args[2],
-                         target_volume=target_volumes[2], volume=volumes[2],
-                         update_volume=update_volumes[2],
-                         update_volume_args=update_volumes_args[2],
-                         update_volume_rate=update_volume_rates[2],
-                         simulated_cell_volume=simulated_cell_volume)
+                         transition_to_next_phase_args=transitions_to_next_phase_args[2],
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[2],
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate[2],
+                         calcification_rate=calcification_rate[2],
+                         cytoplasm_volume=cytoplasm_volume[2],
+                         cytoplasm_target_volume=cytoplasm_target_volume[2],
+                         cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[2],
+                         nuclear_volume=nuclear_volume[2],
+                         nuclear_target_volume=nuclear_target_volume[2],
+                         nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[2],
+                         calcified_fraction=calcified_fraction[2])
 
         phases = [G0G1, S, G2M]
 
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
 
 class FlowCytometryAdvanced(Phenotype):
@@ -537,128 +700,141 @@ class FlowCytometryAdvanced(Phenotype):
 
     def __init__(self, name="Flow Cytometry Advanced", dt=0.1, time_unit="min", quiescent_phase=False,
                  division_at_phase_exits=(False, False, False, True),
-                 removal_at_phase_exits=(False, False, False, False),
-                 fixed_durations=(False, False, False, False),
+                 removal_at_phase_exits=(False, False, False, False), fixed_durations=(False, False, False, False),
                  phase_durations: list = (4.98 * 60, 8 * 60.0, 4 * 60, 1 * 60),
                  entry_functions=(None, None, None, None), entry_functions_args=(None, None, None, None),
-                 exit_functions=(None, None, None, None),
-                 exit_functions_args=(None, None, None), arrest_functions=(None, None, None, None),
-                 arrest_functions_args=(None, None, None, None),
+                 exit_functions=(None, None, None, None), exit_functions_args=(None, None, None),
+                 arrest_functions=(None, None, None, None), arrest_functions_args=(None, None, None, None),
                  transitions_to_next_phase=(None, None, None, None),
-                 transitions_to_next_phase_args: list = (None, None, None, None),
-                 target_volumes: list = (1, 1, 1), volumes: list = (1, 1, 1), update_volumes=(None, None, None, None),
-                 update_volumes_args: list = (None, None, None, None), update_volume_rates=(None, None, None, None),
-                 simulated_cell_volume=None):
+                 transitions_to_next_phase_args: list = (None, None, None, None), simulated_cell_volume=None,
+                 cytoplasm_biomass_change_rate=(None, None, None, None),
+                 nuclear_biomass_change_rate=(None, None, None, None), calcification_rate=(None, None, None, None),
+                 cytoplasm_volume=(.5, .5, .5, .5),
+                 cytoplasm_target_volume=(.5, .5, .5, .5), cytoplasm_target_fluid_fraction=(1, 1, 1, 1),
+                 nuclear_volume=(.5, .5, .5, .5),
+                 nuclear_target_volume=(.5, .5, .5, .5), nuclear_target_fluid_fraction=(1, 1, 1, 1),
+                 calcified_fraction=(0, 0, 0, 0)):
+        _check_arguments(4, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                         nuclear_target_fluid_fraction, calcified_fraction, cytoplasm_biomass_change_rate)
 
-        _check_arguments(4, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions,
-                         exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
-
-        G0G1 = Phases.G0G1(dt=dt,
-                           time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
-                           removal_at_phase_exit=removal_at_phase_exits[0],
-                           fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
-                           entry_function=entry_functions[0],
-                           entry_function_args=entry_functions_args[0],
-                           exit_function=exit_functions[0],
-                           exit_function_args=exit_functions_args[0],
-                           arrest_function=arrest_functions[0],
+        G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
+                           removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
+                           phase_duration=phase_durations[0], entry_function=entry_functions[0],
+                           entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
+                           exit_function_args=exit_functions_args[0], arrest_function=arrest_functions[0],
                            arrest_function_args=arrest_functions_args[0],
                            transition_to_next_phase=transitions_to_next_phase[0],
                            transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                           target_volume=target_volumes[0], volume=volumes[0],
-                           update_volume=update_volumes[0], update_volume_args=update_volumes_args[0],
-                           update_volume_rate=update_volume_rates[0],
-                           simulated_cell_volume=simulated_cell_volume)
+                           simulated_cell_volume=simulated_cell_volume,
+                           cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
+                           nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
+                           calcification_rate=calcification_rate[0],
+                           cytoplasm_volume=cytoplasm_volume[0],
+                           cytoplasm_target_volume=cytoplasm_target_volume[0],
+                           cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[0],
+                           nuclear_volume=nuclear_volume[0],
+                           nuclear_target_volume=nuclear_target_volume[0],
+                           nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[0],
+                           calcified_fraction=calcified_fraction[0])
 
-        S = Phases.S(dt=dt,
-                     time_unit=time_unit,
-                     division_at_phase_exit=division_at_phase_exits[1],
-                     removal_at_phase_exit=removal_at_phase_exits[1],
-                     fixed_duration=fixed_durations[1],
-                     phase_duration=phase_durations[1],
-                     entry_function=entry_functions[1],
-                     entry_function_args=entry_functions_args[1],
-                     exit_function=exit_functions[1],
-                     exit_function_args=exit_functions_args[1],
-                     arrest_function=arrest_functions[1],
+        S = Phases.S(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[1],
+                     removal_at_phase_exit=removal_at_phase_exits[1], fixed_duration=fixed_durations[1],
+                     phase_duration=phase_durations[1], entry_function=entry_functions[1],
+                     entry_function_args=entry_functions_args[1], exit_function=exit_functions[1],
+                     exit_function_args=exit_functions_args[1], arrest_function=arrest_functions[1],
                      arrest_function_args=arrest_functions_args[1],
                      transition_to_next_phase=transitions_to_next_phase[1],
                      transition_to_next_phase_args=transitions_to_next_phase_args[1],
-                     target_volume=target_volumes[1], volume=volumes[1],
-                     update_volume=update_volumes[1],
-                     update_volume_args=update_volumes_args[1],
-                     update_volume_rate=update_volume_rates[1],
-                     simulated_cell_volume=simulated_cell_volume)
+                     simulated_cell_volume=simulated_cell_volume,
+                     cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[1],
+                     nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
+                     calcification_rate=calcification_rate[1],
+                     cytoplasm_volume=cytoplasm_volume[1],
+                     cytoplasm_target_volume=cytoplasm_target_volume[1],
+                     cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[1],
+                     nuclear_volume=nuclear_volume[1],
+                     nuclear_target_volume=nuclear_target_volume[1],
+                     nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[1],
+                     calcified_fraction=calcified_fraction[1])
 
-        G2 = Phases.G0G1(name="G2", index=2, previous_phase_index=1, next_phase_index=3, dt=dt,
-                         time_unit=time_unit,
+        G2 = Phases.G0G1(index=2, previous_phase_index=1, next_phase_index=3, dt=dt, time_unit=time_unit, name="G2",
                          division_at_phase_exit=division_at_phase_exits[2],
-                         removal_at_phase_exit=removal_at_phase_exits[2],
-                         fixed_duration=fixed_durations[2],
-                         phase_duration=phase_durations[2],
-                         entry_function=entry_functions[2],
-                         entry_function_args=entry_functions_args[2],
-                         exit_function=exit_functions[2],
-                         exit_function_args=exit_functions_args[2],
-                         arrest_function=arrest_functions[2],
+                         removal_at_phase_exit=removal_at_phase_exits[2], fixed_duration=fixed_durations[2],
+                         phase_duration=phase_durations[2], entry_function=entry_functions[2],
+                         entry_function_args=entry_functions_args[2], exit_function=exit_functions[2],
+                         exit_function_args=exit_functions_args[2], arrest_function=arrest_functions[2],
                          arrest_function_args=arrest_functions_args[2],
                          transition_to_next_phase=transitions_to_next_phase[2],
                          transition_to_next_phase_args=transitions_to_next_phase_args[2],
-                         target_volume=target_volumes[2], volume=volumes[2],
-                         update_volume=update_volumes[2],
-                         update_volume_args=update_volumes_args[2],
-                         update_volume_rate=update_volume_rates[2],
-                         simulated_cell_volume=simulated_cell_volume)
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[2],
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate[2],
+                         calcification_rate=calcification_rate[2],
+                         cytoplasm_volume=cytoplasm_volume[2],
+                         cytoplasm_target_volume=cytoplasm_target_volume[2],
+                         cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[2],
+                         nuclear_volume=nuclear_volume[2],
+                         nuclear_target_volume=nuclear_target_volume[2],
+                         nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[2],
+                         calcified_fraction=calcified_fraction[2])
 
-        M = Phases.G2M(name="M", index=3, previous_phase_index=2, next_phase_index=0, dt=dt,
-                       time_unit=time_unit,
+        M = Phases.G2M(index=3, previous_phase_index=2, next_phase_index=0, dt=dt, time_unit=time_unit, name="M",
                        division_at_phase_exit=division_at_phase_exits[3],
-                       removal_at_phase_exit=removal_at_phase_exits[3],
-                       fixed_duration=fixed_durations[3],
-                       phase_duration=phase_durations[3],
-                       entry_function=entry_functions[3],
-                       entry_function_args=entry_functions_args[3],
-                       exit_function=exit_functions[3],
-                       exit_function_args=exit_functions_args[3],
-                       arrest_function=arrest_functions[3],
+                       removal_at_phase_exit=removal_at_phase_exits[3], fixed_duration=fixed_durations[3],
+                       phase_duration=phase_durations[3], entry_function=entry_functions[3],
+                       entry_function_args=entry_functions_args[3], exit_function=exit_functions[3],
+                       exit_function_args=exit_functions_args[3], arrest_function=arrest_functions[3],
                        arrest_function_args=arrest_functions_args[3],
                        transition_to_next_phase=transitions_to_next_phase[3],
                        transition_to_next_phase_args=transitions_to_next_phase_args[3],
-                       target_volume=target_volumes[3], volume=volumes[3],
-                       update_volume=update_volumes[3],
-                       update_volume_args=update_volumes_args[3],
-                       update_volume_rate=update_volume_rates[3],
-                       simulated_cell_volume=simulated_cell_volume)
+                       simulated_cell_volume=simulated_cell_volume,
+                       cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[3],
+                       nuclear_biomass_change_rate=nuclear_biomass_change_rate[3],
+                       calcification_rate=calcification_rate[3],
+                       cytoplasm_volume=cytoplasm_volume[3],
+                       cytoplasm_target_volume=cytoplasm_target_volume[3],
+                       cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[3],
+                       nuclear_volume=nuclear_volume[3],
+                       nuclear_target_volume=nuclear_target_volume[3],
+                       nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[3],
+                       calcified_fraction=calcified_fraction[3])
 
         phases = [G0G1, S, G2, M]
 
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
 
 class ApoptosisStandard(Phenotype):
-
     """
     The standard apoptotic model
     """
 
     def __init__(self, name="Standard apoptosis model", dt=0.1, time_unit="min", quiescent_phase=False,
                  division_at_phase_exits=(False,), removal_at_phase_exits=(True,), fixed_durations=(True,),
-                 phase_durations=(8.6*60,), entry_functions=(None,), entry_functions_args=(None,),
-                 exit_functions=(None,),
-                 exit_functions_args=(None,), arrest_functions=(None,), arrest_functions_args=(None,),
-                 transitions_to_next_phase=(None,), transitions_to_next_phase_args=(None,), target_volumes=(0,),
-                 volumes=(None,), update_volumes=(None,), update_volumes_args=(None,), update_volume_rates=(None,),
-                 simulated_cell_volume=None):
+                 phase_durations=(8.6 * 60,), entry_functions=(None,), entry_functions_args=(None,),
+                 exit_functions=(None,), exit_functions_args=(None,), arrest_functions=(None,),
+                 arrest_functions_args=(None,), transitions_to_next_phase=(None,),
+                 transitions_to_next_phase_args=(None,), simulated_cell_volume=None,
+                 cytoplasm_biomass_change_rate=(1 / 60,),
+                 nuclear_biomass_change_rate=(0.35 / 60,), calcification_rate=(None,),
+                 cytoplasm_volume=(None,),
+                 cytoplasm_target_volume=(0,), cytoplasm_target_fluid_fraction=(1,),
+                 nuclear_volume=(None,),
+                 nuclear_target_volume=(0,), nuclear_target_fluid_fraction=(1,),
+                 calcified_fraction=(0,)):
+        _check_arguments(1, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
+                         cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
+                         nuclear_target_fluid_fraction, calcified_fraction, cytoplasm_biomass_change_rate)
 
-        _check_arguments(1, name, target_volumes, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions,
-                         exit_functions_args, arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args, update_volumes, update_volumes_args, update_volume_rates)
-
-        apopto = Phases.Apoptosis(name="Apoptosis", index=0, previous_phase_index=0, next_phase_index=1, dt=dt,
-                                  time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
+        apopto = Phases.Apoptosis(index=0, previous_phase_index=0, next_phase_index=1, dt=dt, time_unit=time_unit,
+                                  name="Apoptosis", division_at_phase_exit=division_at_phase_exits[0],
                                   removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
                                   phase_duration=phase_durations[0], entry_function=entry_functions[0],
                                   entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
@@ -666,24 +842,32 @@ class ApoptosisStandard(Phenotype):
                                   arrest_function_args=arrest_functions_args[0],
                                   transition_to_next_phase=transitions_to_next_phase[0],
                                   transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                                  target_volume=target_volumes[0], volume=volumes[0], update_volume=update_volumes[0],
-                                  update_volume_args=update_volumes_args[0], update_volume_rate=update_volume_rates[0],
-                                  simulated_cell_volume=simulated_cell_volume[0])
+                                  simulated_cell_volume=simulated_cell_volume[0],
+                                  cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
+                                  nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
+                                  calcification_rate=calcification_rate[0],
+                                  cytoplasm_volume=cytoplasm_volume[0],
+                                  cytoplasm_target_volume=cytoplasm_target_volume[0],
+                                  cytoplasm_target_fluid_fraction=cytoplasm_target_fluid_fraction[0],
+                                  nuclear_volume=nuclear_volume[0],
+                                  nuclear_target_volume=nuclear_target_volume[0],
+                                  nuclear_target_fluid_fraction=nuclear_target_fluid_fraction[0],
+                                  calcified_fraction=calcified_fraction[0])
 
         # a phase to help lyse the simulated cell, shouldn't do anything
-        debris = Phases.Phase(name="Debris", index=1, previous_phase_index=0, next_phase_index=1, dt=dt,
-                              time_unit=time_unit, division_at_phase_exit=False, removal_at_phase_exit=True,
-                              fixed_duration=True, phase_duration=1e6, target_volume=0)
+        debris = Phases.Phase(index=1, previous_phase_index=0, next_phase_index=1, dt=dt, time_unit=time_unit,
+                              name="Debris", division_at_phase_exit=False, removal_at_phase_exit=True,
+                              fixed_duration=True, phase_duration=1e6)
 
         phases = [apopto, debris]
 
-        super().__init__(name=name, dt=dt, phases=phases, quiescent_phase=quiescent_phase, time_unit=time_unit)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
 
 cycle_names = ["Simple Live", "Ki67 Basic"]
 
 
-def get_cycle_by_name(name):
+def get_phenotype_by_name(name):
     if name not in cycle_names:
         raise ValueError(f"{name} is not a pre-defined cycle")
 

@@ -8,8 +8,9 @@ from numpy import median, quantile, nan
 import sys
 from os.path import abspath, dirname, join
 
-sys.path.extend([abspath("../../..")])  # todo: make this more refined
+# sys.path.extend([abspath("../../..")])  # todo: make this more refined
 
+sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
 import Phenotypes as pheno
 
 
@@ -35,20 +36,26 @@ class ConstraintInitializerSteppable(SteppableBasePy):
 
         dt = 5  # 5 min/mcs
 
-        ki67_basic_modified_transition = pheno.cycles.Ki67Basic(dt=dt, target_volumes=[side * side, side * side],
-                                                                volumes=[side * side, side * side],
-                                                                simulated_cell_volume=side * side,
-                                                                transitions_to_next_phase=[None, Ki67pos_transition],
-                                                                transitions_to_next_phase_args=[None,
-                                                                                                [-9, 1, -9, 1]])
+        ki67_basic_modified_transition = pheno.phenotypes.Ki67Basic(dt=dt,
+                                                                    transitions_to_next_phase=[None,
+                                                                                               Ki67pos_transition],
+                                                                    transitions_to_next_phase_args=[None,
+                                                                                                    [-9, 1, -9, 1]],
+                                                                    cytoplasm_target_volume=[side * side, side * side],
+                                                                    cytoplasm_volume=[side * side, side * side],
+                                                                    cytoplasm_target_fluid_fraction=[1, 1],
+                                                                    # as the simulated cell "doesn't have" a nucleus we
+                                                                    # don't need to give it a volume
+                                                                    nuclear_volume=[0, 0],
+                                                                    nuclear_target_volume=[0, 0])
 
         for cell in self.cell_list:
             cell.targetVolume = side * side
             cell.lambdaVolume = 2.0
             # print(hasattr(cell, "__dict__"))
-            pheno.utils.add_cycle_to_CC3D_cell(cell, ki67_basic_modified_transition)
-            # print(hasattr(cell, "cycle"))
-            cell.dict["phase_index_plus_1"] = cell.dict["cycle"].current_phase.index + 1
+            pheno.utils.add_phenotype_to_CC3D_cell(cell, ki67_basic_modified_transition)
+            # print(hasattr(cell, "phenotype"))
+            cell.dict["phase_index_plus_1"] = cell.dict["phenotype"].current_phase.index + 1
 
 
 class MitosisSteppable(MitosisSteppableBase):
@@ -57,7 +64,7 @@ class MitosisSteppable(MitosisSteppableBase):
         self.previous_number_cells = 0
 
         self.plot = True
-        self.save = True
+        self.save = False
 
         if self.save:
             self.save_loc = dirname(abspath(__file__))
@@ -135,32 +142,34 @@ class MitosisSteppable(MitosisSteppableBase):
         time_spent_in_1 = []
 
         for cell in self.cell_list:
+            # if cell.volume<=90:
+            #     print(cell.volume, mcs)
             volumes.append(cell.volume)
-            cell.dict["cycle"].current_phase.simulated_cell_volume = cell.volume
+            cell.dict["phenotype"].current_phase.simulated_cell_volume = cell.volume
             # print(len(args))
-            if cell.dict["cycle"].current_phase.index == 0:
+            if cell.dict["phenotype"].current_phase.index == 0:
                 n_zero += 1
-                time_spent_in_0.append(cell.dict["cycle"].current_phase.time_in_phase)
-            elif cell.dict["cycle"].current_phase.index == 1:
+                time_spent_in_0.append(cell.dict["phenotype"].current_phase.time_in_phase)
+            elif cell.dict["phenotype"].current_phase.index == 1:
                 n_one += 1
-                time_spent_in_1.append(cell.dict["cycle"].current_phase.time_in_phase)
+                time_spent_in_1.append(cell.dict["phenotype"].current_phase.time_in_phase)
                 # args = [cc3d cell volume, phase's target volume, time in phase, phase duration
                 args = [
                     cell.volume,
-                    cell.dict["cycle"].current_phase.target_volume,
-                    cell.dict["cycle"].current_phase.time_in_phase + cell.dict["cycle"].dt,
-                    cell.dict["cycle"].current_phase.phase_duration]
+                    cell.targetVolume,
+                    cell.dict["phenotype"].current_phase.time_in_phase + cell.dict["phenotype"].dt,
+                    cell.dict["phenotype"].current_phase.phase_duration]
 
-                cell.dict["cycle"].current_phase.transition_to_next_phase_args = args
-                # print("_", len(cell.dict["cycle"].current_phase.transition_to_next_phase_args))
+                cell.dict["phenotype"].current_phase.transition_to_next_phase_args = args
+                # print("_", len(cell.dict["phenotype"].current_phase.transition_to_next_phase_args))
 
-            changed_phase, died, divides = cell.dict["cycle"].time_step_cycle()
+            changed_phase, died, divides = cell.dict["phenotype"].time_step_phenotype()
 
-            if cell.targetVolume < cell.dict["cycle"].current_phase.volume:
-                cell.targetVolume = cell.dict["cycle"].current_phase.volume
+            if cell.targetVolume < cell.dict["phenotype"].current_phase.volume.total:
+                cell.targetVolume = cell.dict["phenotype"].current_phase.volume.total
 
             if changed_phase:
-                cell.dict["phase_index_plus_1"] = cell.dict["cycle"].current_phase.index + 1
+                cell.dict["phase_index_plus_1"] = cell.dict["phenotype"].current_phase.index + 1
                 if len(self.cell_list) < 10:
                     print("@@@\nPHASE CHANGE\n@@@")
 
@@ -257,18 +266,26 @@ class MitosisSteppable(MitosisSteppableBase):
         self.parent_cell.targetVolume = 100  # todo: use parameter
 
         self.clone_parent_2_child()
+        self.parent_cell.dict["phenotype"].current_phase.volume.target_cytoplasm = self.parent_cell.targetVolume
+        self.parent_cell.dict["phenotype"].current_phase.volume.cytoplasm_fluid = self.parent_cell.volume
+        self.parent_cell.dict["phase_index_plus_1"] = self.parent_cell.dict["phenotype"].current_phase.index + 1
 
-        self.parent_cell.dict["cycle"].current_phase.target_volume = self.parent_cell.targetVolume
-        self.parent_cell.dict["cycle"].current_phase.volume = self.parent_cell.targetVolume
-        self.parent_cell.dict["phase_index_plus_1"] = self.parent_cell.dict["cycle"].current_phase.index + 1
-        self.parent_cell.dict["cycle"].current_phase.simulated_cell_volume = self.parent_cell.volume
-
-        self.child_cell.dict["cycle"].current_phase.target_volume = self.parent_cell.targetVolume
-        self.child_cell.dict["cycle"].current_phase.volume = self.parent_cell.targetVolume
-        self.child_cell.dict["phase_index_plus_1"] = self.child_cell.dict["cycle"].current_phase.index + 1
-        self.child_cell.dict["cycle"].current_phase.simulated_cell_volume = self.child_cell.volume
+        self.child_cell.dict["phenotype"].current_phase.volume.target_cytoplasm = self.parent_cell.targetVolume
+        self.child_cell.dict["phenotype"].current_phase.volume.cytoplasm_fluid = self.parent_cell.targetVolume
+        self.child_cell.dict["phase_index_plus_1"] = self.child_cell.dict["phenotype"].current_phase.index + 1
         if len(self.cell_list) < 10:
-            print("@@@\nCHILD ATTRIBS\n@@@\n", self.child_cell.volume, self.child_cell.dict["cycle"].time_in_cycle,
-                  self.child_cell.dict["cycle"].current_phase,
-                  self.child_cell.dict["cycle"].current_phase.time_in_phase)
-        # self.child_cell.dict["cycle"].time_in_cycle = 0
+            print("@@@\nCHILD ATTRIBS\n@@@\n", self.child_cell.volume, self.child_cell.dict["phenotype"].time_in_phenotype,
+                  self.child_cell.dict["phenotype"].current_phase,
+                  self.child_cell.dict["phenotype"].current_phase.time_in_phase)
+        # self.child_cell.dict["phenotype"].time_in_phenotype = 0
+
+    def on_stop(self):
+        self.finish()
+
+    def finish(self):
+
+        if self.save:
+            self.volume_file.close()
+            self.time_minus_file.close()
+            self.time_plus_file.close()
+            self.number_cells_file.close()
