@@ -215,7 +215,7 @@ class Phenotype:
     current_phase : :class:`Phases.Phase`
         The current (active) phase of the cycle.
 
-    time_in_cycle : float
+    time_in_phenotype : float
         Total time elapsed for the cycle
 
     """
@@ -243,9 +243,9 @@ class Phenotype:
         else:
             self.quiescent_phase = quiescent_phase
         self.current_phase = self.phases[starting_phase_index]  # todo: add option to randomize
-        self.time_in_cycle = 0
+        self.time_in_phenotype = 0
 
-    def time_step_cycle(self):
+    def time_step_phenotype(self):
         """
         Time-steps the cycle.
 
@@ -258,7 +258,7 @@ class Phenotype:
         :rtype: tuple of bool
         """
 
-        self.time_in_cycle += self.dt
+        self.time_in_phenotype += self.dt
 
         next_phase, quies = self.current_phase.time_step_phase()
 
@@ -867,7 +867,7 @@ class ApoptosisStandard(Phenotype):
 cycle_names = ["Simple Live", "Ki67 Basic"]
 
 
-def get_cycle_by_name(name):
+def get_phenotype_by_name(name):
     if name not in cycle_names:
         raise ValueError(f"{name} is not a pre-defined cycle")
 
