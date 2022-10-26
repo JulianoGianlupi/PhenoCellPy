@@ -64,7 +64,7 @@ class MitosisSteppable(MitosisSteppableBase):
         self.previous_number_cells = 0
 
         self.plot = True
-        self.save = True
+        self.save = False
 
         if self.save:
             self.save_loc = dirname(abspath(__file__))
@@ -142,6 +142,8 @@ class MitosisSteppable(MitosisSteppableBase):
         time_spent_in_1 = []
 
         for cell in self.cell_list:
+            # if cell.volume<=90:
+            #     print(cell.volume, mcs)
             volumes.append(cell.volume)
             cell.dict["phenotype"].current_phase.simulated_cell_volume = cell.volume
             # print(len(args))
@@ -265,7 +267,7 @@ class MitosisSteppable(MitosisSteppableBase):
 
         self.clone_parent_2_child()
         self.parent_cell.dict["phenotype"].current_phase.new_volume.target_cytoplasm = self.parent_cell.targetVolume
-        self.parent_cell.dict["phenotype"].current_phase.new_volume.cytoplasm_fluid = self.parent_cell.targetVolume
+        self.parent_cell.dict["phenotype"].current_phase.new_volume.cytoplasm_fluid = self.parent_cell.volume
         self.parent_cell.dict["phase_index_plus_1"] = self.parent_cell.dict["phenotype"].current_phase.index + 1
 
         self.child_cell.dict["phenotype"].current_phase.new_volume.target_cytoplasm = self.parent_cell.targetVolume

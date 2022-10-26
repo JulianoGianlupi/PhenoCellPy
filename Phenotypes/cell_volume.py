@@ -82,7 +82,7 @@ class CellVolumes:
         return self.cytoplasm / self.nuclear
 
     @property
-    def cytoplasm(self):
+    def cytoplasm(self):  # todo: setter. do it like in the __init__
         return self.cytoplasm_fluid + self.cytoplasm_solid
 
     @property
