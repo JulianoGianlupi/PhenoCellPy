@@ -223,16 +223,16 @@ class Phase:
                 raise ValueError(f"`calcification_rate` must be >= 0, got {calcification_rate}")
             self.calcification_rate = calcification_rate
 
-        self.new_volume = CellVolumes(cytoplasm=cytoplasm_volume, target_cytoplasm=cytoplasm_target_volume,
-                                      target_cytoplasm_fluid_fraction=cytoplasm_target_fluid_fraction,
-                                      nuclear=nuclear_volume, target_nuclear=nuclear_target_volume,
-                                      target_nuclear_fluid_fraction=nuclear_target_fluid_fraction,
-                                      calcified_fraction=calcified_fraction)
+        self.volume = CellVolumes(cytoplasm=cytoplasm_volume, target_cytoplasm=cytoplasm_target_volume,
+                                  target_cytoplasm_fluid_fraction=cytoplasm_target_fluid_fraction,
+                                  nuclear=nuclear_volume, target_nuclear=nuclear_target_volume,
+                                  target_nuclear_fluid_fraction=nuclear_target_fluid_fraction,
+                                  calcified_fraction=calcified_fraction)
 
     def update_volume(self):
 
-        self.new_volume.update_volume(self.dt, self.cytoplasm_biomass_change_rate, self.nuclear_biomass_change_rate,
-                                      self.calcification_rate)
+        self.volume.update_volume(self.dt, self.cytoplasm_biomass_change_rate, self.nuclear_biomass_change_rate,
+                                  self.calcification_rate)
 
     def _transition_to_next_phase_stochastic(self, none):
         """
@@ -293,8 +293,8 @@ class Phase:
         return False, False
 
     def _double_target_volume(self, *none):
-        self.new_volume.target_nuclear *= 2
-        self.new_volume.target_cytoplasm *= 2
+        self.volume.target_nuclear *= 2
+        self.volume.target_cytoplasm *= 2
 
     def __str__(self):
         return f"{self.name} phase"
@@ -499,8 +499,8 @@ class Ki67PositivePostMitotic(Phase):
                          calcified_fraction=calcified_fraction)
 
     def _standard_Ki67_positive_postmit_entry_function(self, *args):
-        self.new_volume.target_cytoplasm /= 2
-        self.new_volume.target_nuclear /= 2
+        self.volume.target_cytoplasm /= 2
+        self.volume.target_nuclear /= 2
 
 
 class G0G1(Phase):

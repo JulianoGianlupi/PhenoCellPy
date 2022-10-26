@@ -165,8 +165,8 @@ class MitosisSteppable(MitosisSteppableBase):
 
             changed_phase, died, divides = cell.dict["phenotype"].time_step_phenotype()
 
-            if cell.targetVolume < cell.dict["phenotype"].current_phase.new_volume.total:
-                cell.targetVolume = cell.dict["phenotype"].current_phase.new_volume.total
+            if cell.targetVolume < cell.dict["phenotype"].current_phase.volume.total:
+                cell.targetVolume = cell.dict["phenotype"].current_phase.volume.total
 
             if changed_phase:
                 cell.dict["phase_index_plus_1"] = cell.dict["phenotype"].current_phase.index + 1
@@ -266,12 +266,12 @@ class MitosisSteppable(MitosisSteppableBase):
         self.parent_cell.targetVolume = 100  # todo: use parameter
 
         self.clone_parent_2_child()
-        self.parent_cell.dict["phenotype"].current_phase.new_volume.target_cytoplasm = self.parent_cell.targetVolume
-        self.parent_cell.dict["phenotype"].current_phase.new_volume.cytoplasm_fluid = self.parent_cell.volume
+        self.parent_cell.dict["phenotype"].current_phase.volume.target_cytoplasm = self.parent_cell.targetVolume
+        self.parent_cell.dict["phenotype"].current_phase.volume.cytoplasm_fluid = self.parent_cell.volume
         self.parent_cell.dict["phase_index_plus_1"] = self.parent_cell.dict["phenotype"].current_phase.index + 1
 
-        self.child_cell.dict["phenotype"].current_phase.new_volume.target_cytoplasm = self.parent_cell.targetVolume
-        self.child_cell.dict["phenotype"].current_phase.new_volume.cytoplasm_fluid = self.parent_cell.targetVolume
+        self.child_cell.dict["phenotype"].current_phase.volume.target_cytoplasm = self.parent_cell.targetVolume
+        self.child_cell.dict["phenotype"].current_phase.volume.cytoplasm_fluid = self.parent_cell.targetVolume
         self.child_cell.dict["phase_index_plus_1"] = self.child_cell.dict["phenotype"].current_phase.index + 1
         if len(self.cell_list) < 10:
             print("@@@\nCHILD ATTRIBS\n@@@\n", self.child_cell.volume, self.child_cell.dict["phenotype"].time_in_phenotype,

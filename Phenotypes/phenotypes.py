@@ -304,21 +304,21 @@ class Phenotype:
         """
 
         # get the current cytoplasm, nuclear, calcified volumes
-        cyto_solid = self.current_phase.new_volume.cytoplasm_solid
-        cyto_fluid = self.current_phase.new_volume.cytoplasm_solid
+        cyto_solid = self.current_phase.volume.cytoplasm_solid
+        cyto_fluid = self.current_phase.volume.cytoplasm_solid
 
-        nucl_solid = self.current_phase.new_volume.nuclear_solid
-        nucl_fluid = self.current_phase.new_volume.nuclear_fluid
+        nucl_solid = self.current_phase.volume.nuclear_solid
+        nucl_fluid = self.current_phase.volume.nuclear_fluid
 
-        calc_frac = self.current_phase.new_volume.calcified_fraction
+        calc_frac = self.current_phase.volume.calcified_fraction
 
         # get the target volumes
 
-        target_cytoplasm = self.current_phase.new_volume.target_cytoplasm
-        target_cyto_fluid_frac = self.current_phase.new_volume.target_cytoplasm_fluid_fraction
+        target_cytoplasm = self.current_phase.volume.target_cytoplasm
+        target_cyto_fluid_frac = self.current_phase.volume.target_cytoplasm_fluid_fraction
 
-        target_nuclear = self.current_phase.new_volume.target_nuclear
-        target_nucl_fluid_frac = self.current_phase.new_volume.target_nuclear_fluid_fraction
+        target_nuclear = self.current_phase.volume.target_nuclear
+        target_nucl_fluid_frac = self.current_phase.volume.target_nuclear_fluid_fraction
 
         # set phase
 
@@ -357,25 +357,25 @@ class Phenotype:
             return
 
         # get the current cytoplasm, nuclear, calcified volumes
-        cyto_solid = self.current_phase.new_volume.cytoplasm_solid
-        cyto_fluid = self.current_phase.new_volume.cytoplasm_solid
+        cyto_solid = self.current_phase.volume.cytoplasm_solid
+        cyto_fluid = self.current_phase.volume.cytoplasm_solid
 
-        nucl_solid = self.current_phase.new_volume.nuclear_solid
-        nucl_fluid = self.current_phase.new_volume.nuclear_fluid
+        nucl_solid = self.current_phase.volume.nuclear_solid
+        nucl_fluid = self.current_phase.volume.nuclear_fluid
 
-        calc_frac = self.current_phase.new_volume.calcified_fraction
+        calc_frac = self.current_phase.volume.calcified_fraction
 
         # setting the quiescent phase volume parameters. As the cell is now quiescent it shouldn't want to change its
         # volume, so we set the targets to be the current measurements
-        self.quiescent_phase.new_volume.cytoplasm_solid = cyto_solid
-        self.quiescent_phase.new_volume.cytoplasm_fluid = cyto_fluid
-        self.quiescent_phase.new_volume.target_cytoplasm = cyto_fluid + cyto_solid
-        self.quiescent_phase.new_volume.target_cytoplasm_fluid_fraction = cyto_fluid / cyto_solid
+        self.quiescent_phase.volume.cytoplasm_solid = cyto_solid
+        self.quiescent_phase.volume.cytoplasm_fluid = cyto_fluid
+        self.quiescent_phase.volume.target_cytoplasm = cyto_fluid + cyto_solid
+        self.quiescent_phase.volume.target_cytoplasm_fluid_fraction = cyto_fluid / cyto_solid
 
-        self.quiescent_phase.new_volume.nuclear_solid = nucl_solid
-        self.quiescent_phase.new_volume.nuclear_fluid = nucl_fluid
-        self.quiescent_phase.new_volume.target_nuclear = nucl_solid + nucl_solid
-        self.quiescent_phase.new_volume.target_nuclear_fluid_fraction = nucl_fluid / nucl_solid
+        self.quiescent_phase.volume.nuclear_solid = nucl_solid
+        self.quiescent_phase.volume.nuclear_fluid = nucl_fluid
+        self.quiescent_phase.volume.target_nuclear = nucl_solid + nucl_solid
+        self.quiescent_phase.volume.target_nuclear_fluid_fraction = nucl_fluid / nucl_solid
 
         # set the phase to be quiescent
         self.current_phase = self.quiescent_phase
