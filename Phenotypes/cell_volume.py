@@ -82,8 +82,14 @@ class CellVolumes:
         return self.cytoplasm / self.nuclear
 
     @property
-    def cytoplasm(self):  # todo: setter. do it like in the __init__
+    def cytoplasm(self):
         return self.cytoplasm_fluid + self.cytoplasm_solid
+
+    @cytoplasm.setter
+    def cytoplasm(self, value):
+        value = value if value >=0 else 0
+        self.cytoplasm_fluid = self.target_cytoplasm_fluid_fraction * value
+        self.cytoplasm_solid = (1 - self.target_cytoplasm_fluid_fraction) * value
 
     @property
     def target_cytoplasm(self):
@@ -125,6 +131,12 @@ class CellVolumes:
     @property
     def nuclear(self):
         return self.nuclear_fluid + self.nuclear_solid
+
+    @nuclear.setter
+    def nuclear(self, value):
+        value = value if value >= 0 else 0
+        self.nuclear_fluid = self.target_nuclear_fluid_fraction * value
+        self.nuclear_solid = (1 - self.target_nuclear_fluid_fraction) * value
 
     @property
     def target_nuclear(self):
