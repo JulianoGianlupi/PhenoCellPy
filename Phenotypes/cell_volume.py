@@ -57,6 +57,10 @@ class CellVolumes:
                 raise ValueError(f"`calcified_fraction` must be in range [0,1], got {calcified_fraction}")
             self.__cal_frac = calcified_fraction
 
+        self.__ff = (self.__cf + self.__nf)/(self.__nf+self.__ns+self.__cf+self.__cs)
+        self.__nff = self.__nf / self.nuclear
+        self.__cff = self.__cf / self.cytoplasm
+
     @property
     def total(self):
         return self.cytoplasm + self.nuclear
@@ -65,13 +69,54 @@ class CellVolumes:
     def fluid(self):
         return self.cytoplasm_fluid + self.nuclear_fluid
 
+    @fluid.setter
+    def fluid(self, value):
+        value = value if value >= 0 else 0
+        self.nuclear_fluid = value * self.nuclear/self.total
+        self.cytoplasm_fluid = value * self.cytoplasm/self.total
+
     @property
     def solid(self):
         return self.cytoplasm_solid + self.nuclear_solid
 
     @property
     def fluid_fraction(self):
-        return self.fluid / self.total
+        return self.__ff
+
+    @fluid_fraction.setter
+    def fluid_fraction(self, value):
+        if 0 <= value <= 1:
+            self.__ff = value
+        elif value < 0:
+            self.__ff = 0
+        else:
+            self.__ff = 1
+
+    @property
+    def nuclear_fluid_fraction(self):
+        return self.__nff
+
+    @nuclear_fluid_fraction.setter
+    def nuclear_fluid_fraction(self, value):
+        if 0 <= value <= 1:
+            self.__nff = value
+        elif value < 0:
+            self.__nff = 0
+        else:
+            self.__nff = 1
+
+    @property
+    def cytoplasm_fluid_fraction(self):
+        return self.__cff
+
+    @cytoplasm_fluid_fraction.setter
+    def cytoplasm_fluid_fraction(self, value):
+        if 0 <= value <= 1:
+            self.__cff = value
+        elif value < 0:
+            self.__cff = 0
+        else:
+            self.__cff = 1
 
     @property
     def solid_fraction(self):
@@ -87,9 +132,9 @@ class CellVolumes:
 
     @cytoplasm.setter
     def cytoplasm(self, value):
-        value = value if value >=0 else 0
-        self.cytoplasm_fluid = self.target_cytoplasm_fluid_fraction * value
-        self.cytoplasm_solid = (1 - self.target_cytoplasm_fluid_fraction) * value
+        value = value if value >= 0 else 0
+        self.cytoplasm_fluid = self.cytoplasm_fluid_fraction * value
+        self.cytoplasm_solid = (1 - self.cytoplasm_fluid_fraction) * value
 
     @property
     def target_cytoplasm(self):
@@ -135,8 +180,8 @@ class CellVolumes:
     @nuclear.setter
     def nuclear(self, value):
         value = value if value >= 0 else 0
-        self.nuclear_fluid = self.target_nuclear_fluid_fraction * value
-        self.nuclear_solid = (1 - self.target_nuclear_fluid_fraction) * value
+        self.nuclear_fluid = self.nuclear_fluid_fraction * value
+        self.nuclear_solid = (1 - self.nuclear_fluid_fraction) * value
 
     @property
     def target_nuclear(self):
@@ -202,6 +247,8 @@ class CellVolumes:
 
     def update_calcified(self, dt, change_rate):
         self.calcified_fraction = dt * change_rate * (1 - self.calcified_fraction)
+
+    # def update_fluid
 
     def update_volume(self, dt, cytoplasm_change_rate, nuclear_change_rate, calcification_rate):
         self.update_cytoplasm(dt, cytoplasm_change_rate)

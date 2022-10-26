@@ -649,7 +649,8 @@ class Apoptosis(Phase):
                          calcified_fraction=calcified_fraction)
 
     def _standard_apoptosis_entry(self):
-        return
+        self.volume.target_cytoplasm = 0
+        self.volume.target_nuclear = 0
 
 
 if __name__ == '__main__':
