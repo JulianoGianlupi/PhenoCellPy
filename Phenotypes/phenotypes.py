@@ -327,19 +327,19 @@ class Phenotype:
 
         # reset volume parameters
 
-        self.current_phase.new_volume.cytoplasm_solid = cyto_solid
-        self.current_phase.new_volume.cytoplasm_fluid = cyto_fluid
+        self.current_phase.volume.cytoplasm_solid = cyto_solid
+        self.current_phase.volume.cytoplasm_fluid = cyto_fluid
 
-        self.current_phase.new_volume.nuclear_solid = nucl_solid
-        self.current_phase.new_volume.nuclear_fluid = nucl_fluid
+        self.current_phase.volume.nuclear_solid = nucl_solid
+        self.current_phase.volume.nuclear_fluid = nucl_fluid
 
-        self.current_phase.new_volume.calcified_fraction = calc_frac
+        self.current_phase.volume.calcified_fraction = calc_frac
 
-        self.current_phase.new_volume.target_cytoplasm = target_cytoplasm
-        self.current_phase.new_volume.target_cytoplasm_fluid_fraction = target_cyto_fluid_frac
+        self.current_phase.volume.target_cytoplasm = target_cytoplasm
+        self.current_phase.volume.target_cytoplasm_fluid_fraction = target_cyto_fluid_frac
 
-        self.current_phase.new_volume.target_nuclear = target_nuclear
-        self.current_phase.new_volume.target_nuclear_fluid_fraction = target_nucl_fluid_frac
+        self.current_phase.volume.target_nuclear = target_nuclear
+        self.current_phase.volume.target_nuclear_fluid_fraction = target_nucl_fluid_frac
 
     def go_to_quiescence(self):
         """
