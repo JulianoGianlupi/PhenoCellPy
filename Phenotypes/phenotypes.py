@@ -305,7 +305,7 @@ class Phenotype:
 
         # get the current cytoplasm, nuclear, calcified volumes
         cyto_solid = self.current_phase.volume.cytoplasm_solid
-        cyto_fluid = self.current_phase.volume.cytoplasm_solid
+        cyto_fluid = self.current_phase.volume.cytoplasm_fluid
 
         nucl_solid = self.current_phase.volume.nuclear_solid
         nucl_fluid = self.current_phase.volume.nuclear_fluid
@@ -314,32 +314,38 @@ class Phenotype:
 
         # get the target volumes
 
-        target_cytoplasm = self.current_phase.volume.target_cytoplasm
-        target_cyto_fluid_frac = self.current_phase.volume.target_cytoplasm_fluid_fraction
+        target_cytoplasm_solid = self.current_phase.volume.cytoplasm_solid_target
+        # target_cyto_fluid_frac = self.current_phase.volume.target_cytoplasm_fluid_fraction
 
-        target_nuclear = self.current_phase.volume.target_nuclear
-        target_nucl_fluid_frac = self.current_phase.volume.target_nuclear_fluid_fraction
+        target_nuclear_solid = self.current_phase.volume.nuclear_solid_target
+        # target_nucl_fluid_frac = self.current_phase.volume.target_nuclear_fluid_fraction
+
+        target_fluid_fraction = self.current_phase.volume.target_fluid_fraction
+
+        # set parameters of next phase
+
+        self.phases[idx].volume.cytoplasm_solid = cyto_solid
+        self.phases[idx].volume.cytoplasm_fluid = cyto_fluid
+
+        self.phases[idx].volume.nuclear_solid = nucl_solid
+        self.phases[idx].volume.nuclear_fluid = nucl_fluid
+
+        self.phases[idx].volume.calcified_fraction = calc_frac
+
+        self.phases[idx].volume.cytoplasm_solid_target = target_cytoplasm_solid
+
+        self.phases[idx].volume.nuclear_solid_target = target_nuclear_solid
+
+        self.phases[idx].volume.target_fluid_fraction = target_fluid_fraction
 
         # set phase
 
         self.current_phase = self.phases[idx]
         self.current_phase.time_in_phase = 0
 
-        # reset volume parameters
+        if self.current_phase.entry_function is not None:
+            self.current_phase.entry_function(*self.current_phase.entry_function_args)
 
-        self.current_phase.volume.cytoplasm_solid = cyto_solid
-        self.current_phase.volume.cytoplasm_fluid = cyto_fluid
-
-        self.current_phase.volume.nuclear_solid = nucl_solid
-        self.current_phase.volume.nuclear_fluid = nucl_fluid
-
-        self.current_phase.volume.calcified_fraction = calc_frac
-
-        self.current_phase.volume.target_cytoplasm = target_cytoplasm
-        self.current_phase.volume.target_cytoplasm_fluid_fraction = target_cyto_fluid_frac
-
-        self.current_phase.volume.target_nuclear = target_nuclear
-        self.current_phase.volume.target_nuclear_fluid_fraction = target_nucl_fluid_frac
 
     def go_to_quiescence(self):
         """
@@ -358,24 +364,40 @@ class Phenotype:
 
         # get the current cytoplasm, nuclear, calcified volumes
         cyto_solid = self.current_phase.volume.cytoplasm_solid
-        cyto_fluid = self.current_phase.volume.cytoplasm_solid
+        cyto_fluid = self.current_phase.volume.cytoplasm_fluid
 
         nucl_solid = self.current_phase.volume.nuclear_solid
         nucl_fluid = self.current_phase.volume.nuclear_fluid
 
         calc_frac = self.current_phase.volume.calcified_fraction
 
+        # get the target volumes
+
+        # target_cytoplasm_solid = self.current_phase.volume.cytoplasm_solid_target
+        # # target_cyto_fluid_frac = self.current_phase.volume.target_cytoplasm_fluid_fraction
+        #
+        # target_nuclear_solid = self.current_phase.volume.nuclear_solid_target
+        # # target_nucl_fluid_frac = self.current_phase.volume.target_nuclear_fluid_fraction
+        #
+        # target_fluid_fraction = self.current_phase.volume.target_fluid_fraction
+
         # setting the quiescent phase volume parameters. As the cell is now quiescent it shouldn't want to change its
         # volume, so we set the targets to be the current measurements
         self.quiescent_phase.volume.cytoplasm_solid = cyto_solid
         self.quiescent_phase.volume.cytoplasm_fluid = cyto_fluid
-        self.quiescent_phase.volume.target_cytoplasm = cyto_fluid + cyto_solid
-        self.quiescent_phase.volume.target_cytoplasm_fluid_fraction = cyto_fluid / cyto_solid
+
 
         self.quiescent_phase.volume.nuclear_solid = nucl_solid
         self.quiescent_phase.volume.nuclear_fluid = nucl_fluid
-        self.quiescent_phase.volume.target_nuclear = nucl_solid + nucl_solid
-        self.quiescent_phase.volume.target_nuclear_fluid_fraction = nucl_fluid / nucl_solid
+
+        self.quiescent_phase.volume.nuclear_solid_target = nucl_solid
+        self.quiescent_phase.volume.cytoplasm_solid_target = cyto_solid
+
+        self.quiescent_phase.volume.calcified_fraction = calc_frac
+
+        self.quiescent_phase.volume.target_fluid_fraction = (cyto_fluid + nucl_fluid) / (nucl_solid + nucl_fluid +
+                                                                                         cyto_fluid + cyto_solid)
+
 
         # set the phase to be quiescent
         self.current_phase = self.quiescent_phase
