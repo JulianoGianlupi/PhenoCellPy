@@ -43,7 +43,11 @@ class ConstraintInitializerSteppable(SteppableBasePy):
                                                                     cytoplasm_fluid=[side * side, side * side],
                                                                     cytoplasm_solid=[0, 0],
                                                                     cytoplasm_solid_target=[0, 0],
-                                                                    target_cytoplasm_to_nuclear_ratio=[0, 0])
+                                                                    target_cytoplasm_to_nuclear_ratio=[0, 0],
+                                                                    transitions_to_next_phase=[None,
+                                                                                               Ki67pos_transition],
+                                                                    transitions_to_next_phase_args=[None,
+                                                                                                    [-9, 1, -9, 1]])
 
         for cell in self.cell_list:
             cell.targetVolume = side * side
