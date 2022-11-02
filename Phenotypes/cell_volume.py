@@ -308,6 +308,16 @@ class CellVolumes:
         else:
             self.calcified_fraction = calcified_fraction
 
+        self.fluid = self.cytoplasm_fluid + self.nuclear_fluid
+
+        self.cytoplasm = self.cytoplasm_fluid + self.cytoplasm_solid
+
+        self.solid = self.cytoplasm_solid + self.nuclear_solid
+
+        self.nuclear = self.nuclear_fluid + self.nuclear_solid
+
+        self.total = self.nuclear + self.cytoplasm
+
 
     @property
     def fluid(self):
@@ -437,7 +447,7 @@ class CellVolumes:
     def fluid_fraction(self, value):
         self.__fluid_fraction = value if value >= 0 else 0
 
-    def update_volume(self, dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomasss_change_rate,
+    def update_volume(self, dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomass_change_rate,
                       calcification_rate):
         self.fluid += dt * fluid_change_rate * (self.target_fluid_fraction * self.total - self.fluid)
 
@@ -449,8 +459,8 @@ class CellVolumes:
 
         self.cytoplasm_solid_target = self.target_cytoplasm_to_nuclear_ratio * self.nuclear_solid_target
 
-        self.cytoplasm_solid += dt * cytoplasm_biomasss_change_rate * (self.cytoplasm_solid_target -
-                                                                       self.cytoplasm_solid)
+        self.cytoplasm_solid += dt * cytoplasm_biomass_change_rate * (self.cytoplasm_solid_target -
+                                                                      self.cytoplasm_solid)
 
         self.solid = self.nuclear_solid + self.cytoplasm_solid  # maybe this could be a pure property?
 
