@@ -31,13 +31,13 @@ class ConstraintInitializerSteppable(SteppableBasePy):
 
         dt = 5  # 5 min/mcs
 
-        ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt, cytoplasm_target_volume=[side*side, side*side],
-                                                cytoplasm_volume=[side*side, side*side],
-                                                cytoplasm_target_fluid_fraction=[1, 1],
-                                                # as the simulated cell "doesn't have" a nucleus we don't need to give
-                                                # it a volume
-                                                nuclear_volume=[0, 0],
-                                                nuclear_target_volume=[0, 0])
+        ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt, target_fluid_fraction=[1, 1],
+                                                # as the simulated cell "doesn't have" a nucleus
+                                                # we don't need to give it a volume
+                                                nuclear_fluid=[0, 0],
+                                                nuclear_solid=[0, 0], cytoplasm_fluid=[side * side, side * side],
+                                                cytoplasm_solid=[0, 0], cytoplasm_solid_target=[0, 0],
+                                                target_cytoplasm_to_nuclear_ratio=[0, 0])
 
         for cell in self.cell_list:
             cell.targetVolume = side * side
