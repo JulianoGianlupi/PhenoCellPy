@@ -259,9 +259,55 @@ class BetterCellVolumes:  # todo: make it work for what I need
 
 
 class CellVolumes:
-    def __init__(self, cytoplasm=None, target_cytoplasm=None, target_cytoplasm_fluid_fraction=None,
-                 target_nuclear=None, target_nuclear_fluid_fraction=None, nuclear=None, calcified_fraction=None):
-        return
+    def __init__(self, target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
+                 cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
+                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None):
+
+        if target_fluid_fraction is None:
+            self.target_fluid_fraction = 1
+        else:
+            self.target_fluid_fraction = target_fluid_fraction
+
+        if nuclear_fluid is None:
+            self.nuclear_fluid = 0
+        else:
+            self.nuclear_fluid = nuclear_fluid
+
+        if nuclear_solid is None:
+            self.nuclear_solid = 0
+        else:
+            self.nuclear_solid = nuclear_solid
+
+        if nuclear_solid_target is None:
+            self.nuclear_solid_target = 0
+        else:
+            self.nuclear_solid_target = nuclear_solid_target
+
+        if cytoplasm_fluid is None:
+            self.cytoplasm_fluid = 1
+        else:
+            self.cytoplasm_fluid = cytoplasm_fluid
+
+        if cytoplasm_solid is None:
+            self.cytoplasm_solid = 0
+        else:
+            self.cytoplasm_solid = cytoplasm_solid
+
+        if cytoplasm_solid_target is None:
+            self.cytoplasm_solid_target = 0
+        else:
+            self.cytoplasm_solid_target = cytoplasm_solid_target
+
+        if target_cytoplasm_to_nuclear_ratio is None:
+            self.target_cytoplasm_to_nuclear_ratio = 0
+        else:
+            self.target_cytoplasm_to_nuclear_ratio = target_cytoplasm_to_nuclear_ratio
+
+        if calcified_fraction is None:
+            self.calcified_fraction = 0
+        else:
+            self.calcified_fraction = calcified_fraction
+
 
     @property
     def fluid(self):
