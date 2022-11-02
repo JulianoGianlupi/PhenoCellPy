@@ -308,6 +308,16 @@ class CellVolumes:
         else:
             self.calcified_fraction = calcified_fraction
 
+        self.fluid = self.cytoplasm_fluid + self.nuclear_fluid
+
+        self.cytoplasm = self.cytoplasm_fluid + self.cytoplasm_solid
+
+        self.solid = self.cytoplasm_solid + self.nuclear_solid
+
+        self.nuclear = self.nuclear_fluid + self.nuclear_solid
+
+        self.total = self.nuclear + self.cytoplasm
+
 
     @property
     def fluid(self):
