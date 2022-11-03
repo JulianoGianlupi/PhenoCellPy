@@ -708,10 +708,26 @@ class Apoptosis(Phase):
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None):
         # todo: figure out what unlysed_fluid_change_rate, lysed_fluid_change_rate, relative_rupture_volume are supposed
-        #  to do
+        #  to do.
 
         if entry_function is None:
             entry_function = self._standard_apoptosis_entry
+            entry_function_args = [None]
+
+        if unlysed_fluid_change_rate is not None:
+            self.unlysed_fluid_change_rate = unlysed_fluid_change_rate
+        else:
+            self.unlysed_fluid_change_rate = 3 / 60
+
+        if lysed_fluid_change_rate is not None:
+            self.lysed_fluid_change_rate = lysed_fluid_change_rate
+        else:
+            self.lysed_fluid_change_rate = 0
+
+        if relative_rupture_volume is None:
+            self.relative_rupture_volume = 2
+        else:
+            self.relative_rupture_volume = relative_rupture_volume
 
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
@@ -731,9 +747,18 @@ class Apoptosis(Phase):
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate)
 
-    def _standard_apoptosis_entry(self):
-        self.volume.target_cytoplasm = 0
-        self.volume.target_nuclear = 0
+    def _standard_apoptosis_entry(self, *none):
+
+        # shrink cell
+        self.volume.target_fluid_fraction = 0
+        self.volume.cytoplasm_solid_target = 0
+        self.volume.nuclear_solid_target = 0
+
+        # set fluid change rate
+        self.fluid_change_rate = self.unlysed_fluid_change_rate
+
+        # set rupture volume
+        self.volume.rupture_volume = self.relative_rupture_volume * self.volume.total
 
 
 if __name__ == '__main__':
