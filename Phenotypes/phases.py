@@ -212,13 +212,14 @@ class Phase:
         else:
             self.simulated_cell_volume = simulated_cell_volume
 
+        # the default rates are reference values for MCF-7, in 1/min
         if cytoplasm_biomass_change_rate is None:
-            self.cytoplasm_biomass_change_rate = 1
+            self.cytoplasm_biomass_change_rate = 0.27 / 60.0
         else:
             self.cytoplasm_biomass_change_rate = cytoplasm_biomass_change_rate
 
         if nuclear_biomass_change_rate is None:
-            self.nuclear_biomass_change_rate = 1
+            self.nuclear_biomass_change_rate = 0.33 / 60.0
         else:
             self.nuclear_biomass_change_rate = nuclear_biomass_change_rate
         if calcification_rate is None:
@@ -229,7 +230,7 @@ class Phase:
             self.calcification_rate = calcification_rate
 
         if fluid_change_rate is None:
-            self.fluid_change_rate = 0
+            self.fluid_change_rate = 3.0 / 60.0
         else:
             self.fluid_change_rate = fluid_change_rate
 

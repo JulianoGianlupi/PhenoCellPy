@@ -1,5 +1,256 @@
 
 
+class CellVolumes:
+    def __init__(self, target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
+                 cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
+                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, relative_rupture_volume=None):
+        # The defaults values below are reference parameter values for MCF-7, in cubic microns
+        _total = 2494
+        _fluid_fraction = .75
+        _fluid = _fluid_fraction * _total
+        _solid = _total - _fluid
+        _nuclear = 540
+        _nuclear_fluid = _fluid_fraction * _nuclear
+        _nuclear_solid = _nuclear - _nuclear_fluid
+        _cytoplasm = _total - _nuclear
+        _cytoplasm_fluid = _fluid_fraction * _cytoplasm
+        _cytoplasm_solid = _cytoplasm - _cytoplasm_fluid
+        _calcified_fraction = 0
+        _relative_rupture_volume = 2
+
+        # setting class parameters
+        if target_fluid_fraction is None:
+            self.target_fluid_fraction = _fluid_fraction
+        else:
+            if not 0 <= target_fluid_fraction <= 1:
+                raise ValueError(f"`target_fluid_fraction` must be in rante [0, 1]. Got {target_fluid_fraction}")
+            self.target_fluid_fraction = target_fluid_fraction
+
+        if nuclear_fluid is None:
+            self.nuclear_fluid = _nuclear * self.target_fluid_fraction
+        else:
+            if nuclear_fluid < 0:
+                raise ValueError(f"`nuclear_fluid` must be >=0. Got {nuclear_fluid}")
+            self.nuclear_fluid = nuclear_fluid
+
+        if nuclear_solid is None:
+            self.nuclear_solid = _nuclear * (1 - self.target_fluid_fraction)
+        else:
+            if nuclear_solid < 0:
+                raise ValueError(f"`nuclear_solid` must be >=0. Got {nuclear_solid}")
+            self.nuclear_solid = nuclear_solid
+
+        if nuclear_solid_target is None:
+            self.nuclear_solid_target = self.nuclear_solid
+        else:
+            if nuclear_solid_target < 0:
+                raise ValueError(f"`nuclear_solid_target` must be >=0. Got {nuclear_solid_target}")
+            self.nuclear_solid_target = nuclear_solid_target
+
+        if cytoplasm_fluid is None:
+            self.cytoplasm_fluid = _cytoplasm * self.target_fluid_fraction
+        else:
+            self.cytoplasm_fluid = cytoplasm_fluid
+
+        if cytoplasm_solid is None:
+            self.cytoplasm_solid = _cytoplasm * (1 - self.target_fluid_fraction)
+        else:
+            self.cytoplasm_solid = cytoplasm_solid
+
+        if cytoplasm_solid_target is None:
+            self.cytoplasm_solid_target = self.cytoplasm_solid
+        else:
+            self.cytoplasm_solid_target = cytoplasm_solid_target
+
+        if target_cytoplasm_to_nuclear_ratio is None:
+            self.target_cytoplasm_to_nuclear_ratio = self.cytoplasm / (1e-16 + self.nuclear)
+        else:
+            self.target_cytoplasm_to_nuclear_ratio = target_cytoplasm_to_nuclear_ratio
+
+        if calcified_fraction is None:
+            self.calcified_fraction = _calcified_fraction
+        else:
+            self.calcified_fraction = calcified_fraction
+
+        if relative_rupture_volume is None:
+            self.relative_rupture_volume = _relative_rupture_volume
+        else:
+            self.relative_rupture_volume = relative_rupture_volume
+
+        self.fluid = self.cytoplasm_fluid + self.nuclear_fluid
+
+        self.cytoplasm = self.cytoplasm_fluid + self.cytoplasm_solid
+
+        self.solid = self.cytoplasm_solid + self.nuclear_solid
+
+        self.nuclear = self.nuclear_fluid + self.nuclear_solid
+
+        self.total = self.nuclear + self.cytoplasm
+
+        self.rupture_volume = self.relative_rupture_volume * self.total
+
+    @property
+    def cytoplasm_to_nuclear_ratio(self):
+        return self.cytoplasm / (1e-16 + self.nuclear)
+
+    @property
+    def fluid(self):
+        return self.__fluid
+
+    @fluid.setter
+    def fluid(self, value):
+        self.__fluid = value if value > 0 else 0
+
+    @property
+    def target_fluid_fraction(self):
+        return self.__tff
+
+    @target_fluid_fraction.setter
+    def target_fluid_fraction(self, value):
+        if value < 0:
+            value = 0
+        elif value > 1:
+            value = 1
+        self.__tff = value
+
+    @property
+    def total(self):
+        return self.__total
+
+    @total.setter
+    def total(self, value):
+        self.__total = value if value >= 0 else 0
+
+    @property
+    def nuclear_fluid(self):
+        return self.__nuclear_fluid
+
+    @nuclear_fluid.setter
+    def nuclear_fluid(self, value):
+        self.__nuclear_fluid = value if value >= 0 else 0
+
+    @property
+    def nuclear(self):
+        return self.__nuclear
+
+    @nuclear.setter
+    def nuclear(self, value):
+        self.__nuclear = value if value >= 0 else 0
+
+    @property
+    def cytoplasm_fluid(self):
+        return self.__cytoplasm_fluid
+
+    @cytoplasm_fluid.setter
+    def cytoplasm_fluid(self, value):
+        self.__cytoplasm_fluid = value if value >= 0 else 0
+
+    @property
+    def nuclear_solid(self):
+        return self.__nuclear_solid
+
+    @nuclear_solid.setter
+    def nuclear_solid(self, value):
+        self.__nuclear_solid = value if value >= 0 else 0
+
+    @property
+    def nuclear_solid_target(self):
+        return self.__nst
+
+    @nuclear_solid_target.setter
+    def nuclear_solid_target(self, value):
+        self.__nst = value if value >= 0 else 0
+
+    @property
+    def cytoplasm_solid_target(self):
+        return self.__cst
+
+    @cytoplasm_solid_target.setter
+    def cytoplasm_solid_target(self, value):
+        self.__cst = value if value >= 0 else 0
+
+    @property
+    def target_cytoplasm_to_nuclear_ratio(self):
+        return self.__tctnr
+
+    @target_cytoplasm_to_nuclear_ratio.setter
+    def target_cytoplasm_to_nuclear_ratio(self, value):
+        self.__tctnr = value if value >= 0 else 0
+
+    @property
+    def cytoplasm_solid(self):
+        return self.__cytoplasm_solid
+
+    @cytoplasm_solid.setter
+    def cytoplasm_solid(self, value):
+        self.__cytoplasm_solid = value if value >= 0 else 0
+
+    @property
+    def solid(self):
+        return self.__solid
+
+    @solid.setter
+    def solid(self, value):
+        self.__solid = value if value >= 0 else 0
+
+    @property
+    def cytoplasm(self):
+        return self.__cytoplasm
+
+    @cytoplasm.setter
+    def cytoplasm(self, value):
+        self.__cytoplasm = value if value >= 0 else 0
+
+    @property
+    def calcified_fraction(self):
+        return self.__calc_frac
+
+    @calcified_fraction.setter
+    def calcified_fraction(self, value):
+        if value > 1:
+            value = 1
+        elif value < 0:
+            value = 0
+        self.__calc_frac = value
+
+    @property
+    def fluid_fraction(self):
+        return self.__fluid_fraction
+
+    @fluid_fraction.setter
+    def fluid_fraction(self, value):
+        self.__fluid_fraction = value if value >= 0 else 0
+
+    def update_volume(self, dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomass_change_rate,
+                      calcification_rate):
+        self.fluid += dt * fluid_change_rate * (self.target_fluid_fraction * self.total - self.fluid)
+
+        self.nuclear_fluid = (self.nuclear / (self.total + 1e-12)) * self.fluid
+
+        self.cytoplasm_fluid = self.fluid - self.nuclear_fluid
+
+        self.nuclear_solid += dt * nuclear_biomass_change_rate * (self.nuclear_solid_target - self.nuclear_solid)
+
+        self.cytoplasm_solid_target = self.target_cytoplasm_to_nuclear_ratio * self.nuclear_solid_target
+
+        self.cytoplasm_solid += dt * cytoplasm_biomass_change_rate * (self.cytoplasm_solid_target -
+                                                                      self.cytoplasm_solid)
+
+        self.solid = self.nuclear_solid + self.cytoplasm_solid  # maybe this could be a pure property?
+
+        self.nuclear = self.nuclear_solid + self.nuclear_fluid
+
+        self.cytoplasm = self.cytoplasm_fluid + self.cytoplasm_solid
+
+        self.calcified_fraction = dt * calcification_rate * (1 - self.calcified_fraction)
+
+        self.total = self.cytoplasm + self.nuclear
+
+        self.fluid_fraction = self.fluid / (self.total + 1e-12)
+
+
+
+
 class BetterCellVolumes:  # todo: make it work for what I need
     def __init__(self, cytoplasm=None, target_cytoplasm=None, target_cytoplasm_fluid_fraction=None,
                  target_nuclear=None, target_nuclear_fluid_fraction=None, nuclear=None, calcified_fraction=None):
@@ -256,222 +507,4 @@ class BetterCellVolumes:  # todo: make it work for what I need
         self.update_cytoplasm(dt, cytoplasm_change_rate)
         self.update_nuclear(dt, nuclear_change_rate)
         self.update_calcified(dt, calcification_rate)
-
-
-class CellVolumes:
-    def __init__(self, target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
-                 cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
-                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None):
-
-        if target_fluid_fraction is None:
-            self.target_fluid_fraction = 1
-        else:
-            self.target_fluid_fraction = target_fluid_fraction
-
-        if nuclear_fluid is None:
-            self.nuclear_fluid = 0
-        else:
-            self.nuclear_fluid = nuclear_fluid
-
-        if nuclear_solid is None:
-            self.nuclear_solid = 0
-        else:
-            self.nuclear_solid = nuclear_solid
-
-        if nuclear_solid_target is None:
-            self.nuclear_solid_target = 0
-        else:
-            self.nuclear_solid_target = nuclear_solid_target
-
-        if cytoplasm_fluid is None:
-            self.cytoplasm_fluid = 1
-        else:
-            self.cytoplasm_fluid = cytoplasm_fluid
-
-        if cytoplasm_solid is None:
-            self.cytoplasm_solid = 0
-        else:
-            self.cytoplasm_solid = cytoplasm_solid
-
-        if cytoplasm_solid_target is None:
-            self.cytoplasm_solid_target = 0
-        else:
-            self.cytoplasm_solid_target = cytoplasm_solid_target
-
-        if target_cytoplasm_to_nuclear_ratio is None:
-            self.target_cytoplasm_to_nuclear_ratio = 0
-        else:
-            self.target_cytoplasm_to_nuclear_ratio = target_cytoplasm_to_nuclear_ratio
-
-        if calcified_fraction is None:
-            self.calcified_fraction = 0
-        else:
-            self.calcified_fraction = calcified_fraction
-
-        self.fluid = self.cytoplasm_fluid + self.nuclear_fluid
-
-        self.cytoplasm = self.cytoplasm_fluid + self.cytoplasm_solid
-
-        self.solid = self.cytoplasm_solid + self.nuclear_solid
-
-        self.nuclear = self.nuclear_fluid + self.nuclear_solid
-
-        self.total = self.nuclear + self.cytoplasm
-
-
-    @property
-    def fluid(self):
-        return self.__fluid
-
-    @fluid.setter
-    def fluid(self, value):
-        self.__fluid = value if value > 0 else 0
-
-    @property
-    def target_fluid_fraction(self):
-        return self.__tff
-
-    @target_fluid_fraction.setter
-    def target_fluid_fraction(self, value):
-        if value < 0:
-            value = 0
-        elif value > 1:
-            value = 1
-        self.__tff = value
-
-    @property
-    def total(self):
-        return self.__total
-
-    @total.setter
-    def total(self, value):
-        self.__total = value if value >= 0 else 0
-
-    @property
-    def nuclear_fluid(self):
-        return self.__nuclear_fluid
-
-    @nuclear_fluid.setter
-    def nuclear_fluid(self, value):
-        self.__nuclear_fluid = value if value >= 0 else 0
-
-    @property
-    def nuclear(self):
-        return self.__nuclear
-
-    @nuclear.setter
-    def nuclear(self, value):
-        self.__nuclear = value if value >= 0 else 0
-
-    @property
-    def cytoplasm_fluid(self):
-        return self.__cytoplasm_fluid
-
-    @cytoplasm_fluid.setter
-    def cytoplasm_fluid(self, value):
-        self.__cytoplasm_fluid = value if value >= 0 else 0
-
-    @property
-    def nuclear_solid(self):
-        return self.__nuclear_solid
-
-    @nuclear_solid.setter
-    def nuclear_solid(self, value):
-        self.__nuclear_solid = value if value >= 0 else 0
-
-    @property
-    def nuclear_solid_target(self):
-        return self.__nst
-
-    @nuclear_solid_target.setter
-    def nuclear_solid_target(self, value):
-        self.__nst = value if value >= 0 else 0
-
-    @property
-    def cytoplasm_solid_target(self):
-        return self.__cst
-
-    @cytoplasm_solid_target.setter
-    def cytoplasm_solid_target(self, value):
-        self.__cst = value if value >= 0 else 0
-
-    @property
-    def target_cytoplasm_to_nuclear_ratio(self):
-        return self.__tctnr
-
-    @target_cytoplasm_to_nuclear_ratio.setter
-    def target_cytoplasm_to_nuclear_ratio(self, value):
-        self.__tctnr = value if value >= 0 else 0
-
-    @property
-    def cytoplasm_solid(self):
-        return self.__cytoplasm_solid
-
-    @cytoplasm_solid.setter
-    def cytoplasm_solid(self, value):
-        self.__cytoplasm_solid = value if value >= 0 else 0
-
-    @property
-    def solid(self):
-        return self.__solid
-
-    @solid.setter
-    def solid(self, value):
-        self.__solid = value if value >= 0 else 0
-
-    @property
-    def cytoplasm(self):
-        return self.__cytoplasm
-
-    @cytoplasm.setter
-    def cytoplasm(self, value):
-        self.__cytoplasm = value if value >= 0 else 0
-
-    @property
-    def calcified_fraction(self):
-        return self.__calc_frac
-
-    @calcified_fraction.setter
-    def calcified_fraction(self, value):
-        if value > 1:
-            value = 1
-        elif value < 0:
-            value = 0
-        self.__calc_frac = value
-
-    @property
-    def fluid_fraction(self):
-        return self.__fluid_fraction
-
-    @fluid_fraction.setter
-    def fluid_fraction(self, value):
-        self.__fluid_fraction = value if value >= 0 else 0
-
-    def update_volume(self, dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomass_change_rate,
-                      calcification_rate):
-        self.fluid += dt * fluid_change_rate * (self.target_fluid_fraction * self.total - self.fluid)
-
-        self.nuclear_fluid = (self.nuclear / (self.total + 1e-12)) * self.fluid
-
-        self.cytoplasm_fluid = self.fluid - self.nuclear_fluid
-
-        self.nuclear_solid += dt * nuclear_biomass_change_rate * (self.nuclear_solid_target - self.nuclear_solid)
-
-        self.cytoplasm_solid_target = self.target_cytoplasm_to_nuclear_ratio * self.nuclear_solid_target
-
-        self.cytoplasm_solid += dt * cytoplasm_biomass_change_rate * (self.cytoplasm_solid_target -
-                                                                      self.cytoplasm_solid)
-
-        self.solid = self.nuclear_solid + self.cytoplasm_solid  # maybe this could be a pure property?
-
-        self.nuclear = self.nuclear_solid + self.nuclear_fluid
-
-        self.cytoplasm = self.cytoplasm_fluid + self.cytoplasm_solid
-
-        self.calcified_fraction = dt * calcification_rate * (1 - self.calcified_fraction)
-
-        self.total = self.cytoplasm + self.nuclear
-
-        self.fluid_fraction = self.fluid / (self.total + 1e-12)
-
 
