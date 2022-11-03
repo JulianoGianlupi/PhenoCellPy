@@ -1,5 +1,4 @@
 
-
 class BetterCellVolumes:  # todo: make it work for what I need
     def __init__(self, cytoplasm=None, target_cytoplasm=None, target_cytoplasm_fluid_fraction=None,
                  target_nuclear=None, target_nuclear_fluid_fraction=None, nuclear=None, calcified_fraction=None):
@@ -335,7 +334,6 @@ class CellVolumes:
         else:
             self.relative_rupture_volume = relative_rupture_volume
 
-
         self.fluid = self.cytoplasm_fluid + self.nuclear_fluid
 
         self.cytoplasm = self.cytoplasm_fluid + self.cytoplasm_solid
@@ -345,6 +343,8 @@ class CellVolumes:
         self.nuclear = self.nuclear_fluid + self.nuclear_solid
 
         self.total = self.nuclear + self.cytoplasm
+
+        self.rupture_volume = self.relative_rupture_volume * self.total
 
     @property
     def cytoplasm_to_nuclear_ratio(self):
@@ -504,5 +504,3 @@ class CellVolumes:
         self.total = self.cytoplasm + self.nuclear
 
         self.fluid_fraction = self.fluid / (self.total + 1e-12)
-
-
