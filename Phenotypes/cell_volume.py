@@ -16,7 +16,7 @@ class CellVolumes:
         _cytoplasm_fluid = _fluid_fraction * _cytoplasm
         _cytoplasm_solid = _cytoplasm - _cytoplasm_fluid
         _calcified_fraction = 0
-        _relative_rupture_volume = 2
+        _relative_rupture_volume = 100
 
         # setting class parameters
         if target_fluid_fraction is None:
