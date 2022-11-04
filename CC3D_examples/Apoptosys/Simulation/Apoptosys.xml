@@ -37,7 +37,7 @@
       <!-- Specification of adhesion energies -->
       <Energy Type1="Medium" Type2="Medium">10.0</Energy>
       <Energy Type1="Medium" Type2="cell">10.0</Energy>
-      <Energy Type1="cell" Type2="cell">10.0</Energy>
+      <Energy Type1="cell" Type2="cell">18.0</Energy>
       <NeighborOrder>4</NeighborOrder>
    </Plugin>
    
@@ -47,8 +47,8 @@
       <Region>
          <BoxMin x="51" y="51" z="0"/>
          <BoxMax x="204" y="204" z="1"/>
-         <Gap>0</Gap>
-         <Width>7</Width>
+         <Gap>4</Gap>
+         <Width>8</Width>
          <Types>cell</Types>
       </Region>
    </Steppable>
