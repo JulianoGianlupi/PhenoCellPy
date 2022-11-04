@@ -23,7 +23,7 @@ class CellVolumes:
             self.target_fluid_fraction = _fluid_fraction
         else:
             if not 0 <= target_fluid_fraction <= 1:
-                raise ValueError(f"`target_fluid_fraction` must be in rante [0, 1]. Got {target_fluid_fraction}")
+                raise ValueError(f"`target_fluid_fraction` must be in range [0, 1]. Got {target_fluid_fraction}")
             self.target_fluid_fraction = target_fluid_fraction
 
         if nuclear_fluid is None:
