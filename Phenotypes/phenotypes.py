@@ -257,6 +257,9 @@ class Phenotype:
         :return: Flags (bool) for phase changing, cell death, and cell division
         :rtype: tuple of bool
         """
+        # if we initialize a phenotype that has a initial phase with an entry function we should execute it immediately
+        if not self.time_in_phenotype and self.current_phase.entry_function is not None:
+            self.current_phase.entry_function(*self.current_phase.entry_function_args)
 
         self.time_in_phenotype += self.dt
 
