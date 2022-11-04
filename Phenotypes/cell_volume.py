@@ -87,6 +87,8 @@ class CellVolumes:
 
         self.total = self.nuclear + self.cytoplasm
 
+        self.fluid_fraction = self.fluid / self.total
+
         self.rupture_volume = self.relative_rupture_volume * self.total
 
     @property
@@ -247,9 +249,6 @@ class CellVolumes:
         self.total = self.cytoplasm + self.nuclear
 
         self.fluid_fraction = self.fluid / (self.total + 1e-12)
-
-
-
 
 class BetterCellVolumes:  # todo: make it work for what I need
     def __init__(self, cytoplasm=None, target_cytoplasm=None, target_cytoplasm_fluid_fraction=None,
