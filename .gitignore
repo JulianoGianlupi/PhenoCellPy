@@ -135,3 +135,7 @@ screenshot_data/
 
 # physcell
 PhysiCell/
+
+# other files
+*.dat
+
