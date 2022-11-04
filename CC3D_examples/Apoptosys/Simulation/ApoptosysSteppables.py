@@ -37,7 +37,7 @@ class ApoptosysSteppable(SteppableBasePy):
         if mcs == 50:  # we select a cell to undego apoptosis
             self.selected_cell_id = rng.randint(0, len(self.cell_list)+1)
             cell = self.fetch_cell_by_id(self.selected_cell_id)
-
+            cell.type = self.SELECTED
             apopto = pheno.phenotypes.ApoptosisStandard(dt=self.dt, nuclear_fluid=[0], nuclear_solid=[0],
                                                         cytoplasm_fluid=[.75*cell.volume],
                                                         cytoplasm_solid=[(1-.75)*cell.volume],
