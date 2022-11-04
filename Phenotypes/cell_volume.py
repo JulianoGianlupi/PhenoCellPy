@@ -16,14 +16,14 @@ class CellVolumes:
         _cytoplasm_fluid = _fluid_fraction * _cytoplasm
         _cytoplasm_solid = _cytoplasm - _cytoplasm_fluid
         _calcified_fraction = 0
-        _relative_rupture_volume = 2
+        _relative_rupture_volume = 100
 
         # setting class parameters
         if target_fluid_fraction is None:
             self.target_fluid_fraction = _fluid_fraction
         else:
             if not 0 <= target_fluid_fraction <= 1:
-                raise ValueError(f"`target_fluid_fraction` must be in rante [0, 1]. Got {target_fluid_fraction}")
+                raise ValueError(f"`target_fluid_fraction` must be in range [0, 1]. Got {target_fluid_fraction}")
             self.target_fluid_fraction = target_fluid_fraction
 
         if nuclear_fluid is None:
@@ -86,6 +86,8 @@ class CellVolumes:
         self.nuclear = self.nuclear_fluid + self.nuclear_solid
 
         self.total = self.nuclear + self.cytoplasm
+
+        self.fluid_fraction = self.fluid / self.total
 
         self.rupture_volume = self.relative_rupture_volume * self.total
 
@@ -247,9 +249,6 @@ class CellVolumes:
         self.total = self.cytoplasm + self.nuclear
 
         self.fluid_fraction = self.fluid / (self.total + 1e-12)
-
-
-
 
 class BetterCellVolumes:  # todo: make it work for what I need
     def __init__(self, cytoplasm=None, target_cytoplasm=None, target_cytoplasm_fluid_fraction=None,
