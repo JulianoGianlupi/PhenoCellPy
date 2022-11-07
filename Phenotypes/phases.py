@@ -715,8 +715,6 @@ class Apoptosis(Phase):
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None):
-        # todo: figure out what unlysed_fluid_change_rate, lysed_fluid_change_rate, relative_rupture_volume are supposed
-        #  to do.
 
         if entry_function is None:
             entry_function = self._standard_apoptosis_entry
