@@ -253,6 +253,19 @@ class Phase:
         self.volume.update_volume(self.dt, self.fluid_change_rate, self.nuclear_biomass_change_rate,
                                   self.cytoplasm_biomass_change_rate, self.calcification_rate)
 
+    def _transition_to_next_phase_stochastic_approx(self, none):
+        """
+        Approximate stochastic phase transition function.
+
+        Uses the approximation 1-exp(-x) = x to approximate the Poisson probability when dt/phase_duration << 1. In our
+        specific case, the approximation is used if dt/phase_duration < 0.1. For x = 0.1 the difference
+        |1-exp(-x) - x| = 0.005, so we are allowing an error of .5%
+
+        :param none: placeholder, unused
+        :return:
+        """
+        return uniform() < self.dt / self.phase_duration
+
     def _transition_to_next_phase_stochastic(self, none):
         """
         Default stochastic phase transition function.
