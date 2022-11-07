@@ -262,7 +262,7 @@ class Phase:
 
         Uses the approximation 1-exp(-x) = x to approximate the Poisson probability when dt/phase_duration << 1. In our
         specific case, the approximation is used if dt/phase_duration < 0.1. For x = 0.1 the difference
-        |1-exp(-x) - x| = 0.005, so we are allowing an error of .5%
+        |1-exp(-x) - x| = 0.0048374..., so we are allowing an error of <.5%
 
         :param none: placeholder, unused
         :return:
@@ -279,9 +279,6 @@ class Phase:
         :param none: Not used. Place holder in case of user defined function with args
         :return: bool. random number < probability of transition
         """
-
-        # the approximation 1-exp(-x) ~ x can be used. That approximation has a difference of 0.005 at x=0.1, which I'd
-        # find acceptable. TODO: implement a check on self.dt / self.phase_duration, if it is < .1 use the approximation
 
         prob = 1 - exp(-self.dt / self.phase_duration)
         return uniform() < prob
