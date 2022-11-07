@@ -896,6 +896,37 @@ class ApoptosisStandard(Phenotype):
         super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
 
 
+class NecrosisStandard(Phenotype):
+    """
+    Standard Necrosis model
+    """
+
+    def __init__(self, name="Standard necrosis model", dt=0.1, time_unit="min", quiescent_phase=False,
+                 division_at_phase_exits=(False,), removal_at_phase_exits=(False, True), fixed_durations=(False, False),
+                 phase_durations=(9e9, 24*60*60), entry_functions=(None, None,), entry_functions_args=(None, None,),
+                 exit_functions=(None, None), exit_functions_args=(None, None), arrest_functions=(None, None),
+                 arrest_functions_args=(None, None), transitions_to_next_phase=(None, None),
+                 transitions_to_next_phase_args=(None, None), simulated_cell_volume=None,
+                 cytoplasm_biomass_change_rate=(0.0032 / 60.0, 0.0032 / 60.0),
+                 nuclear_biomass_change_rate=(0.013 / 60.0, 0.013 / 60.0),
+                 calcification_rate=(0.0042 / 60.0, 0.0042 / 60.0),
+                 calcified_fraction=(0,),
+                 target_fluid_fraction=(None,), nuclear_fluid=(None,), nuclear_solid=(None,),
+                 nuclear_solid_target=(None,), cytoplasm_fluid=(None,), cytoplasm_solid=(None,),
+                 cytoplasm_solid_target=(None,), target_cytoplasm_to_nuclear_ratio=(None,),
+                 fluid_change_rate=(0.67 / 60.0, 0.050 / 60.0)):
+
+
+        necro_swell = None
+        necro_lysed = None
+
+        phases = [necro_swell, necro_lysed]
+
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
+
+        return
+
+
 cycle_names = ["Simple Live", "Ki67 Basic"]
 
 

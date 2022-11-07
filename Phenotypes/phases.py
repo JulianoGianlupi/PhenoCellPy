@@ -249,7 +249,7 @@ class Phase:
         self.volume.update_volume(self.dt, self.fluid_change_rate, self.nuclear_biomass_change_rate,
                                   self.cytoplasm_biomass_change_rate, self.calcification_rate)
 
-    def _transition_to_next_phase_stochastic(self, none):
+    def _transition_to_next_phase_stochastic(self, *none):
         """
         Default stochastic phase transition function.
 
@@ -266,7 +266,7 @@ class Phase:
         prob = 1 - exp(-self.dt / self.phase_duration)
         return uniform() < prob
 
-    def _transition_to_next_phase_deterministic(self, none):
+    def _transition_to_next_phase_deterministic(self, *none):
         """
         Default deterministic phase transition function.
 
@@ -763,6 +763,98 @@ class Apoptosis(Phase):
 
         # set fluid change rate
         self.fluid_change_rate = self.unlysed_fluid_change_rate
+
+class NecrosisSwell(Phase):
+    """
+    Swelling part of the necrosis process
+    """
+
+    def __init__(self, index: int = 0, previous_phase_index: int = 0, next_phase_index: int = 1, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "Necrotic (swelling)", division_at_phase_exit: bool = False,
+                 removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = None,
+                 entry_function=None, entry_function_args: list = None, exit_function=None,
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate: float = None,
+                 nuclear_biomass_change_rate: float = None,  calcification_rate: float = None,
+                 relative_rupture_volume: float = None,
+                 target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
+                 cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
+                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None):
+
+        # default parameters
+
+        # this phase will use by default a custom transition check, so this is here to avoid issues
+        _phase_duration = 9e99
+
+        # default volume parameters
+        _cytoplasm_biomass_change_rate = 0.0032 / 60.0
+        _nuclear_biomass_change_rate = 0.013 / 60.0
+        _fluid_change_rate = 0.67 / 60.0
+        _calcification_rate = 0.0042 / 60.0
+        _relative_rupture_volume = 2
+
+        if phase_duration is None:
+            phase_duration = _phase_duration
+
+        if cytoplasm_biomass_change_rate is None:
+            cytoplasm_biomass_change_rate = _cytoplasm_biomass_change_rate
+
+        if nuclear_biomass_change_rate is None:
+            nuclear_biomass_change_rate = _nuclear_biomass_change_rate
+
+        if fluid_change_rate is None:
+            fluid_change_rate = _fluid_change_rate
+
+        if calcification_rate is None:
+            _calcification_rate = calcification_rate
+
+        if relative_rupture_volume is None:
+            _relative_rupture_volume = relative_rupture_volume
+
+        if entry_function is None:
+            entry_function = self._standard_necrosis_entry_function
+            entry_function_args = [None]
+
+        if transition_to_next_phase is None:
+            transition_to_next_phase = self._necrosis_transition_function
+        
+        super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
+                         phase_duration=phase_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
+                         exit_function_args=exit_function_args, arrest_function=arrest_function,
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
+
+
+    def _standard_necrosis_entry_function(self, *none):
+
+        # the cell wants to degrade the solids and swell by osmosis
+        self.volume.target_fluid_fraction = 1
+        self.volume.nuclear_solid_target = 0
+        self.volume.cytoplasm_solid_target = 0
+
+        self.volume.target_cytoplasm_to_nuclear_ratio = 0
+
+        # set rupture volume
+
+        self.volume.rupture_volume = self.volume.relative_rupture_volume * self.volume.total
+
+    def _necrosis_transition_function(self, *none):
+        return self.volume.total > self.volume.rupture_volume
+
 
 
 if __name__ == '__main__':
