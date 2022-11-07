@@ -199,7 +199,10 @@ class Phase:
             if fixed_duration:
                 self.transition_to_next_phase = self._transition_to_next_phase_deterministic
             else:
-                self.transition_to_next_phase = self._transition_to_next_phase_stochastic
+                if self.dt / self.phase_duration < 0.1:
+                    self.transition_to_next_phase = self._transition_to_next_phase_stochastic_approx
+                else:
+                    self.transition_to_next_phase = self._transition_to_next_phase_stochastic
         else:
             if type(transition_to_next_phase_args) != list:
                 raise TypeError("Custom exit function selected but no args given. Was expecting "
