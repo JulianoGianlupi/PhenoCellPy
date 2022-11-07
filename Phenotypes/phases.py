@@ -4,9 +4,6 @@ from numpy.random import uniform
 from Phenotypes.cell_volume import CellVolumes
 
 
-# todo:
-#  - keep updating the old volume to new volume
-
 class Phase:
     """
     Base class to define phases of a cell cycle.
@@ -111,7 +108,6 @@ class Phase:
                  nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
                  cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
                  calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
-        # todo: replace the old volume things with the new volume things
         """
         :param relative_rupture_volume:
         :param fluid_change_rate:
