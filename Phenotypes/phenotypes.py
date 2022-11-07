@@ -1,5 +1,5 @@
 import Phenotypes.phases as Phases
-
+from numpy.random import randint
 
 # todo:
 #  - implement physicell's phenotypes
@@ -207,6 +207,9 @@ class Phenotype:
     phases : list
         Ordered list of phases this cycle goes through. Must be a list of :class:`Phases.Phase` objects.
 
+    starting_phase_index : int
+        Index of which phase to start at. To start at a random phase set to -1
+
     quiescent_phase : :class:`Phases.Phase`, None, or False
         If false the cycle won't have a (stand-alone) quiescent phase defined. If None the default
         :class:`Phases.QuiescentPhase` will be used as the stand-alone quiescent phase. If it is a :class:`Phases.Phase`
@@ -221,7 +224,16 @@ class Phenotype:
     """
 
     def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", phases: list = None,
-                 quiescent_phase: Phases.Phase or False = None, starting_phase_index=0):
+                 quiescent_phase: Phases.Phase or False = None, starting_phase_index: int = 0):
+        """
+
+        :param name:
+        :param dt:
+        :param time_unit:
+        :param phases:
+        :param quiescent_phase:
+        :param starting_phase_index:
+        """
         # todo: add __init__ parameters for custom functions for each class
         self.name = name
 
@@ -242,7 +254,12 @@ class Phenotype:
             raise ValueError(f"`quiescent_phase` must Phases.Phase object, False, or None. Got {quiescent_phase}")
         else:
             self.quiescent_phase = quiescent_phase
-        self.current_phase = self.phases[starting_phase_index]  # todo: add option to randomize
+        if starting_phase_index is None:
+            starting_phase_index = 0
+        elif starting_phase_index == -1:  # random option
+            starting_phase_index = randint(0, len(self.phases) + 1)
+
+        self.current_phase = self.phases[starting_phase_index]
         self.time_in_phenotype = 0
 
     def time_step_phenotype(self):
