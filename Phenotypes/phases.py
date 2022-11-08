@@ -422,10 +422,10 @@ class Ki67Positive(Phase):
             raise TypeError("'entry_function' was defined but no value for 'entry_function_args' was given. Expected "
                             f"list got {type(entry_function_args)}")
 
-        if target_fluid_fraction > 1:
-            target_fluid_fraction = 1
-        elif target_fluid_fraction < 0:
-            target_fluid_fraction = 0
+        # if target_fluid_fraction > 1:
+        #     target_fluid_fraction = 1
+        # elif target_fluid_fraction < 0:
+        #     target_fluid_fraction = 0
 
         if cytoplasm_biomass_change_rate is None and cytoplasm_fluid is not None and cytoplasm_solid is not None:
             cytoplasm_biomass_change_rate = (cytoplasm_fluid + cytoplasm_solid) / (phase_duration / dt)
