@@ -1,10 +1,12 @@
 import Phenotypes.phases as Phases
 from numpy.random import randint
 
+
 # todo:
 #  - implement physicell's phenotypes
 #  - documentation
 #  - add biomodels ontology anotation
+#  - switch how defalts are handled to be like phases.NecrosisLysed
 
 def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
                      phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
@@ -235,6 +237,8 @@ class Phenotype:
         :param starting_phase_index:
         """
         # todo: add __init__ parameters for custom functions for each class
+        # todo: add alias for self.current_phase.volume, i.e. property self.volume that fetches
+        #  self.current_phase.volume
         self.name = name
 
         self.time_unit = time_unit
@@ -463,9 +467,9 @@ class Ki67Basic(Phenotype):
                  transitions_to_next_phase=(None, None), transitions_to_next_phase_args: list = (None, None),
                  simulated_cell_volume=None, cytoplasm_biomass_change_rate=(None, None),
                  nuclear_biomass_change_rate=(None, None), calcification_rate=(None, None), calcified_fraction=(0, 0),
-                 target_fluid_fraction=(None,None), nuclear_fluid=(None,None), nuclear_solid=(None,None),
-                 nuclear_solid_target=(None,None), cytoplasm_fluid=(None,None), cytoplasm_solid=(None,None),
-                 cytoplasm_solid_target=(None,None), target_cytoplasm_to_nuclear_ratio=(None,None),
+                 target_fluid_fraction=(None, None), nuclear_fluid=(None, None), nuclear_solid=(None, None),
+                 nuclear_solid_target=(None, None), cytoplasm_fluid=(None, None), cytoplasm_solid=(None, None),
+                 cytoplasm_solid_target=(None, None), target_cytoplasm_to_nuclear_ratio=(None, None),
                  fluid_change_rate=(None, None)):
         # _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
         #                  entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
@@ -540,9 +544,11 @@ class Ki67Advanced(Phenotype):
                  cytoplasm_biomass_change_rate=(None, None, None),
                  nuclear_biomass_change_rate=(None, None, None), calcification_rate=(None, None, None),
                  calcified_fraction=(0, 0, 0),
-                 target_fluid_fraction=(None,None,None), nuclear_fluid=(None,None,None), nuclear_solid=(None,None,None),
-                 nuclear_solid_target=(None,None,None), cytoplasm_fluid=(None,None,None), cytoplasm_solid=(None,None,None),
-                 cytoplasm_solid_target=(None,None,None), target_cytoplasm_to_nuclear_ratio=(None,None,None),
+                 target_fluid_fraction=(None, None, None), nuclear_fluid=(None, None, None),
+                 nuclear_solid=(None, None, None),
+                 nuclear_solid_target=(None, None, None), cytoplasm_fluid=(None, None, None),
+                 cytoplasm_solid=(None, None, None),
+                 cytoplasm_solid_target=(None, None, None), target_cytoplasm_to_nuclear_ratio=(None, None, None),
                  fluid_change_rate=(None, None, None)):
         # _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
         #                  entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
@@ -660,9 +666,11 @@ class FlowCytometryBasic(Phenotype):
                  cytoplasm_biomass_change_rate=(None, None, None),
                  nuclear_biomass_change_rate=(None, None, None), calcification_rate=(None, None, None),
                  calcified_fraction=(0, 0, 0),
-                 target_fluid_fraction=(None,None,None), nuclear_fluid=(None,None,None), nuclear_solid=(None,None,None),
-                 nuclear_solid_target=(None,None,None), cytoplasm_fluid=(None,None,None), cytoplasm_solid=(None,None,None),
-                 cytoplasm_solid_target=(None,None,None), target_cytoplasm_to_nuclear_ratio=(None,None,None),
+                 target_fluid_fraction=(None, None, None), nuclear_fluid=(None, None, None),
+                 nuclear_solid=(None, None, None),
+                 nuclear_solid_target=(None, None, None), cytoplasm_fluid=(None, None, None),
+                 cytoplasm_solid=(None, None, None),
+                 cytoplasm_solid_target=(None, None, None), target_cytoplasm_to_nuclear_ratio=(None, None, None),
                  fluid_change_rate=(None, None, None)):
         # _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
         #                  entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
@@ -750,9 +758,12 @@ class FlowCytometryAdvanced(Phenotype):
                  cytoplasm_biomass_change_rate=(None, None, None, None),
                  nuclear_biomass_change_rate=(None, None, None, None), calcification_rate=(None, None, None, None),
                  calcified_fraction=(0, 0, 0, 0),
-                 target_fluid_fraction=(None,None,None,None), nuclear_fluid=(None,None,None,None), nuclear_solid=(None,None,None,None),
-                 nuclear_solid_target=(None,None,None,None), cytoplasm_fluid=(None,None,None,None), cytoplasm_solid=(None,None,None,None),
-                 cytoplasm_solid_target=(None,None,None,None), target_cytoplasm_to_nuclear_ratio=(None,None,None,None),
+                 target_fluid_fraction=(None, None, None, None), nuclear_fluid=(None, None, None, None),
+                 nuclear_solid=(None, None, None, None),
+                 nuclear_solid_target=(None, None, None, None), cytoplasm_fluid=(None, None, None, None),
+                 cytoplasm_solid=(None, None, None, None),
+                 cytoplasm_solid_target=(None, None, None, None),
+                 target_cytoplasm_to_nuclear_ratio=(None, None, None, None),
                  fluid_change_rate=(None, None, None, None)):
         # _check_arguments(4, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
         #                  entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
@@ -865,7 +876,7 @@ class ApoptosisStandard(Phenotype):
         #                  cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
         #                  nuclear_target_fluid_fraction, calcified_fraction, cytoplasm_biomass_change_rate)
 
-        apopto = Phases.Apoptosis(index=0, previous_phase_index=0, next_phase_index=1, dt=dt, time_unit=time_unit,
+        apopto = Phases.Apoptosis(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
                                   name="Apoptosis", division_at_phase_exit=division_at_phase_exits[0],
                                   removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
                                   phase_duration=phase_durations[0], entry_function=entry_functions[0],
@@ -874,7 +885,7 @@ class ApoptosisStandard(Phenotype):
                                   arrest_function_args=arrest_functions_args[0],
                                   transition_to_next_phase=transitions_to_next_phase[0],
                                   transition_to_next_phase_args=transitions_to_next_phase_args[0],
-                                  simulated_cell_volume=simulated_cell_volume[0],
+                                  simulated_cell_volume=simulated_cell_volume,
                                   cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
                                   nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
                                   calcification_rate=calcification_rate[0],
@@ -902,23 +913,70 @@ class NecrosisStandard(Phenotype):
     """
 
     def __init__(self, name="Standard necrosis model", dt=0.1, time_unit="min", quiescent_phase=False,
-                 division_at_phase_exits=(False,), removal_at_phase_exits=(False, True), fixed_durations=(False, False),
-                 phase_durations=(9e9, 24*60*60), entry_functions=(None, None,), entry_functions_args=(None, None,),
+                 division_at_phase_exits=(False, False), removal_at_phase_exits=(False, True),
+                 fixed_durations=(False, True),
+                 phase_durations=(None, None), entry_functions=(None, None), entry_functions_args=(None, None),
                  exit_functions=(None, None), exit_functions_args=(None, None), arrest_functions=(None, None),
                  arrest_functions_args=(None, None), transitions_to_next_phase=(None, None),
                  transitions_to_next_phase_args=(None, None), simulated_cell_volume=None,
-                 cytoplasm_biomass_change_rate=(0.0032 / 60.0, 0.0032 / 60.0),
-                 nuclear_biomass_change_rate=(0.013 / 60.0, 0.013 / 60.0),
-                 calcification_rate=(0.0042 / 60.0, 0.0042 / 60.0),
-                 calcified_fraction=(0,),
-                 target_fluid_fraction=(None,), nuclear_fluid=(None,), nuclear_solid=(None,),
-                 nuclear_solid_target=(None,), cytoplasm_fluid=(None,), cytoplasm_solid=(None,),
-                 cytoplasm_solid_target=(None,), target_cytoplasm_to_nuclear_ratio=(None,),
-                 fluid_change_rate=(0.67 / 60.0, 0.050 / 60.0)):
+                 cytoplasm_biomass_change_rate=(None, None),
+                 nuclear_biomass_change_rate=(None, None),
+                 calcification_rate=(None, None),
+                 calcified_fraction=(0, 0),
+                 target_fluid_fraction=(None, None), nuclear_fluid=(None, None), nuclear_solid=(None, None),
+                 nuclear_solid_target=(None, None), cytoplasm_fluid=(None, None), cytoplasm_solid=(None, None),
+                 cytoplasm_solid_target=(None, None), target_cytoplasm_to_nuclear_ratio=(None, None),
+                 fluid_change_rate=(None, None)):
 
+        necro_swell = Phases.NecrosisSwell(index=0, previous_phase_index=0, next_phase_index=1, dt=dt,
+                                           time_unit=time_unit,
+                                           division_at_phase_exit=division_at_phase_exits[0],
+                                           removal_at_phase_exit=removal_at_phase_exits[0],
+                                           fixed_duration=fixed_durations[0],
+                                           phase_duration=phase_durations[0], entry_function=entry_functions[0],
+                                           entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
+                                           exit_function_args=exit_functions_args[0],
+                                           arrest_function=arrest_functions[0],
+                                           arrest_function_args=arrest_functions_args[0],
+                                           transition_to_next_phase=transitions_to_next_phase[0],
+                                           transition_to_next_phase_args=transitions_to_next_phase_args[0],
+                                           simulated_cell_volume=simulated_cell_volume,
+                                           cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
+                                           nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
+                                           calcification_rate=calcification_rate[0],
+                                           target_fluid_fraction=target_fluid_fraction[0],
+                                           nuclear_fluid=nuclear_fluid[0],
+                                           nuclear_solid=nuclear_solid[0], nuclear_solid_target=nuclear_solid_target[0],
+                                           cytoplasm_fluid=cytoplasm_fluid[0], cytoplasm_solid=cytoplasm_solid[0],
+                                           cytoplasm_solid_target=cytoplasm_solid_target[0],
+                                           target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
+                                           calcified_fraction=calcified_fraction[0],
+                                           fluid_change_rate=fluid_change_rate[0])
 
-        necro_swell = None
-        necro_lysed = None
+        necro_lysed = Phases.NecrosisLysed(index=1, previous_phase_index=0, next_phase_index=1, dt=dt,
+                                           time_unit=time_unit,
+                                           division_at_phase_exit=division_at_phase_exits[1],
+                                           removal_at_phase_exit=removal_at_phase_exits[1],
+                                           fixed_duration=fixed_durations[1],
+                                           phase_duration=phase_durations[1], entry_function=entry_functions[1],
+                                           entry_function_args=entry_functions_args[1], exit_function=exit_functions[1],
+                                           exit_function_args=exit_functions_args[1],
+                                           arrest_function=arrest_functions[1],
+                                           arrest_function_args=arrest_functions_args[1],
+                                           transition_to_next_phase=transitions_to_next_phase[1],
+                                           transition_to_next_phase_args=transitions_to_next_phase_args[1],
+                                           simulated_cell_volume=simulated_cell_volume,
+                                           cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[1],
+                                           nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
+                                           calcification_rate=calcification_rate[1],
+                                           target_fluid_fraction=target_fluid_fraction[1],
+                                           nuclear_fluid=nuclear_fluid[1],
+                                           nuclear_solid=nuclear_solid[1], nuclear_solid_target=nuclear_solid_target[1],
+                                           cytoplasm_fluid=cytoplasm_fluid[1], cytoplasm_solid=cytoplasm_solid[1],
+                                           cytoplasm_solid_target=cytoplasm_solid_target[1],
+                                           target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[1],
+                                           calcified_fraction=calcified_fraction[1],
+                                           fluid_change_rate=fluid_change_rate[1])
 
         phases = [necro_swell, necro_lysed]
 
