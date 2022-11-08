@@ -7,6 +7,8 @@ from numpy.random import randint
 #  - documentation
 #  - add biomodels ontology anotation
 #  - switch how defalts are handled to be like phases.NecrosisLysed
+#  - add copyright
+#  - fix _check_arguments
 
 def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
                      phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
