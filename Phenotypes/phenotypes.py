@@ -1,3 +1,5 @@
+from warnings import warn
+
 import Phenotypes.phases as Phases
 from numpy.random import randint
 
@@ -267,7 +269,12 @@ class Phenotype:
         if starting_phase_index is None:
             starting_phase_index = 0
         elif starting_phase_index == -1:  # random option
-            starting_phase_index = randint(0, len(self.phases) + 1)
+            # todo: fix this. it won't actually work for many cells, as this randomization happens at class init, but
+            #  the same class object is then copied to the cells
+            warn("Randomization of the initial phase is currently disabled. Setting the initial phase to be "
+                          "phase of index 0.")
+            starting_phase_index = 0
+            # starting_phase_index = randint(0, len(self.phases) + 1)
 
         self.current_phase = self.phases[starting_phase_index]
         self.time_in_phenotype = 0
