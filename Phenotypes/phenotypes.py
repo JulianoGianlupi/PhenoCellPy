@@ -991,10 +991,11 @@ class NecrosisStandard(Phenotype):
         return
 
 
-cycle_names = ["Simple Live", "Ki67 Basic"]
+cycle_names = ["Simple Live", "Ki67 Basic", "Ki67 Advanced", "Flow Cytometry Basic", "Flow Cytometry Advanced",
+               "Standard apoptosis model", "Standard necrosis model"]
 
 
-def get_phenotype_by_name(name):  # todo: keep updated
+def get_phenotype_by_name(name):
     if name not in cycle_names:
         raise ValueError(f"{name} is not a pre-defined cycle")
 
@@ -1002,7 +1003,16 @@ def get_phenotype_by_name(name):  # todo: keep updated
         return SimpleLiveCycle
     elif name == "Ki67 Basic":
         return Ki67Basic
-
+    elif name == "Ki67 Advanced":
+        return Ki67Advanced
+    elif name == "Flow Cytometry Basic":
+        return FlowCytometryBasic
+    elif name == "Flow Cytometry Advanced":
+        return FlowCytometryAdvanced
+    elif name == "Standard apoptosis model":
+        return ApoptosisStandard
+    elif name == "Standard necrosis model":
+        return NecrosisStandard
 
     return Phenotype
 
