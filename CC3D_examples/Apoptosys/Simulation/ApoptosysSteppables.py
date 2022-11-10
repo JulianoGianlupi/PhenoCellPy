@@ -23,7 +23,7 @@ class ApoptosysSteppable(SteppableBasePy):
         """
 
         self.side = 8  # cell side
-        self.dt = .5  # min/MCS
+        self.dt = 2.5  # min/MCS
 
         self.to_apoptose = 5
 
@@ -38,23 +38,24 @@ class ApoptosysSteppable(SteppableBasePy):
         """
 
         if mcs == 50:  # we select cells to undergo apoptosis
-            self.selected_cell_ids = rng.randint(0, len(self.cell_list) + 1, self.to_apoptose, dtype=int)
-            for id in self.selected_cell_ids:
-                cell = self.fetch_cell_by_id(int(id))
+            self.selected_cell_ids = rng.randint(0, len(self.cell_list) + 1, self.to_apoptose)
+            for cid in self.selected_cell_ids:
+                cell = self.fetch_cell_by_id(int(cid))
                 cell.type = self.SELECTED
-                cell.lambdaVolume = 25
+                cell.lambdaVolume = 25  # the cell is not alive anymore, so it should be pretty stiff as it can't
+                # reshape itself actively
                 apopto = pheno.phenotypes.ApoptosisStandard(dt=self.dt, nuclear_fluid=[0], nuclear_solid=[0],
-                                                            cytoplasm_fluid=[.75*cell.volume],
+                                                            cytoplasm_fluid=[.75*cell.volume],  # the default volume
+                                                            # model uses a .75 fluid fraction
                                                             cytoplasm_solid=[(1-.75)*cell.volume],
-                                                            target_cytoplasm_to_nuclear_ratio=[0],
-                                                            simulated_cell_volume=[cell.volume])
+                                                            simulated_cell_volume=cell.volume)
 
                 pheno.utils.add_phenotype_to_CC3D_cell(cell, apopto)
                 changed_phase, died, divides = cell.dict["phenotype"].time_step_phenotype()
 
         if mcs > 50:
-            for id in self.selected_cell_ids:
-                cell = self.fetch_cell_by_id(int(id))
+            for cid in self.selected_cell_ids:
+                cell = self.fetch_cell_by_id(int(cid))
                 if cell is not None:
                     changed_phase, died, divides = cell.dict["phenotype"].time_step_phenotype()
                     print(cell.dict["phenotype"].current_phase.volume.cytoplasm_solid_target,
