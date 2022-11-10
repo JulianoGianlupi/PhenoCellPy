@@ -19,9 +19,9 @@ from numpy.random import randint
 def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
                      phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
                      arrest_functions, arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
-                     nuclear_biomass_change_rate, calcification_rate, cytoplasm_volume, cytoplasm_target_volume,
-                     cytoplasm_target_fluid_fraction, nuclear_volume, nuclear_target_volume,
-                     nuclear_target_fluid_fraction, calcified_fraction, cytoplasm_biomass_change_rate):
+                     cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate, calcified_fraction,
+                     target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target, cytoplasm_fluid,
+                     cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio, fluid_change_rate):
     if len(division_at_phase_exits) != number_phases:
         raise ValueError(
             f"{cycle_name} has {number_phases} phases, {len(division_at_phase_exits)} division flags defined")
@@ -113,55 +113,6 @@ def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal
             f"`calcification_rate` must be a list or tuple, got {type(calcification_rate)}")
 
     #
-    if len(cytoplasm_volume) != number_phases:
-        raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_volume)} cytoplasm volumes defined")
-    elif type(cytoplasm_volume) != list and type(cytoplasm_volume) != tuple:
-        raise TypeError(
-            f"`cytoplasm_volume` must be a list or tuple, got {type(cytoplasm_volume)}")
-
-    #
-    if len(cytoplasm_target_volume) != number_phases:
-        raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_target_volume)} cytoplasm target volumes defined")
-    elif type(cytoplasm_target_volume) != list and type(cytoplasm_target_volume) != tuple:
-        raise TypeError(
-            f"`cytoplasm_target_volume` must be a list or tuple, got {type(cytoplasm_target_volume)}")
-
-        #
-    if len(cytoplasm_target_fluid_fraction) != number_phases:
-        raise ValueError(
-            f"{cytoplasm_target_fluid_fraction} has {number_phases} phases, {len(cytoplasm_target_fluid_fraction)} "
-            f"cytoplasm target fluid fractions defined")
-    elif type(cytoplasm_target_fluid_fraction) != list and type(cytoplasm_target_fluid_fraction) != tuple:
-        raise TypeError(
-            f"`cytoplasm_target_fluid_fraction` must be a list or tuple, got {type(cytoplasm_target_fluid_fraction)}")
-
-        #
-    if len(nuclear_volume) != number_phases:
-        raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(nuclear_volume)} nuclear volumes defined")
-    elif type(nuclear_volume) != list and type(nuclear_volume) != tuple:
-        raise TypeError(
-            f"`nuclear_volume` must be a list or tuple, got {type(nuclear_volume)}")
-
-        #
-    if len(nuclear_target_volume) != number_phases:
-        raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(nuclear_target_volume)} nuclear target volumes defined")
-    elif type(nuclear_target_volume) != list and type(nuclear_target_volume) != tuple:
-        raise TypeError(
-            f"`nuclear_target_volume` must be a list or tuple, got {type(nuclear_target_volume)}")
-    #
-    if len(nuclear_target_fluid_fraction) != number_phases:
-        raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(nuclear_target_fluid_fraction)} nuclear target fluid "
-            f"fractions defined")
-    elif type(nuclear_target_fluid_fraction) != list and type(nuclear_target_fluid_fraction) != tuple:
-        raise TypeError(
-            f"`nuclear_target_fluid_fraction` must be a list or tuple, got {type(nuclear_target_fluid_fraction)}")
-
-    #
     if len(calcified_fraction) != number_phases:
         raise ValueError(
             f"{cycle_name} has {number_phases} phases, {len(calcified_fraction)} calcified fractions defined")
@@ -176,6 +127,74 @@ def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal
     elif type(cytoplasm_biomass_change_rate) != list and type(cytoplasm_biomass_change_rate) != tuple:
         raise TypeError(
             f"`calcified_fraction` must be a list or tuple, got {type(cytoplasm_biomass_change_rate)}")
+
+    #
+    if len(target_fluid_fraction) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(target_fluid_fraction)} target fluid fractions defined")
+    elif not (type(target_fluid_fraction) == list or type(target_fluid_fraction) == tuple):
+        raise TypeError(
+            f"`target_fluid_fraction` must be a list or tuple, got {type(target_fluid_fraction)}")
+    #
+    if len(nuclear_fluid) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(nuclear_fluid)} nuclear fluid volumes defined")
+    elif not (type(nuclear_fluid) == list or type(nuclear_fluid) == tuple):
+        raise TypeError(
+            f"`nuclear_fluid` must be a list or tuple, got {type(nuclear_fluid)}")
+    #
+    if len(nuclear_solid) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(nuclear_solid)} nuclear solid volume defined")
+    elif not (type(nuclear_solid) == list or type(nuclear_solid) == tuple):
+        raise TypeError(
+            f"`nuclear_solid` must be a list or tuple, got {type(nuclear_solid)}")
+#
+    if len(nuclear_solid_target) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(nuclear_solid_target)} target target solid volumes defined")
+    elif not (type(nuclear_solid_target) == list or type(nuclear_solid_target) == tuple):
+        raise TypeError(
+            f"`nuclear_solid_target` must be a list or tuple, got {type(nuclear_solid_target)}")
+
+#
+    if len(cytoplasm_fluid) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_fluid)} cytoplasm fluid volumes defined")
+    elif not (type(cytoplasm_fluid) == list or type(cytoplasm_fluid) == tuple):
+        raise TypeError(
+            f"`cytoplasm_fluid` must be a list or tuple, got {type(cytoplasm_fluid)}")
+#
+    if len(cytoplasm_solid) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_solid)} cytoplasm solid volumes defined")
+    elif not (type(cytoplasm_solid) == list or type(cytoplasm_solid) == tuple):
+        raise TypeError(
+            f"`cytoplasm_solid` must be a list or tuple, got {type(cytoplasm_solid)}")
+#
+    if len(cytoplasm_solid_target) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_solid_target)} cytoplasm target solid volumes "
+            f"defined")
+    elif not (type(cytoplasm_solid_target) == list or type(cytoplasm_solid_target) == tuple):
+        raise TypeError(
+            f"`cytoplasm_solid_target` must be a list or tuple, got {type(cytoplasm_solid_target)}")
+#
+    if len(target_cytoplasm_to_nuclear_ratio) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(target_cytoplasm_to_nuclear_ratio)} target cytoplasm to "
+            f"nuclear ratios defined")
+    elif not (type(target_cytoplasm_to_nuclear_ratio) == list or type(target_cytoplasm_to_nuclear_ratio) == tuple):
+        raise TypeError(
+            f"`target_cytoplasm_to_nuclear_ratio` must be a list or tuple, got "
+            f"{type(target_cytoplasm_to_nuclear_ratio)}")
+#
+    if len(fluid_change_rate) != number_phases:
+        raise ValueError(
+            f"{cycle_name} has {number_phases} phases, {len(fluid_change_rate)} fluid change rates defined")
+    elif not (type(fluid_change_rate) == list or type(fluid_change_rate) == tuple):
+        raise TypeError(
+            f"`fluid_change_rate` must be a list or tuple, got {type(fluid_change_rate)}")
 
 
 class Phenotype:
