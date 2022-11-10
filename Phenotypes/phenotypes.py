@@ -290,7 +290,7 @@ class Phenotype:
             # todo: fix this. it won't actually work for many cells, as this randomization happens at class init, but
             #  the same class object is then copied to the cells
             warn("Randomization of the initial phase is currently disabled. Setting the initial phase to be "
-                 "phase of index 0.")
+                          "phase of index 0.")
             starting_phase_index = 0
             # starting_phase_index = randint(0, len(self.phases) + 1)
 
