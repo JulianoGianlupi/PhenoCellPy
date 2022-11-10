@@ -994,7 +994,7 @@ class NecrosisStandard(Phenotype):
 cycle_names = ["Simple Live", "Ki67 Basic"]
 
 
-def get_phenotype_by_name(name):
+def get_phenotype_by_name(name):  # todo: keep updated
     if name not in cycle_names:
         raise ValueError(f"{name} is not a pre-defined cycle")
 
@@ -1002,6 +1002,7 @@ def get_phenotype_by_name(name):
         return SimpleLiveCycle
     elif name == "Ki67 Basic":
         return Ki67Basic
+
 
     return Phenotype
 
