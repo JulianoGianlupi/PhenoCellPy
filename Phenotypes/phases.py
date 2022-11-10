@@ -4,6 +4,8 @@ from numpy.random import uniform
 from Phenotypes.cell_volume import CellVolumes
 
 
+# todo: change args handling to also accept tuples
+
 class Phase:
     """
     Base class to define phases of a cell cycle.
@@ -179,9 +181,10 @@ class Phase:
 
         self.exit_function = exit_function  # function to be executed just before exiting this phase
         self.exit_function_args = exit_function_args
-        if self.exit_function is not None and type(self.exit_function_args) != list:
+        if self.exit_function is not None and not (type(self.exit_function_args) == list or
+                                                   type(self.exit_function_args) == tuple):
             raise TypeError("Exit function defined but no args given. Was expecting "
-                            f"'exit_function_args' to be a list, got {type(exit_function_args)}.")
+                            f"'exit_function_args' to be a list or tupple, got {type(exit_function_args)}.")
 
         self.arrest_function = arrest_function  # function determining if cell will exit cell cycle and become quiescent
         self.arrest_function_args = arrest_function_args
@@ -814,6 +817,7 @@ class NecrosisSwell(Phase):
 
         if transition_to_next_phase is None:
             transition_to_next_phase = self._necrosis_transition_function
+            transition_to_next_phase_args = [None]
 
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
@@ -920,7 +924,6 @@ class NecrosisLysed(Phase):
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
                          relative_rupture_volume=relative_rupture_volume)
-
 
     def _standard_lysis_entry_function(self, *none):
         self.volume.target_fluid_fraction = 0
