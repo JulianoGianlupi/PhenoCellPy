@@ -53,9 +53,9 @@ class MitosisSteppable(MitosisSteppableBase):
         MitosisSteppableBase.__init__(self, frequency)
         self.previous_number_cells = 0
 
-        self.plot = True
+        self.plot = False
 
-        self.save = True
+        self.save = False
 
         if self.save:
             self.save_loc = dirname(abspath(__file__))
@@ -234,11 +234,11 @@ class MitosisSteppable(MitosisSteppableBase):
                         self.plot_win_time.add_data_point("Maximum Time in Ki67+", mcs, max(time_spent_in_1))
 
         for cell in cells_to_divide:
-            self.divide_cell_random_orientation(cell)
+            # self.divide_cell_random_orientation(cell)
             # Other valid options
             # self.divide_cell_orientation_vector_based(cell,1,1,0)
             # self.divide_cell_along_major_axis(cell)
-            # self.divide_cell_along_minor_axis(cell)
+            self.divide_cell_along_minor_axis(cell)
 
     def update_attributes(self):
         # reducing parent target volume
