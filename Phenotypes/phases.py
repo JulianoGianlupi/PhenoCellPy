@@ -7,97 +7,6 @@ from Phenotypes.cell_volume import CellVolumes
 # todo: change args handling to also accept tuples
 
 class Phase:
-    """
-    Base class to define phases of a cell cycle.
-
-    Methods:
-    -------
-
-    time_step_phase()
-        Time steps the phase. Returns a tuple (did the cell transition to the next phase, did the cell enter
-        quiescence). See time_step_phase's documentation for further explanation.
-
-    transition_to_next_phase() or transition_to_next_phase(*args)
-        One of the default transition functions (`_transition_to_next_phase_deterministic`,
-        `_transition_to_next_phase_stochastic`) or an user defined function. If user defined, it will be called with
-        `transition_to_next_phase_args` as args. Must return a bool denoting if the transition occurs or not.
-
-    _transition_to_next_phase_deterministic()
-        Default deterministic transition function. Returns `time_in_phase > phase_duration`
-
-    _transition_to_next_phase_stochastic()
-        Default stochastic transition function. Probability of transition depends on `dt` and `phase_duration`
-
-    entry_function(*args)
-        Optional user defined function to be executed upon entering this phase. It gets called using attribute
-        `entry_function_args`. Must have no return
-
-    exit_function(*args)
-        Optional user defined function to be executed upon exiting this phase. It gets called using attribute
-        `exit_function_args`. Must have no return
-
-    arrest_function(*args)
-        Optional user defined function that returns true if the cell should exit the cell cycle and enter quiescence
-
-    update_volume() or update_volume(*args)
-        Function to update the volume of the cell. Can be user defined, in that case it has to use args and cannot have
-        a return value
-
-    Attributes
-    ----------
-
-    name : str
-        Name of the phase
-
-    index : int
-        The index of the phase in the cycle (0 idexed)
-
-    previous_phase_index : int
-        Index of the phase preceding this one (usually index-1)
-
-    next_phase_index : int
-        Index of the phase preceding this one (usually index+1)
-
-    time_unit : str
-        Time unit used by the model. TODO: defines unit conversions
-
-    dt : float
-        Size of the time-step in units of `time_unit`
-
-    division_at_phase_exit : bool
-        Flag for cell division at the end of the phase
-
-    removal_at_phase_exit : bool
-        Flag for cell removal (death) at the end of the phase
-
-    phase_duration : float
-        Average amount of time the phase lasts (in units of `time_unit`)
-
-    fixed_duration : bool
-        Flag for determining if the phase ends after a set amount of time or if it progresses to the next phase
-        in a stochastic manner with a rate `1/phase_duration`
-
-    time_in_phase : float
-        Time spent in this phase
-
-    simulated_cell_volume : float
-        The volume of the simulated cell object in this phase
-
-
-
-    entry_function_args : list
-        args for `entry_function`
-
-    exit_function_args : list
-        args for `exit_function`
-
-    arrest_function_args : list
-        args for `arrest_function`
-
-    transition_to_next_phase_args : list
-        args for `transition_to_next_phase` if a custom one is defined
-
-    """
 
     def __init__(self, index: int = None, previous_phase_index: int = None, next_phase_index: int = None,
                  dt: float = None, time_unit: str = "min", name: str = None, division_at_phase_exit: bool = False,
@@ -111,37 +20,124 @@ class Phase:
                  cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
                  calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
         """
-        :param relative_rupture_volume:
-        :param fluid_change_rate:
-        :param target_fluid_fraction:
-        :param nuclear_fluid:
-        :param nuclear_solid:
-        :param nuclear_solid_target:
-        :param cytoplasm_fluid:
-        :param cytoplasm_solid:
-        :param cytoplasm_solid_target:
-        :param target_cytoplasm_to_nuclear_ratio:
-        :param calcified_fraction:
-        :param calcified_fraction:
-        :param calcification_rate:
-        :param cytoplasm_biomass_change_rate:
-        :param nuclear_biomass_change_rate:
-        :param index:
-        :param previous_phase_index:
-        :param next_phase_index:
-        :param time_unit:
-        :param name:
-        :param division_at_phase_exit:
-        :param removal_at_phase_exit:
-        :param fixed_duration:
-        :param phase_duration:
-        :param entry_function:
-        :param entry_function_args:
-        :param exit_function:
-        :param exit_function_args:
-        :param arrest_function:
-        :param arrest_function_args:
-        :param transition_to_next_phase:
+
+        :param index: Index of this phase in the list of phases that forms a phenotype
+        :type index: int
+
+        :param previous_phase_index: Index of the phase preceding this phase in the list of phases that forms a
+        phenotype
+        :type previous_phase_index: int
+
+        :param next_phase_index: Index of the phase proceding this phase in the list of phases that forms a phenotype
+        :type next_phase_index: int
+
+        :param dt: Time step duration in units of `time_unit`. `dt > 0`
+        :type dt: float
+
+        :param time_unit: What time units are used by the model (e.g., minutes, hours, days)
+        :type time_unit: str
+
+        :param name: Descriptive name of this phase (e.g., S, G, M, necrotic swelling)
+        :type name: str
+
+        :param division_at_phase_exit: Boolean to define if the simulated cell should divide when switching phases.
+        :type division_at_phase_exit: bool
+
+        :param removal_at_phase_exit: Boolean defining if the simulated cell should be removed (i.e., it dies, is
+        killed, leaves the simulated domain) when leaving this phase
+        :type removal_at_phase_exit: bool
+
+        :param fixed_duration: Boolean seting the transition from this phase to the next to be deterministic (True) or
+        stochastic (False)
+        :type fixed_duration: bool
+
+        :param phase_duration: Time duration, in units of `time_unit`, of this phase. In the case of the stochastic
+        transition, the transition rate will be `dt/phase_duration`. `phase_duration > 0`
+        :type phase_duration: float
+
+        :param entry_function: Function that gets called immediately when entering this phase. Some phases have a
+        default `entry_function` defined, such as Apoptosis. Must be an *args function
+        :type entry_function: function
+
+        :param entry_function_args: Args for `entry_function`
+        :type entry_function_args: list or tuple
+
+        :param exit_function: Function that gets called just before exiting this phase. Some phases have a
+        default `exit_function` defined.
+        :type exit_function: function
+
+        :param exit_function_args: Args for `exit_function`
+        :type exit_function_args: list or tuple
+
+        :param arrest_function: Function that return if the cell should exit the current phase early and the cell cyle
+        and enter quiescence
+        :type arrest_function: function
+
+        :param arrest_function_args: Args for `arrest_function`
+        :type arrest_function_args: list or tuple
+
+        :param transition_to_next_phase: Default or custom function that returns if the cell should advance to the next
+        phase in the phenotype. If left as None the phase will pick either `_transition_to_next_phase_deterministic`
+        or `_transition_to_next_phase_stochastic` depending on the value of `fixed_duration`.
+        :type transition_to_next_phase: function
+
+        :param transition_to_next_phase_args: Args for `transition_to_next_phase`
+        :type transition_to_next_phase_args: list or tuple
+
+        :param simulated_cell_volume: Volume of the simulated cell (e.g., a CompuCell3D or Tissue Forge cell)
+        :type simulated_cell_volume: float
+
+        :param cytoplasm_biomass_change_rate: Change rate for the cytoplasmic volume. volume/`time_unit` units.
+        `cytoplasm_biomass_change_rate` >= 0. Passed to the `CellVolume` attribute class
+        :type cytoplasm_biomass_change_rate: float
+
+        :param nuclear_biomass_change_rate: Change rate for the nuclear volume. volume/`time_unit` units.
+        `nuclear_biomass_change_rate` >= 0. Passed to the `CellVolume` attribute class
+        :type nuclear_biomass_change_rate: float
+
+        :param calcification_rate: Rate of calcification of the cell. volume/`time_unit` units. `calcification_rate` >= 0
+        Passed to the `CellVolume` attribute class
+        :type calcification_rate: float
+
+        :param target_fluid_fraction: Fraction of the cell volume it will attempt to keep as fluid.
+        0 <= `target_fluid_fraction` <= 1. Passed to the `CellVolume` attribute class
+        :type target_fluid_fraction: float
+
+        :param nuclear_fluid: Initial volume of the fluid part of the nucleus. Passed to the `CellVolume` attribute class
+        :type nuclear_fluid: float
+
+        :param nuclear_solid: Initial volume of the solid part of the nucleus. Passed to the `CellVolume` attribute class
+        :type nuclear_solid: float
+
+        :param nuclear_solid_target: Nuclear solid volume the volume model will tend towards. `nuclear_solid_target`>=0.
+        Passed to the `CellVolume` attribute class
+        :type nuclear_solid_target: float
+
+        :param cytoplasm_fluid: Initial volume of the fluid part of the cytoplasm. Passed to the `CellVolume` attribute
+        class
+        :type cytoplasm_fluid: float
+
+        :param cytoplasm_solid: Initial volume of the solid part of the cytoplasm. Passed to the `CellVolume` attribute
+        class
+        :type cytoplasm_solid: float
+
+        :param cytoplasm_solid_target: Cytoplasm solid volume the volume model will tend towards.
+        `cytoplasm_solid_target`>=0. Passed to the `CellVolume` attribute class
+        :type cytoplasm_solid_target: float
+
+        :param target_cytoplasm_to_nuclear_ratio: Nuclear to cytoplasmic volumes ratio the volume model will tend
+        towards. `target_cytoplasm_to_nuclear_ratio`>0
+        :type target_cytoplasm_to_nuclear_ratio: float
+
+        :param calcified_fraction: Initial fraction of the cell that is calcified. 0<=`calcified_fraction`<=1
+        :type calcified_fraction: float
+
+        :param fluid_change_rate: Rate of change of the cell fluid part. volume/`time_unit` units.
+        `fluid_change_rate` >= 0. Passed to the `CellVolume` attribute class
+        :type fluid_change_rate: float
+
+        :param relative_rupture_volume: Proportion of the initial volume that causes cell lysis
+        :type relative_rupture_volume: float
         """
 
         if index is None:
