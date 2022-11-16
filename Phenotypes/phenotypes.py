@@ -13,6 +13,8 @@ from numpy.random import randint
 #  - add cell heterogeneity. have (yet another) argument to set randomization to True/False (and possibly which distri-
 #    tion to use, log-normal, normal, etc). If true, rates, durations, and volumes are slightly shuffled. Also have
 #    an argument to set the variance
+#  - have the time unit define some unit conversions
+#  - have some pre-built secretions/absorption and stuff
 
 
 def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
