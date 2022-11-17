@@ -542,8 +542,8 @@ class Phenotype:
 
 class SimpleLiveCycle(Phenotype):
     """
-        Simplest life cycle, it has only one phase. When "progressing" to the next phase it divides.
-        """
+    Simplest alive cycle, it has only one phase. When "progressing" to the next phase it divides.
+    """
 
     def __init__(self, time_unit: str = "min", name: str = "Simple Live", dt=1):
         phases = [
