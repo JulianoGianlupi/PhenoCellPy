@@ -264,8 +264,13 @@ class Phenotype:
 
     Base class to define a cell phenotype.
 
-    TODO: more description
+    Defines a cell phenotype, a sequence of phases with different behaviors. E.g., a quiescent-proliferating cell cycle
+    is a phenotype with two phases (quiescence, and growth/division); the necrotic phenotype starts with a osmotic swe-
+    ling phase, folowed by dissolution of the cell into its media after it bursts.
 
+    This class has methods to time-step the phenotype model (which time-steps all submodels), to change the phenotype
+    phase to an arbritary phase of the phenotype cycle, to go to the next phase in the cycle, and to go to a
+    non-changing quiescent phase.
 
     Methods:
     --------
@@ -299,7 +304,8 @@ class Phenotype:
         Ordered list of phases this cycle goes through. Must be a list of :class:`Phases.Phase` objects.
 
     starting_phase_index : int
-        Index of which phase to start at. To start at a random phase set to -1
+        Index of which phase to start at. Currently there is no option to start at a random phase, but that capability
+        will be implemented soon. When it is, to start at a random phase set to -1
 
     quiescent_phase : :class:`Phases.Phase`, None, or False
         If false the cycle won't have a (stand-alone) quiescent phase defined. If None the default
