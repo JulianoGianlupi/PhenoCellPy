@@ -365,7 +365,7 @@ class Phenotype:
             # todo: fix this. it won't actually work for many cells, as this randomization happens at class init, but
             #  the same class object is then copied to the cells
             warn("Randomization of the initial phase is currently disabled. Setting the initial phase to be "
-                          "phase of index 0.")
+                 "phase of index 0.")
             starting_phase_index = 0
             # starting_phase_index = randint(0, len(self.phases) + 1)
 
@@ -379,7 +379,8 @@ class Phenotype:
         Increments :attr:`time_in_cycle` by :attr:`dt`. Calls :func:`current_phase.time_step_phase`. If the phase time-
         step determines the cycle moves to the next phase (i.e., returns `True` for `next_phase`), calls
         :func:go_to_next_phase. If the phase time-step determines the cell exits the cell cycle and goes to quiescence
-        (i.e., returns `True` for `quies`) calls :func:`go_to_quiescence`.
+        (i.e., returns `True` for `quies`) calls :func:`go_to_quiescence`. If :attr:`time_in_cycle` is 0 and
+        :attr:current_phase has an entry function calls :func:current_phase.entry_function.
 
         :return: Flags (bool) for phase changing, cell death, and cell division
         :rtype: tuple of bool
@@ -1038,7 +1039,6 @@ class NecrosisStandard(Phenotype):
                  nuclear_solid_target=(None, None), cytoplasm_fluid=(None, None), cytoplasm_solid=(None, None),
                  cytoplasm_solid_target=(None, None), target_cytoplasm_to_nuclear_ratio=(None, None),
                  fluid_change_rate=(None, None)):
-
         _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
                          arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
