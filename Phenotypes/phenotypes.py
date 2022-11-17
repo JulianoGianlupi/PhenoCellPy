@@ -292,7 +292,7 @@ class Phenotype:
     ----------
 
     name : str
-        Name of the cycle
+        Name of the phenotype
 
     dt : float
         Time-step size (in units of `time_unit`). Must be >0.
@@ -324,16 +324,22 @@ class Phenotype:
                  quiescent_phase: Phases.Phase or False = None, starting_phase_index: int = 0):
         """
 
-        :param name:
-        :param dt:
-        :param time_unit:
-        :param phases:
-        :param quiescent_phase:
-        :param starting_phase_index:
+        :param name: Name for the phenotype
+        :type str
+        :param dt: time-step duration in units of `time_unit`
+        :type float
+        :param time_unit: Time unit
+        :type str
+        :param phases: The different phases of the phenotype
+        :type list of Phases.Phase
+        :param quiescent_phase: Special outside-of-phenotype-order quiescent phase
+        :type Phases.Phase or False
+        :param starting_phase_index: Which phase to start the phenotype model at
+        :type int
         """
         # todo: add __init__ parameters for custom functions for each class
         # todo: add alias for self.current_phase.volume, i.e. property self.volume that fetches
-        #  self.current_phase.volume
+        #  self.current_phase.volume. If read-only easy to do, not sure how to do it if I want to keep write abilities
         self.name = name
 
         self.time_unit = time_unit
