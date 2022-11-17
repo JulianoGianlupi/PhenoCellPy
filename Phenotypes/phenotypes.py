@@ -557,7 +557,6 @@ class Ki67Basic(Phenotype):
 
     Simple proliferating-quiescent phase. Does not use the stand-alone quiescent phase. Cell divides upon leaving Ki67+
 
-    TODO: find where physicell found the definition of this cycle. Find their explanation for this cycle
     This is a two phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the quiescent phase, Ki67-'s mean du-
     ration is 4.59h (stochastic transition to Ki67+ by default). Ki67+ (defined in :class:`Phases.Ki67Positive`) is the
     proliferating phase. It is responsible for doubling the volume of the cell at a rate of
