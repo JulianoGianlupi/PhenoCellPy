@@ -555,7 +555,7 @@ class SimpleLiveCycle(Phenotype):
 class Ki67Basic(Phenotype):
     """
 
-    Simple proliferating-quiescent phase. Does not use the stand-alone quiescent phase. Cell divides upon leaving Ki67+
+    Inherits :class:Phenotype. Simple proliferating-quiescent phase. Cell divides upon leaving Ki67+
 
     This is a two phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the quiescent phase, Ki67-'s mean du-
     ration is 4.59h (stochastic transition to Ki67+ by default). Ki67+ (defined in :class:`Phases.Ki67Positive`) is the
@@ -639,6 +639,19 @@ class Ki67Basic(Phenotype):
 
 
 class Ki67Advanced(Phenotype):
+    """
+
+    Inherits :class:Phenotype. Simple quiescent-proliferating (mitosis)-rest cycle. Cell divides upon leaving Ki67+ pre
+
+    This is a three phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the quiescent phase, Ki67-'s mean
+    duration is 3.62h (stochastic transition to Ki67+ pre-mitotic by default). Ki67+ pre-mitotic (defined in
+    :class:`Phases.Ki67PositivePreMitotic`) is the proliferating phase. It is responsible for doubling the volume of the
+    cell at a rate of [increase in volume]/[Ki67+ pre duration]. Ki67+ pre-mitotic duration is fixed (by default) at 13
+    hours. Once the cell exits Ki67+ pre-mitotic it divides and enters Ki67+ post-mitotic. Ki67+ post-mitotic (defined
+    in :class:`Phases.Ki67PositivePostMitotic`) is a rest phase, Ki67+ post-mitotic duration is fixed (by default)
+    at 2.5 hours. Afterwards the cycle loops back to :class:`Phases.Ki67Negative`.
+
+    """
 
     def __init__(self, name="Ki67 Advanced", dt=0.1, time_unit="min", quiescent_phase=False,
                  division_at_phase_exits=(False, True, False), removal_at_phase_exits=(False, False, False),
