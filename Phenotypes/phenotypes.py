@@ -542,7 +542,8 @@ class Phenotype:
 
 class SimpleLiveCycle(Phenotype):
     """
-    Simplest alive cycle, it has only one phase. When "progressing" to the next phase it divides.
+    Inherits :class:`Phenotype`. Simplest alive cycle, it has only one phase. When progressing to the "next" phase it
+    divides.
     """
 
     def __init__(self, time_unit: str = "min", name: str = "Simple Live", dt=1):
@@ -555,7 +556,7 @@ class SimpleLiveCycle(Phenotype):
 class Ki67Basic(Phenotype):
     """
 
-    Inherits :class:Phenotype. Simple proliferating-quiescent phase. Cell divides upon leaving Ki67+
+    Inherits :class:`Phenotype`. Simple proliferating-quiescent phase. Cell divides upon leaving Ki67+
 
     This is a two phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the quiescent phase, Ki67-'s mean du-
     ration is 4.59h (stochastic transition to Ki67+ by default). Ki67+ (defined in :class:`Phases.Ki67Positive`) is the
@@ -641,7 +642,7 @@ class Ki67Basic(Phenotype):
 class Ki67Advanced(Phenotype):
     """
 
-    Inherits :class:Phenotype. Simple quiescent-proliferating (mitosis)-rest cycle. Cell divides upon leaving Ki67+ pre
+    Inherits :class:`Phenotype`. Simple quiescent-proliferating (mitosis)-rest cycle. Cell divides upon leaving Ki67+ pre
 
     This is a three phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the quiescent phase, Ki67-'s mean
     duration is 3.62h (stochastic transition to Ki67+ pre-mitotic by default). Ki67+ pre-mitotic (defined in
@@ -770,10 +771,16 @@ class Ki67Advanced(Phenotype):
 
 class FlowCytometryBasic(Phenotype):
     """
-    Basic flow cytometry model.
+    Inherits :class:`Phenotype`. Basic flow cytometry model.
 
-    Cell cycle consists of G0/G1 -> S -> G2/M -> G0/G1. Reference cycle lengths from
-    https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    Three-phase live cell cycle consists of G0/G1 -> S -> G2/M -> (back to) G0/G1. Reference phases durations from
+    https://www.ncbi.nlm.nih.gov/books/NBK9876/. G0/G1 phase is defined in :class:`Phases.G0G1` is more representative
+    of the quiescent phase than the first growth phase, the cell transitions stochastically from this phase, its
+    (default) expected duration is 5.15h, transition to the next phase is stochastic. S phase is defined in
+    :class:`Phases.S` is the phase responsible for doubling the cell volume, its  (default) expected duration is 8h,
+    transition to the next phase is stochastic. G2/M is defined in :class:`Phases.G2M`. It is the pre-mitotic rest
+    phase. The cell divides when exiting this phase. Its (default) expected duration is 5h, transition to the next phase
+    is stochastic
     """
 
     def __init__(self, name="Flow Cytometry Basic", dt=0.1, time_unit="min", quiescent_phase=False,
