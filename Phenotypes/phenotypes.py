@@ -1054,7 +1054,16 @@ class ApoptosisStandard(Phenotype):
 
 class NecrosisStandard(Phenotype):
     """
-    Standard Necrosis model
+    Inherits :class:`Phenotype`. Standard Necrosis model
+
+    Two-phase phenotype. The first phase represents the osmotic swell of a necrotic cell, defined in
+    :class:`Phases.NecrosisSwell` it doesn't have a set or expected phase duration, transition to the next phase happens
+    when the cell reaches its rupture volume (twice the original volume, by default). Osmotic swelling rates and calci-
+    fication rate in :class:`Phases.NecrosisSwell`. Second phase is the dissolution of the ruptured cell into its media,
+    defined in :class:`Phases.NecrosisLysed`, dissolving rates can be found there. As a safeguard, this phase has a
+    fixed duration of 60 days, after which, if the cell hasn't dissolved naturally, it should be removed from the si-
+    mulation.
+
     """
 
     def __init__(self, name="Standard necrosis model", dt=0.1, time_unit="min", quiescent_phase=False,
