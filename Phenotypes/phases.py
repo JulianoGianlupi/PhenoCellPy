@@ -504,7 +504,12 @@ class Phase:
 
 
 class QuiescentPhase(Phase):
-    """Default Quiescent Phase. Inherits Phase()"""
+    """
+    Default Quiescent Phase. Inherits :class:`Phase`
+
+    This quiescent phase class is meant to be "outside" whatever phenotype progression is being used.
+
+    """
 
     def __init__(self, index: int = 9999, previous_phase_index: int = None, next_phase_index: int = 0, dt: float = None,
                  time_unit: str = "min", name: str = "quiescent", division_at_phase_exit: bool = False,
@@ -541,7 +546,9 @@ class QuiescentPhase(Phase):
 class Ki67Negative(Phase):
     """
 
-    Defines Ki 67- phase.
+    Defines Ki 67- quiescent phase. Inherits :class:`Phase`
+
+
 
     TODO: More description here
 
