@@ -179,7 +179,7 @@ class Phase:
         Time spent in this phase
 
     volume : class:cell_volume.CellVolumes
-
+        Cell volume submodel
 
     """
 
@@ -420,6 +420,12 @@ class Phase:
                                   relative_rupture_volume=relative_rupture_volume)
 
     def update_volume(self):
+        """
+        Calls the cell volume submodel :function:`CellVolumes.update_volume`. Passes the current phase volume change
+        rates as well as the timestep to it.
+
+        :return: No return
+        """
         self.volume.update_volume(self.dt, self.fluid_change_rate, self.nuclear_biomass_change_rate,
                                   self.cytoplasm_biomass_change_rate, self.calcification_rate)
 
@@ -430,7 +436,7 @@ class Phase:
         Calculates a Poisson probability based on dt and self.phase_duration (p=1-exp(-dt/phase_duration), rolls a
         random number, and returns random number < probability.
 
-        :param none: Not used. Place holder in case of user defined function with args
+        :param none: Not used. Placeholder in case of user defined function with args
         :return: bool. random number < probability of transition
         """
 
@@ -446,7 +452,7 @@ class Phase:
 
         If the time spent in this phase is greater than the phase duration, go to the next phase.
 
-        :param none: Not used. Place holder in case of user defined function with args
+        :param none: Not used. Placeholder in case of user defined function with args
         :return:
         """
         return self.time_in_phase > self.phase_duration
@@ -482,6 +488,14 @@ class Phase:
         return False, False
 
     def _double_target_volume(self, *none):
+        """
+
+        Doubles the cell volume submodel target volumes. Used by several cell cycle models to double the cell volume
+        before mitosis
+
+        :param none: Not used. This is a custom entry function, therefore it has to have args
+        :return: No return
+        """
         self.volume.nuclear_solid_target *= 2
         self.volume.cytoplasm_solid_target *= 2
 
