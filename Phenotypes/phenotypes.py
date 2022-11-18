@@ -869,10 +869,18 @@ class FlowCytometryBasic(Phenotype):
 
 class FlowCytometryAdvanced(Phenotype):
     """
-    Basic flow cytometry model.
+    Inherits :class:`Phenotype`. Flow cytometry model.
 
-    Cell cycle consists of G0/G1 -> S -> G2 -> M -> G0/G1. Reference cycle lengths from
-    https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    Four-phase live cell cycle consists of G0/G1 -> S -> G2 -> M -> (back to) G0/G1. Reference phases durations from
+    https://www.ncbi.nlm.nih.gov/books/NBK9876/. G0/G1 phase is defined in :class:`Phases.G0G1` is more representative
+    of the quiescent phase than the first growth phase, the cell transitions stochastically from this phase, its
+    (default) expected duration is 4.98h, transition to the next phase is stochastic. S phase is defined in
+    :class:`Phases.S` is the phase responsible for doubling the cell volume, its  (default) expected duration is 8h,
+    transition to the next phase is stochastic. The (default) cell volume growth rate is
+    [total volume growth]/[phase duration]. G2 is defined in :class:`Phases.G0G1` (using different parameters than this
+    phenotype G0/G1 phase). It is the pre-mitotic rest phase. Its (default) expected duration is 4h, transition to the
+    next phase is stochastic. M is defined in :class:`Phases.G2M`, it is the mitotic phase, the cell divides when exi-
+    ting this phase. Its expected duration is 1h, transition from this phase is stochastic.
     """
 
     def __init__(self, name="Flow Cytometry Advanced", dt=0.1, time_unit="min", quiescent_phase=False,
