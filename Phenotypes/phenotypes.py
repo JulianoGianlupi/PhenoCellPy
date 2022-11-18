@@ -1151,6 +1151,14 @@ cycle_names = ["Simple Live", "Ki67 Basic", "Ki67 Advanced", "Flow Cytometry Bas
 
 
 def get_phenotype_by_name(name):
+    """
+    Fetches a (uninitialized) phenotype class
+
+    :param name: Name of the phenotype model being fetched
+    :type name: str
+    :return: A phenotype model
+    :rtype: :class:`Phenotype`
+    """
     if name not in cycle_names:
         raise ValueError(f"{name} is not a pre-defined cycle")
 
