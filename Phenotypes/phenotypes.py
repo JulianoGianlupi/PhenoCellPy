@@ -991,7 +991,13 @@ class FlowCytometryAdvanced(Phenotype):
 
 class ApoptosisStandard(Phenotype):
     """
-    The standard apoptotic model
+    Inherits :class:`Phenotype`. The standard apoptotic model.
+
+    A single phase phenotype, tje apoptotic phase, defined in :class:Phases.Apoptosis`. The phase has fixed length,
+    and reduces the cell volume, the cytoplasm diminishes at a rate of 1/60 1/min, the nucleus at a rate of 0.35/60
+    1/min. The (already dead) cell should be removed from the simulation once this phase is concluded. By default, this
+    phase duration is fixed at 8.6h
+
     """
 
     def __init__(self, name="Standard apoptosis model", dt=0.1, time_unit="min", quiescent_phase=False,
