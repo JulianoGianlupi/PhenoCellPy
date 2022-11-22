@@ -1,0 +1,5 @@
+<Simulation version="4.2.5">
+   <XMLScript Type="XMLScript">Simulation/Apoptosys.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/Apoptosys.py</PythonScript>
+   <Resource Type="Python">Simulation/ApoptosysSteppables.py</Resource>
+</Simulation>

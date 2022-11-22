@@ -1,6 +1,10 @@
 from numpy import exp
 from numpy.random import uniform
 
+from Phenotypes.cell_volume import CellVolumes
+
+
+# todo: change args handling to also accept tuples
 
 class Phase:
     """
@@ -76,20 +80,10 @@ class Phase:
     time_in_phase : float
         Time spent in this phase
 
-    volume : float
-        The volume of the cell in this phase
-
-    target_volume : float
-        The target volume of the cell in this phase
-
     simulated_cell_volume : float
         The volume of the simulated cell object in this phase
 
-    update_volume_rate : float
-        Amount of volume the cell will grow by if it is below the target and the default update volume function is used.
 
-    update_volume_args : list
-        Args used by custom `update_volume` function
 
     entry_function_args : list
         args for `entry_function`
@@ -110,16 +104,28 @@ class Phase:
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 10,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
-                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = None,
-                 volume: float = None, update_volume=None, update_volume_args: list = None,
-                 update_volume_rate: float = None, simulated_cell_volume: float = None):
-
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
+                 nuclear_biomass_change_rate=None, calcification_rate=None, target_fluid_fraction=None,
+                 nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                 cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
+                 calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
         """
-        :param update_volume_rate:
-        :param target_volume:
-        :param volume:
-        :param update_volume:
-        :param update_volume_args:
+        :param relative_rupture_volume:
+        :param fluid_change_rate:
+        :param target_fluid_fraction:
+        :param nuclear_fluid:
+        :param nuclear_solid:
+        :param nuclear_solid_target:
+        :param cytoplasm_fluid:
+        :param cytoplasm_solid:
+        :param cytoplasm_solid_target:
+        :param target_cytoplasm_to_nuclear_ratio:
+        :param calcified_fraction:
+        :param calcified_fraction:
+        :param calcification_rate:
+        :param cytoplasm_biomass_change_rate:
+        :param nuclear_biomass_change_rate:
         :param index:
         :param previous_phase_index:
         :param next_phase_index:
@@ -175,9 +181,10 @@ class Phase:
 
         self.exit_function = exit_function  # function to be executed just before exiting this phase
         self.exit_function_args = exit_function_args
-        if self.exit_function is not None and type(self.exit_function_args) != list:
+        if self.exit_function is not None and not (type(self.exit_function_args) == list or
+                                                   type(self.exit_function_args) == tuple):
             raise TypeError("Exit function defined but no args given. Was expecting "
-                            f"'exit_function_args' to be a list, got {type(exit_function_args)}.")
+                            f"'exit_function_args' to be a list or tupple, got {type(exit_function_args)}.")
 
         self.arrest_function = arrest_function  # function determining if cell will exit cell cycle and become quiescent
         self.arrest_function_args = arrest_function_args
@@ -200,47 +207,52 @@ class Phase:
             self.transition_to_next_phase_args = transition_to_next_phase_args
             self.transition_to_next_phase = transition_to_next_phase
 
-        if volume is None:
-            self.volume = 1
-        else:
-            self.volume = volume
-
-        if target_volume is None:
-            self.target_volume = 1
-        else:
-            self.target_volume = target_volume
-
         if simulated_cell_volume is None:
             self.simulated_cell_volume = 1
         else:
             self.simulated_cell_volume = simulated_cell_volume
 
-        if update_volume_rate is None:
-            self.update_volume_rate = 1
+        # the default rates are reference values for MCF-7, in 1/min
+        if cytoplasm_biomass_change_rate is None:
+            self.cytoplasm_biomass_change_rate = 0.27 / 60.0
         else:
-            self.update_volume_rate = update_volume_rate
+            self.cytoplasm_biomass_change_rate = cytoplasm_biomass_change_rate
 
-        if update_volume is None:
-            self.update_volume = self._update_volume
-            self.update_volume_args = [None]
+        if nuclear_biomass_change_rate is None:
+            self.nuclear_biomass_change_rate = 0.33 / 60.0
         else:
-            self.update_volume = update_volume
-            self.update_volume_args = update_volume_args
+            self.nuclear_biomass_change_rate = nuclear_biomass_change_rate
+        if calcification_rate is None:
+            self.calcification_rate = 0
+        else:
+            if calcification_rate < 0:
+                raise ValueError(f"`calcification_rate` must be >= 0, got {calcification_rate}")
+            self.calcification_rate = calcification_rate
 
-    def _update_volume(self, none):
-        """
-        Updates the volume if cell is below target.
+        if fluid_change_rate is None:
+            self.fluid_change_rate = 3.0 / 60.0
+        else:
+            self.fluid_change_rate = fluid_change_rate
 
-        If the Phase's volume is below the Phase's target this function increments `self.volume` by
-        `self.update_volume_rate`.
+        # self.volume = CellVolumes(cytoplasm=cytoplasm_volume, target_cytoplasm=cytoplasm_target_volume,
+        #                           target_cytoplasm_fluid_fraction=cytoplasm_target_fluid_fraction,
+        #                           nuclear=nuclear_volume, target_nuclear=nuclear_target_volume,
+        #                           target_nuclear_fluid_fraction=nuclear_target_fluid_fraction,
+        #                           calcified_fraction=calcified_fraction)
 
-        :param none: Not used. Place holder in case of user defined function with args
-        :return:
-        """
-        if self.volume < self.target_volume:
-            self.volume += self.update_volume_rate
+        self.volume = CellVolumes(target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                                  nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                                  cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                                  cytoplasm_solid_target=cytoplasm_solid_target,
+                                  target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                                  calcified_fraction=calcified_fraction,
+                                  relative_rupture_volume=relative_rupture_volume)
 
-    def _transition_to_next_phase_stochastic(self, none):
+    def update_volume(self):
+        self.volume.update_volume(self.dt, self.fluid_change_rate, self.nuclear_biomass_change_rate,
+                                  self.cytoplasm_biomass_change_rate, self.calcification_rate)
+
+    def _transition_to_next_phase_stochastic(self, *none):
         """
         Default stochastic phase transition function.
 
@@ -250,10 +262,14 @@ class Phase:
         :param none: Not used. Place holder in case of user defined function with args
         :return: bool. random number < probability of transition
         """
+
+        # the approximation 1-exp(-x) ~ x can be used. That approximation has a difference of 0.005 at x=0.1, which I'd
+        # find acceptable. TODO: implement a check on self.dt / self.phase_duration, if it is < .1 use the approximation
+
         prob = 1 - exp(-self.dt / self.phase_duration)
         return uniform() < prob
 
-    def _transition_to_next_phase_deterministic(self, none):
+    def _transition_to_next_phase_deterministic(self, *none):
         """
         Default deterministic phase transition function.
 
@@ -278,8 +294,7 @@ class Phase:
         """
         self.time_in_phase += self.dt
 
-        if self.update_volume:
-            self.update_volume(*self.update_volume_args)
+        self.update_volume()
 
         if self.arrest_function is not None:
             if self.arrest_function(*self.arrest_function_args):
@@ -295,6 +310,10 @@ class Phase:
 
         return False, False
 
+    def _double_target_volume(self, *none):
+        self.volume.nuclear_solid_target *= 2
+        self.volume.cytoplasm_solid_target *= 2
+
     def __str__(self):
         return f"{self.name} phase"
 
@@ -302,26 +321,35 @@ class Phase:
 class QuiescentPhase(Phase):
     """Default Quiescent Phase. Inherits Phase()"""
 
-    def __init__(self, index: int = 9999, previous_phase_index: int = None, next_phase_index: int = 0,
-                 dt: float = None, time_unit: str = "min", name: str = "quiescent",
-                 division_at_phase_exit: bool = False,
+    def __init__(self, index: int = 9999, previous_phase_index: int = None, next_phase_index: int = 0, dt: float = None,
+                 time_unit: str = "min", name: str = "quiescent", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 4.59 * 60,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
                  transition_to_next_phase=None, transition_to_next_phase_args: list = None,
-                 target_volume: float = None, volume: float = None, update_volume=None, update_volume_args: list = None,
-                 update_volume_rate: float = None, simulated_cell_volume: float = None):
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=0, nuclear_biomass_change_rate=0,
+                 calcification_rate=0, target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None,
+                 nuclear_solid_target=None, cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
+                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
+                 relative_rupture_volume=None):
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
-                         entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
-                         removal_at_phase_exit=removal_at_phase_exit, target_volume=target_volume, volume=volume,
-                         update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume, exit_function=exit_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args)
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
         return
 
 
@@ -334,27 +362,35 @@ class Ki67Negative(Phase):
 
     """
 
-    def __init__(self, index: int = 0, previous_phase_index: int = 1, next_phase_index: int = 1,
-                 dt: float = 0.1, time_unit: str = "min", name: str = "Ki 67 negative",
-                 division_at_phase_exit: bool = False,
+    def __init__(self, index: int = 0, previous_phase_index: int = 1, next_phase_index: int = 1, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "Ki 67-", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 4.59 * 60,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
                  transition_to_next_phase=None, transition_to_next_phase_args: list = None,
-                 target_volume: float = None,
-                 volume: float = None, update_volume=None, update_volume_args: list = None,
-                 update_volume_rate: float = None, simulated_cell_volume: float = None):
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
+                 nuclear_biomass_change_rate=None, calcification_rate=None, target_fluid_fraction=None,
+                 nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                 cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
+                 calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
-                         entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
-                         removal_at_phase_exit=removal_at_phase_exit, target_volume=target_volume, volume=volume,
-                         update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume, exit_function=exit_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args)
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
 
 
 class Ki67Positive(Phase):
@@ -370,47 +406,535 @@ class Ki67Positive(Phase):
 
     """
 
-    def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 0,
-                 dt: float = 0.1, time_unit: str = "min", name: str = "Ki 67 positive",
-                 division_at_phase_exit: bool = True,
+    def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 0, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "Ki 67+", division_at_phase_exit: bool = True,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = True, phase_duration: float = 15.5 * 60.0,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
-                 transition_to_next_phase=None, transition_to_next_phase_args: list = None, target_volume: float = None,
-                 volume: float = None, update_volume=None, update_volume_args: list = None,
-                 update_volume_rate: float = None, simulated_cell_volume: float = None):
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
+                 nuclear_biomass_change_rate=None, calcification_rate=None, target_fluid_fraction=None,
+                 nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                 cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
+                 calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
 
         if entry_function is None:
-            entry_function = self._standard_Ki67_entry_function
+            entry_function = self._double_target_volume
             entry_function_args = [None]
         elif type(entry_function_args) != list:
             raise TypeError("'entry_function' was defined but no value for 'entry_function_args' was given. Expected "
                             f"list got {type(entry_function_args)}")
 
-        if update_volume_rate is None:
-            update_volume_rate = target_volume / (phase_duration / dt)
+        if cytoplasm_biomass_change_rate is None and cytoplasm_fluid is not None and cytoplasm_solid is not None:
+            cytoplasm_biomass_change_rate = (cytoplasm_fluid + cytoplasm_solid) / (phase_duration / dt)
+
+        elif cytoplasm_biomass_change_rate is None and cytoplasm_fluid is not None:
+            cytoplasm_biomass_change_rate = cytoplasm_fluid / (phase_duration / dt)
+
+        elif cytoplasm_biomass_change_rate is None and cytoplasm_solid is not None:
+            cytoplasm_biomass_change_rate = cytoplasm_solid / (phase_duration / dt)
+
+        elif cytoplasm_biomass_change_rate is None:
+            cytoplasm_biomass_change_rate = 1
+        else:
+            cytoplasm_biomass_change_rate = cytoplasm_biomass_change_rate
+
+        if nuclear_biomass_change_rate is None and cytoplasm_fluid is not None and cytoplasm_solid is not None:
+            nuclear_biomass_change_rate = (nuclear_fluid + nuclear_solid) / (phase_duration / dt)
+
+        elif nuclear_biomass_change_rate is None and cytoplasm_fluid is not None:
+            nuclear_biomass_change_rate = nuclear_fluid / (phase_duration / dt)
+
+        elif nuclear_biomass_change_rate is None and cytoplasm_solid is not None:
+            nuclear_biomass_change_rate = nuclear_solid / (phase_duration / dt)
+
+        elif nuclear_biomass_change_rate is None:
+            nuclear_biomass_change_rate = 1
+        else:
+            nuclear_biomass_change_rate = nuclear_biomass_change_rate
+
+        if fluid_change_rate is None and cytoplasm_fluid is not None and nuclear_fluid is not None:
+            fluid_change_rate = (cytoplasm_fluid + nuclear_fluid) / (phase_duration / dt)
+        elif fluid_change_rate is None and cytoplasm_fluid is not None:
+            fluid_change_rate = cytoplasm_fluid / (phase_duration / dt)
+        elif fluid_change_rate is None and nuclear_fluid is not None:
+            fluid_change_rate = nuclear_fluid / (phase_duration / dt)
+        else:
+            fluid_change_rate = 1
 
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         dt=dt, time_unit=time_unit, name=name, fixed_duration=fixed_duration,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
-                         entry_function_args=entry_function_args, division_at_phase_exit=division_at_phase_exit,
-                         removal_at_phase_exit=removal_at_phase_exit, target_volume=target_volume, volume=volume,
-                         update_volume=update_volume, update_volume_args=update_volume_args,
-                         update_volume_rate=update_volume_rate, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
-                         simulated_cell_volume=simulated_cell_volume, exit_function=exit_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args)
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
 
-    def _standard_Ki67_entry_function(self, *args):
-        """
 
-        Doubles the target volume of the cell upon entry to this phase.
+class Ki67PositivePreMitotic(Ki67Positive):
 
-        :param args: Not used. Place holder in case of user defined function.
-        :return: No return
-        """
-        self.target_volume *= 2
+    def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "Ki 67+ pre-mitotic", division_at_phase_exit: bool = True,
+                 removal_at_phase_exit: bool = False, fixed_duration: bool = True, phase_duration: float = 13.0 * 60.0,
+                 entry_function=None, entry_function_args: list = None, exit_function=None,
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
+                 nuclear_biomass_change_rate=None, calcification_rate=None, target_fluid_fraction=None,
+                 nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                 cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
+                 calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
+        super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
+                         phase_duration=phase_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
+                         exit_function_args=exit_function_args, arrest_function=arrest_function,
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
+
+
+class Ki67PositivePostMitotic(Phase):
+    def __init__(self, index: int = 2, previous_phase_index: int = 1, next_phase_index: int = 0, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "Ki 67+ post-mitotic", division_at_phase_exit: bool = True,
+                 removal_at_phase_exit: bool = False, fixed_duration: bool = True, phase_duration: float = 2.5 * 60.0,
+                 entry_function=None, entry_function_args: list = None, exit_function=None,
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
+                 nuclear_biomass_change_rate=None, calcification_rate=None, target_fluid_fraction=None,
+                 nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                 cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
+                 calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
+
+        if entry_function is None:
+            entry_function = self._standard_Ki67_positive_postmit_entry_function
+            entry_function_args = [None]
+        elif type(entry_function_args) != list:
+            raise TypeError("'entry_function' was defined but no value for 'entry_function_args' was given. Expected "
+                            f"list got {type(entry_function_args)}")
+
+        super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
+                         phase_duration=phase_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
+                         exit_function_args=exit_function_args, arrest_function=arrest_function,
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
+
+    def _standard_Ki67_positive_postmit_entry_function(self, *args):
+        self.volume.cytoplasm_solid_target /= 2
+        self.volume.nuclear_solid_target /= 2
+
+
+class G0G1(Phase):
+    def __init__(self, index: int = 0, previous_phase_index: int = 2, next_phase_index: int = 1, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "G0/G1", division_at_phase_exit: bool = True,
+                 removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 5.15 * 60.0,
+                 entry_function=None, entry_function_args: list = None, exit_function=None,
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
+                 nuclear_biomass_change_rate=None, calcification_rate=None, target_fluid_fraction=None,
+                 nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                 cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
+                 calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
+        super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
+                         phase_duration=phase_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
+                         exit_function_args=exit_function_args, arrest_function=arrest_function,
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
+
+
+class S(Phase):
+    def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "S", division_at_phase_exit: bool = True,
+                 removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 8 * 60.0,
+                 entry_function=None, entry_function_args: list = None, exit_function=None,
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
+                 nuclear_biomass_change_rate=None, calcification_rate=None, target_fluid_fraction=None,
+                 nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                 cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
+                 calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
+
+        if entry_function is None:
+            entry_function = self._double_target_volume
+            entry_function_args = [None]
+        elif type(entry_function_args) != list:
+            raise TypeError("'entry_function' was defined but no value for 'entry_function_args' was given. Expected "
+                            f"list got {type(entry_function_args)}")
+
+        if cytoplasm_biomass_change_rate is None and cytoplasm_fluid is not None and cytoplasm_solid is not None:
+            cytoplasm_biomass_change_rate = (cytoplasm_fluid + cytoplasm_solid) / (phase_duration / dt)
+
+        elif cytoplasm_biomass_change_rate is None and cytoplasm_fluid is not None:
+            cytoplasm_biomass_change_rate = cytoplasm_fluid / (phase_duration / dt)
+
+        elif cytoplasm_biomass_change_rate is None and cytoplasm_solid is not None:
+            cytoplasm_biomass_change_rate = cytoplasm_solid / (phase_duration / dt)
+
+        elif cytoplasm_biomass_change_rate is None:
+            cytoplasm_biomass_change_rate = 1
+        else:
+            cytoplasm_biomass_change_rate = cytoplasm_biomass_change_rate
+
+        if nuclear_biomass_change_rate is None and cytoplasm_fluid is not None and cytoplasm_solid is not None:
+            nuclear_biomass_change_rate = (nuclear_fluid + nuclear_solid) / (phase_duration / dt)
+
+        elif nuclear_biomass_change_rate is None and cytoplasm_fluid is not None:
+            nuclear_biomass_change_rate = nuclear_fluid / (phase_duration / dt)
+
+        elif nuclear_biomass_change_rate is None and cytoplasm_solid is not None:
+            nuclear_biomass_change_rate = nuclear_solid / (phase_duration / dt)
+
+        elif nuclear_biomass_change_rate is None:
+            nuclear_biomass_change_rate = 1
+        else:
+            nuclear_biomass_change_rate = nuclear_biomass_change_rate
+
+        if fluid_change_rate is None and cytoplasm_fluid is not None and nuclear_fluid is not None:
+            fluid_change_rate = (cytoplasm_fluid + nuclear_fluid) / (phase_duration / dt)
+        elif fluid_change_rate is None and cytoplasm_fluid is not None:
+            fluid_change_rate = cytoplasm_fluid / (phase_duration / dt)
+        elif fluid_change_rate is None and nuclear_fluid is not None:
+            fluid_change_rate = nuclear_fluid / (phase_duration / dt)
+        else:
+            fluid_change_rate = 1
+
+        super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
+                         phase_duration=phase_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
+                         exit_function_args=exit_function_args, arrest_function=arrest_function,
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
+
+
+class G2M(Phase):
+    def __init__(self, index: int = 2, previous_phase_index: int = 1, next_phase_index: int = 0, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "G2/M", division_at_phase_exit: bool = True,
+                 removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 5 * 60.0,
+                 entry_function=None, entry_function_args: list = None, exit_function=None,
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
+                 nuclear_biomass_change_rate=None, calcification_rate=None, target_fluid_fraction=None,
+                 nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                 cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
+                 calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
+        super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
+                         phase_duration=phase_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
+                         exit_function_args=exit_function_args, arrest_function=arrest_function,
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
+
+
+class Apoptosis(Phase):
+    def __init__(self, index: int = 0, previous_phase_index: int = 0, next_phase_index: int = 0, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "Apoptosis", division_at_phase_exit: bool = False,
+                 removal_at_phase_exit: bool = True, fixed_duration: bool = True, phase_duration: float = 8.6 * 60.0,
+                 entry_function=None, entry_function_args: list = None, exit_function=None,
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate: float = 1 / 60,
+                 nuclear_biomass_change_rate: float = 0.35 / 60, unlysed_fluid_change_rate: float = 3 / 60,
+                 lysed_fluid_change_rate: float = 0, calcification_rate: float = 0, relative_rupture_volume: float = 2,
+                 target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
+                 cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
+                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None):
+
+        if entry_function is None:
+            entry_function = self._standard_apoptosis_entry
+            entry_function_args = [None]
+
+        if unlysed_fluid_change_rate is not None:
+            self.unlysed_fluid_change_rate = unlysed_fluid_change_rate
+        else:
+            self.unlysed_fluid_change_rate = 3 / 60
+
+        if lysed_fluid_change_rate is not None:
+            self.lysed_fluid_change_rate = lysed_fluid_change_rate
+        else:
+            self.lysed_fluid_change_rate = 0
+
+        if relative_rupture_volume is None:
+            self.relative_rupture_volume = 2
+        else:
+            self.relative_rupture_volume = relative_rupture_volume
+
+        super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
+                         phase_duration=phase_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
+                         exit_function_args=exit_function_args, arrest_function=arrest_function,
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
+
+    def _standard_apoptosis_entry(self, *none):
+
+        # shrink cell
+        self.volume.target_fluid_fraction = 0
+        self.volume.cytoplasm_solid_target = 0
+        self.volume.nuclear_solid_target = 0
+
+        # set fluid change rate
+        self.fluid_change_rate = self.unlysed_fluid_change_rate
+
+
+class NecrosisSwell(Phase):
+    """
+    Swelling part of the necrosis process
+    """
+
+    def __init__(self, index: int = 0, previous_phase_index: int = 0, next_phase_index: int = 1, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "Necrotic (swelling)", division_at_phase_exit: bool = False,
+                 removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = None,
+                 entry_function=None, entry_function_args: list = None, exit_function=None,
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate: float = None,
+                 nuclear_biomass_change_rate: float = None, calcification_rate: float = None,
+                 relative_rupture_volume: float = None,
+                 target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
+                 cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
+                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None):
+
+        # default parameters
+
+        # this phase will use by default a custom transition check, so this is here to avoid issues
+        _phase_duration = 9e99
+
+        # default volume parameters
+        _cytoplasm_biomass_change_rate = 0.0032 / 60.0
+        _nuclear_biomass_change_rate = 0.013 / 60.0
+        _fluid_change_rate = 0.67 / 60.0
+        _calcification_rate = 0.0042 / 60.0
+        _relative_rupture_volume = 2
+
+        if phase_duration is None:
+            phase_duration = _phase_duration
+
+        if cytoplasm_biomass_change_rate is None:
+            cytoplasm_biomass_change_rate = _cytoplasm_biomass_change_rate
+
+        if nuclear_biomass_change_rate is None:
+            nuclear_biomass_change_rate = _nuclear_biomass_change_rate
+
+        if fluid_change_rate is None:
+            fluid_change_rate = _fluid_change_rate
+
+        if calcification_rate is None:
+            calcification_rate = _calcification_rate
+
+        if relative_rupture_volume is None:
+            relative_rupture_volume = _relative_rupture_volume
+
+        if entry_function is None:
+            entry_function = self._standard_necrosis_entry_function
+            entry_function_args = [None]
+
+        if transition_to_next_phase is None:
+            transition_to_next_phase = self._necrosis_transition_function
+            transition_to_next_phase_args = [None]
+
+        super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
+                         phase_duration=phase_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
+                         exit_function_args=exit_function_args, arrest_function=arrest_function,
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
+
+    def _standard_necrosis_entry_function(self, *none):
+
+        # the cell wants to degrade the solids and swell by osmosis
+        self.volume.target_fluid_fraction = 1
+        self.volume.nuclear_solid_target = 0
+        self.volume.cytoplasm_solid_target = 0
+
+        self.volume.target_cytoplasm_to_nuclear_ratio = 0
+
+        # set rupture volume
+
+        self.volume.rupture_volume = self.volume.relative_rupture_volume * self.volume.total
+
+    def _necrosis_transition_function(self, *none):
+        return self.volume.total > self.volume.rupture_volume
+
+
+class NecrosisLysed(Phase):
+    """
+    Ruptured necrotic cell
+    """
+
+    def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 99, dt: float = 0.1,
+                 time_unit: str = "min", name: str = "Necrotic (lysed)", division_at_phase_exit: bool = False,
+                 removal_at_phase_exit: bool = True, fixed_duration: bool = True, phase_duration: float = None,
+                 entry_function=None, entry_function_args: list = None, exit_function=None,
+                 exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
+                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 simulated_cell_volume: float = None, cytoplasm_biomass_change_rate: float = None,
+                 nuclear_biomass_change_rate: float = None, calcification_rate: float = None,
+                 relative_rupture_volume: float = None,
+                 target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
+                 cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
+                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None):
+
+        # default parameters
+
+        _phase_duration = 60 * 60 * 24  # 60 days, the cell should disappear naturally before then,
+        # but if it hasn't we do it
+
+        _cytoplasm_biomass_change_rate = 0.0032 / 60.0
+        _nuclear_biomass_change_rate = 0.013 / 60.0
+        _fluid_change_rate = 0.050 / 60.0
+        _calcification_rate = 0.0042 / 60.0
+        _relative_rupture_volume = 9e99
+
+        if phase_duration is None:
+            phase_duration = _phase_duration
+
+        if cytoplasm_biomass_change_rate is None:
+            cytoplasm_biomass_change_rate = _cytoplasm_biomass_change_rate
+
+        if nuclear_biomass_change_rate is None:
+            nuclear_biomass_change_rate = _nuclear_biomass_change_rate
+
+        if fluid_change_rate is None:
+            fluid_change_rate = _fluid_change_rate
+
+        if calcification_rate is None:
+            calcification_rate = _calcification_rate
+
+        if relative_rupture_volume is None:
+            relative_rupture_volume = _relative_rupture_volume
+
+        if entry_function is None:
+            entry_function = self._standard_lysis_entry_function
+            entry_function_args = [None]
+
+        super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
+                         dt=dt, time_unit=time_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
+                         phase_duration=phase_duration, entry_function=entry_function,
+                         entry_function_args=entry_function_args, exit_function=exit_function,
+                         exit_function_args=exit_function_args, arrest_function=arrest_function,
+                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
+                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         simulated_cell_volume=simulated_cell_volume,
+                         cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
+                         nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
+                         target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
+                         nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
+                         cytoplasm_fluid=cytoplasm_fluid, cytoplasm_solid=cytoplasm_solid,
+                         cytoplasm_solid_target=cytoplasm_solid_target,
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
+                         calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
+                         relative_rupture_volume=relative_rupture_volume)
+
+    def _standard_lysis_entry_function(self, *none):
+        self.volume.target_fluid_fraction = 0
+        self.volume.nuclear_solid_target = 0
+        self.volume.cytoplasm_solid_target = 0
+
+        self.volume.target_cytoplasm_to_nuclear_ratio = 0
+
+        # set rupture volume
+
+        self.volume.rupture_volume = self.volume.relative_rupture_volume * self.volume.total
 
 
 if __name__ == '__main__':
