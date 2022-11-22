@@ -3,7 +3,6 @@ import numpy as np
 
 import sys
 from os.path import abspath
-# import keyboard
 import time
 
 sys.path.extend([abspath("../")])  # todo: make this more refined
@@ -31,7 +30,7 @@ pot = tf.Potential.glj(1)
 
 mass = 40
 
-radius = .4 #get_radius_sphere(volume)
+radius = .4
 
 global density
 density = mass / ((4/3)*np.pi*radius*radius*radius)
@@ -40,7 +39,13 @@ density = mass / ((4/3)*np.pi*radius*radius*radius)
 
 dt = 1  # min/time step
 
-ki67_basic = pheno.cycles.Ki67Basic(dt=dt, target_volumes=[mass, mass], volumes=[mass, mass])
+ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt, target_fluid_fraction=[1, 1],
+                                                # as the simulated cell "doesn't have" a nucleus
+                                                # we don't need to give it a volume
+                                                nuclear_fluid=[0, 0],
+                                                nuclear_solid=[0, 0], cytoplasm_fluid=[mass, mass],
+                                                cytoplasm_solid=[0, 0], cytoplasm_solid_target=[0, 0],
+                                                target_cytoplasm_to_nuclear_ratio=[0, 0])
 
 
 class CellType(tf.ParticleTypeSpec):
@@ -71,36 +76,27 @@ cells_cycles = {f"{first_cell.id}": ki67_basic}
 
 
 def step_cycle_and_divide(event):
-    # print("Time step")
     for p in Cell.items():
-        print(p.id)
-        # print("in particle loop")
-        # print(hasattr(p, "volume"))
         pcycle = cells_cycles[f"{p.id}"]
         pcycle.current_phase.simulated_cell_volume = p.mass * density
-        phase_change, death, division = pcycle.time_step_cycle()
-        # print(pcycle.current_phase)
-        # print(pcycle.current_phase, phase_change, death, division, pcycle.current_phase.time_in_phase)
-        # print(1 - np.exp(-pcycle.current_phase.dt / pcycle.current_phase.phase_duration))
+        phase_change, death, division = pcycle.time_step_phenotype()
+
         if phase_change and len(Cell.items()) < 10:
             print("@@@\nPHASE CHANGE\n@@@")
             # time.sleep(1)
 
-        radius = get_radius_sphere(pcycle.current_phase.volume)
+        radius = get_radius_sphere(pcycle.current_phase.volume.total)
 
         # book-keeping, making sure the simulated cell grows
         if p.radius < radius:
-            # print("update volume")
             p.radius = radius
             p.mass = ((4/3)*np.pi*radius*radius*radius) * density
-            # p.volume = p.cycle.current_phase.volume
 
         # if division occurs, divide
         if division:
+            print("@@@\nDIVISION\n@@@")
             # save cell attribs to halve later
-            # radius = p.radius
             cur_mass = p.mass
-            # volume = p.pvolume
 
             # divide and reasign attribs (is this step necessary?)
             child = p.split()
@@ -113,7 +109,6 @@ def step_cycle_and_divide(event):
             cells_cycles[f"{child.id}"].volume = child.mass*density
             cells_cycles[f"{child.id}"].simulated_cell_volume = child.mass*density
 
-            # child.pvolume = p.pvolume = volume / 2
     return 0
 
 
