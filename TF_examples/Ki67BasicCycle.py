@@ -21,8 +21,8 @@ cutoff = 3
 dim = [50, 50, 50]
 tf.init(dim=dim, cutoff=cutoff)
 
-# pot = tf.Potential.morse(d=0.1, a=6, min=-1, max=1)
-pot = tf.Potential.glj(1)
+
+pot = tf.Potential.morse(d=3, a=5, min=-0.8, max=2)
 
 # Particle types
 
