@@ -849,10 +849,10 @@ class S(Phase):
     Inherits :class:`Phase`. Defines S phase, it more representative of the growth phase than the inter-growth rest.
 
     This is a growth phenotype for cells that are replicating. Transition to the next phase is set to be stochastic
-    (the phase does not use a fixed duration) by default. Default
-    expected phase duration is 8h, the phase transition rate is, therefore, dt/8 1/h. By default, will set the volume
-    change rates to be [change in volume]/[phase duration]. This phase does not calcify the cell. Reference phase
-    duration from https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    (the phase does not use a fixed duration) by default. Default expected phase duration is 8h, the phase transition
+    rate is, therefore, dt/8 1/h. By default, will set the volume change rates to be
+    [change in volume]/[phase duration]. This phase does not calcify the cell. Reference phase duration from
+    https://www.ncbi.nlm.nih.gov/books/NBK9876/
     """
     def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2, dt: float = 0.1,
                  time_unit: str = "min", name: str = "S", division_at_phase_exit: bool = False,
@@ -931,6 +931,15 @@ class S(Phase):
 
 
 class G2M(Phase):
+    """
+    Inherits :class:`Phase`. Defines G2M phase, it more representative of the mitosis phase than the growth.
+
+    This is a growth phenotype for cells that are replicating. Transition to the next phase is set to be stochastic
+    (the phase does not use a fixed duration) by default. Default expected phase duration is 5h, the phase transition
+    rate is, therefore, dt/5 1/h. By default, will set the volume change rates to be
+    [change in volume]/[phase duration]. This phase does not calcify the cell. Reference phase duration from
+    https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    """
     def __init__(self, index: int = 2, previous_phase_index: int = 1, next_phase_index: int = 0, dt: float = 0.1,
                  time_unit: str = "min", name: str = "G2/M", division_at_phase_exit: bool = True,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 5 * 60.0,
