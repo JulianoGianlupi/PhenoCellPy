@@ -490,14 +490,26 @@ class Phase:
     def _double_target_volume(self, *none):
         """
 
-        Doubles the cell volume submodel target volumes. Used by several cell cycle models to double the cell volume
-        before mitosis
+        Doubles the cell volume submodel (:class:`Phenotypes.cell_volume`) target volumes. Used by several cell cycle
+        models to double the cell volume before mitosis
 
         :param none: Not used. This is a custom entry function, therefore it has to have args
         :return: No return
         """
         self.volume.nuclear_solid_target *= 2
         self.volume.cytoplasm_solid_target *= 2
+
+    def _halve_target_volume(self, *none):
+        """
+
+        Halves the cell volume submodel (:class:`Phenotypes.cell_volume`) target volumes. Used by several cell cycle
+        models to halve the cell volume after mitosis
+
+        :param none: Not used. This is a custom entry function, therefore it has to have args
+        :return: No return
+        """
+        self.volume.cytoplasm_solid_target /= 2
+        self.volume.nuclear_solid_target /= 2
 
     def __str__(self):
         return f"{self.name} phase"
@@ -545,13 +557,14 @@ class QuiescentPhase(Phase):
 
 class Ki67Negative(Phase):
     """
+    Inherits :class:`Phase`. Defines Ki 67- quiescent phase.
 
-    Defines Ki 67- quiescent phase. Inherits :class:`Phase`
-
-
-
-    TODO: More description here
-
+    This is a quiescent phenotype for cells that are replicating. Ki67 is a protein marker associated with proliferation.
+    Transition to the next phase is set to be stochastic (the phase does not use a fixed duration) by default. Default
+    expected phase duration is 4.59h, the phase transition rate is, therefore, dt/4.59 1/h.
+    This phase does not calcify the cell. The parameters for this phase are based on the MCF-10A cell line
+    https://www.sciencedirect.com/topics/medicine-and-dentistry/mcf-10a-cell-line
+    https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FBTO_0001939
     """
 
     def __init__(self, index: int = 0, previous_phase_index: int = 1, next_phase_index: int = 1, dt: float = 0.1,
@@ -588,13 +601,18 @@ class Ki67Negative(Phase):
 class Ki67Positive(Phase):
     """
 
-    Defines the simple Ki 67+ phase. Inherits Phase().
+    Inherits :class:`Phase`. Defines Ki 67+ proliferating phase.
 
-    Methods
-    -------
+    This is a proliferating phenotype for cells that are replicating. Ki67 is a protein marker associated with prolife-
+    ration. Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by default.
+    Default phase duration is 15.5h. By default, if no user defined custom entry function is defined (i.e.,
+    `entry_function=None`), this phase will set its entry function to be :class:`Phase._double_target_volume`.
+    By default, will set the volume change rates to be [change in volume]/[phase duration]. This phase does not calcify
+    the cell.
 
-    _standard_Ki67_entry_function
-        Default standard entry function to this phase.
+    The parameters for this phase are based on the MCF-10A cell line
+    https://www.sciencedirect.com/topics/medicine-and-dentistry/mcf-10a-cell-line
+    https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FBTO_0001939
 
     """
 
@@ -675,6 +693,21 @@ class Ki67Positive(Phase):
 
 
 class Ki67PositivePreMitotic(Ki67Positive):
+    """
+
+    Inherits :class:`Ki67Positive`. Defines Ki 67+ pre-mitotic proliferating phase. Only difference to
+    :class:`Ki67Positive` is the phase length.
+
+    This is a proliferating phenotype for cells that are replicating. Ki67 is a protein marker associated with prolife-
+    ration. Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by default.
+    Default phase duration is 13h. By default, if no user defined custom entry function is defined (i.e.,
+    `entry_function=None`), this phase will set its entry function to be :class:`Phase._double_target_volume`
+
+    The parameters for this phase are based on the MCF-10A cell line
+    https://www.sciencedirect.com/topics/medicine-and-dentistry/mcf-10a-cell-line
+    https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FBTO_0001939
+
+    """
 
     def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2, dt: float = 0.1,
                  time_unit: str = "min", name: str = "Ki 67+ pre-mitotic", division_at_phase_exit: bool = True,
@@ -708,6 +741,20 @@ class Ki67PositivePreMitotic(Ki67Positive):
 
 
 class Ki67PositivePostMitotic(Phase):
+    """
+    Inherits :class:`Phase`. Defines Ki 67+ post-mitotic phase, it represents the cell's reorganization.
+
+    This is a rest phenotype for cells that are replicating. Ki67 is a protein marker associated with proliferation.
+    Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by default. Default
+    phase duration is 2.5h. By default, if no user defined custom entry function is defined (i.e.,
+    `entry_function=None`), this phase will set its entry function to be
+    :class:`Ki67PositivePostMitotic._standard_Ki67_positive_postmit_entry_function`, which calls
+    :class:`Phase._halve_target_volume`.
+
+    The parameters for this phase are based on the MCF-10A cell line
+    https://www.sciencedirect.com/topics/medicine-and-dentistry/mcf-10a-cell-line
+    https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FBTO_0001939
+    """
     def __init__(self, index: int = 2, previous_phase_index: int = 1, next_phase_index: int = 0, dt: float = 0.1,
                  time_unit: str = "min", name: str = "Ki 67+ post-mitotic", division_at_phase_exit: bool = True,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = True, phase_duration: float = 2.5 * 60.0,
@@ -747,11 +794,25 @@ class Ki67PositivePostMitotic(Phase):
                          relative_rupture_volume=relative_rupture_volume)
 
     def _standard_Ki67_positive_postmit_entry_function(self, *args):
-        self.volume.cytoplasm_solid_target /= 2
-        self.volume.nuclear_solid_target /= 2
+        """
+        Calls :class:`Phase._halve_target_volume`.
+
+        :param args: Not used
+        :return:
+        """
+        self._halve_target_volume(*args)
 
 
 class G0G1(Phase):
+    """
+    Inherits :class:`Phase`. Defines G0/G1 phase, it more representative of the quiescent phase than the first growth
+    phase.
+
+    This is a quiescent phenotype for cells that are replicating. Transition to the next phase is set to be stochastic
+    (the phase does not use a fixed duration) by default. Default
+    expected phase duration is 5.15h, the phase transition rate is, therefore, dt/5.15 1/h.
+    This phase does not calcify the cell. Reference phase duration from https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    """
     def __init__(self, index: int = 0, previous_phase_index: int = 2, next_phase_index: int = 1, dt: float = 0.1,
                  time_unit: str = "min", name: str = "G0/G1", division_at_phase_exit: bool = True,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 5.15 * 60.0,
@@ -784,6 +845,15 @@ class G0G1(Phase):
 
 
 class S(Phase):
+    """
+    Inherits :class:`Phase`. Defines S phase, it more representative of the growth phase than the inter-growth rest.
+
+    This is a growth phenotype for cells that are replicating. Transition to the next phase is set to be stochastic
+    (the phase does not use a fixed duration) by default. Default
+    expected phase duration is 8h, the phase transition rate is, therefore, dt/8 1/h. By default, will set the volume
+    change rates to be [change in volume]/[phase duration]. This phase does not calcify the cell. Reference phase
+    duration from https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    """
     def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2, dt: float = 0.1,
                  time_unit: str = "min", name: str = "S", division_at_phase_exit: bool = True,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 8 * 60.0,
