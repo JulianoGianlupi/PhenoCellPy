@@ -814,7 +814,7 @@ class G0G1(Phase):
     This phase does not calcify the cell. Reference phase duration from https://www.ncbi.nlm.nih.gov/books/NBK9876/
     """
     def __init__(self, index: int = 0, previous_phase_index: int = 2, next_phase_index: int = 1, dt: float = 0.1,
-                 time_unit: str = "min", name: str = "G0/G1", division_at_phase_exit: bool = True,
+                 time_unit: str = "min", name: str = "G0/G1", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 5.15 * 60.0,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
@@ -855,7 +855,7 @@ class S(Phase):
     duration from https://www.ncbi.nlm.nih.gov/books/NBK9876/
     """
     def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2, dt: float = 0.1,
-                 time_unit: str = "min", name: str = "S", division_at_phase_exit: bool = True,
+                 time_unit: str = "min", name: str = "S", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 8 * 60.0,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
