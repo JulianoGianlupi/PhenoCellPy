@@ -13,6 +13,7 @@ from numpy.random import randint
 #  - add cell heterogeneity. have (yet another) argument to set randomization to True/False (and possibly which distri-
 #    tion to use, log-normal, normal, etc). If true, rates, durations, and volumes are slightly shuffled. Also have
 #    an argument to set the variance
+#  - interface class
 #  - have the time unit define some unit conversions
 #  - have some pre-built secretions/absorption and stuff
 
