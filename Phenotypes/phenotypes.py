@@ -1040,8 +1040,7 @@ class ApoptosisStandard(Phenotype):
                                   cytoplasm_fluid=cytoplasm_fluid[0], cytoplasm_solid=cytoplasm_solid[0],
                                   cytoplasm_solid_target=cytoplasm_solid_target[0],
                                   target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
-                                  calcified_fraction=calcified_fraction[0],
-                                  fluid_change_rate=fluid_change_rate[0])
+                                  calcified_fraction=calcified_fraction[0], fluid_change_rate=fluid_change_rate[0])
 
         # a phase to help lyse the simulated cell, shouldn't do anything
         # debris = Phases.Phase(index=1, previous_phase_index=0, next_phase_index=1, dt=dt, time_unit=time_unit,

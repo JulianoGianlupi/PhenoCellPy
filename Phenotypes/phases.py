@@ -972,6 +972,18 @@ class G2M(Phase):
 
 
 class Apoptosis(Phase):
+    """
+    Inherits :class:`Phase`. Defines apoptotic phenotype phase.
+
+    This is a dead cell phenotype phase, the cell will shrink itself and should be removed from the simulation when this
+    phase ends. Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by
+    default. Default phase duration is 8.6h. By default, if no custom user defined entry function is used (i.e.,
+    `entry_function=None`), entry function is set to :class:`Apoptosis._standard_apoptosis_entry`.
+    :class:`Apoptosis._standard_apoptosis_entry` sets all the cell target volumes from :class:`Phenotypes.cell_volume`
+    to 0. The default mass change rates are `cytoplasm_biomass_change_rate = 1/60` [volume/min],
+    `nuclear_biomass_change_rate = 0.35 / 60` [volume/min], `fluid_change_rate = 3 / 60`. This phase does not calcify
+    the cell.
+    """
     def __init__(self, index: int = 0, previous_phase_index: int = 0, next_phase_index: int = 0, dt: float = 0.1,
                  time_unit: str = "min", name: str = "Apoptosis", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = True, fixed_duration: bool = True, phase_duration: float = 8.6 * 60.0,
@@ -979,25 +991,20 @@ class Apoptosis(Phase):
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
                  transition_to_next_phase=None, transition_to_next_phase_args: list = None,
                  simulated_cell_volume: float = None, cytoplasm_biomass_change_rate: float = 1 / 60,
-                 nuclear_biomass_change_rate: float = 0.35 / 60, unlysed_fluid_change_rate: float = 3 / 60,
-                 lysed_fluid_change_rate: float = 0, calcification_rate: float = 0, relative_rupture_volume: float = 2,
-                 target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
-                 cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
-                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None):
+                 nuclear_biomass_change_rate: float = 0.35 / 60, calcification_rate: float = 0,
+                 relative_rupture_volume: float = 2, target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None,
+                 nuclear_solid_target=None, cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
+                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate = 3 / 60):
 
         if entry_function is None:
             entry_function = self._standard_apoptosis_entry
             entry_function_args = [None]
 
-        if unlysed_fluid_change_rate is not None:
-            self.unlysed_fluid_change_rate = unlysed_fluid_change_rate
+        if fluid_change_rate is not None:
+            self.fluid_change_rate = fluid_change_rate
         else:
-            self.unlysed_fluid_change_rate = 3 / 60
+            self.fluid_change_rate = 3 / 60
 
-        if lysed_fluid_change_rate is not None:
-            self.lysed_fluid_change_rate = lysed_fluid_change_rate
-        else:
-            self.lysed_fluid_change_rate = 0
 
         if relative_rupture_volume is None:
             self.relative_rupture_volume = 2
@@ -1030,8 +1037,6 @@ class Apoptosis(Phase):
         self.volume.cytoplasm_solid_target = 0
         self.volume.nuclear_solid_target = 0
 
-        # set fluid change rate
-        self.fluid_change_rate = self.unlysed_fluid_change_rate
 
 
 class NecrosisSwell(Phase):
