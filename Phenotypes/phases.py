@@ -1031,6 +1031,12 @@ class Apoptosis(Phase):
                          relative_rupture_volume=relative_rupture_volume)
 
     def _standard_apoptosis_entry(self, *none):
+        """
+        Zeroes all the cell's target volumes. Keeps the nuclear to cytoplasm ratio the same.
+
+        :param none: Not used. This is a custom entry function, therefore it has to have args
+        :return:
+        """
 
         # shrink cell
         self.volume.target_fluid_fraction = 0
@@ -1038,10 +1044,20 @@ class Apoptosis(Phase):
         self.volume.nuclear_solid_target = 0
 
 
-
 class NecrosisSwell(Phase):
     """
-    Swelling part of the necrosis process
+    Inherits :class:`Phase`. Swelling part of the necrosis process.
+
+    Represents the osmotic swell a necrotic cell goes through. By default, this phase uses a custom transition function
+    (i.e., `transition_to_next_phase=None`), it can be overwritten by a user defined one. The custom transition
+    function is :class:`NecrosisSwell._necrosis_transition_function`, it returns true when the cell becomes bigger than
+    its rupture volume. The default relative rupture volume is 2, i.e., the cell ruptures after doubling in volume.
+    By default, if no custom user defined entry function is used (i.e., `entry_function=None`), entry function is set
+    to :class:`NecrosisSwell._standard_necrosis_entry_function`. It zeroes the solid target volumes and the target
+    cytoplasm to nuclear ratio, and sets the target fluid fraction to 1. This causes the cell to increase its volume.
+    The default volume change rates are `cytoplasm_biomass_change_rate = 0.0032 / 60.0`,
+    `nuclear_biomass_change_rate = 0.013 / 60.0`, `fluid_change_rate = 0.67 / 60.0`,
+    `calcification_rate = 0.0042 / 60.0`. This phase does calcify the cell.
     """
 
     def __init__(self, index: int = 0, previous_phase_index: int = 0, next_phase_index: int = 1, dt: float = 0.1,
@@ -1115,6 +1131,12 @@ class NecrosisSwell(Phase):
                          relative_rupture_volume=relative_rupture_volume)
 
     def _standard_necrosis_entry_function(self, *none):
+        """
+        Responsible for causing the osmotic swell. Zeroes the solid target volumes, sets the target cytoplasm to nuclear
+        ratio to 0, sets the target fluid fraction to 1, sets the rupture volume to be double the current total volume.
+        :param none: Not used. This is a custom entry function, therefore it has to have args
+        :return: No return
+        """
 
         # the cell wants to degrade the solids and swell by osmosis
         self.volume.target_fluid_fraction = 1
@@ -1128,15 +1150,33 @@ class NecrosisSwell(Phase):
         self.volume.rupture_volume = self.volume.relative_rupture_volume * self.volume.total
 
     def _necrosis_transition_function(self, *none):
+        """
+        Custom phase transition function. The simulated cell should only change phase once it bursts (i.e., when its
+        volume is above the rupture volume), it cares not how long or how little time it takes to reach that state.
+        :param none: Not used. This is a custom transition function, therefore it has to have args
+        :return: Flag for phase transition
+        :rtype: bool
+        """
         return self.volume.total > self.volume.rupture_volume
 
 
 class NecrosisLysed(Phase):
     """
-    Ruptured necrotic cell
+    Inherits :class:`Phase`. Ruptured necrotic cell
+
+    Represents the already ruptured necrotic cell. The modeler should find a way to represent this fragmentary state,
+    either create several tiny cells from the cell that ruptured, or create a disconnected cell.  By default, the
+    transition to the next phase is deterministic and the phase lasts 60 days. The simulated cell should shrink and
+    disappear before then, this is a safeguard to remove the cell "by hand" if it hasn't. By default, if no custom user
+    defined entry function is used (i.e., `entry_function=None`), entry function is set to
+    :class:`NecrosisLysed._standard_lysis_entry_function`. It zeroes all target volumes from
+    :class:`Phenotypes.cell_volume`. The default volume change rates are:
+    `cytoplasm_biomass_change_rate = 0.0032 / 60.0`, `nuclear_biomass_change_rate = 0.013 / 60.0`,
+    `fluid_change_rate = 0.050 / 60.0`, `calcification_rate = 0.0042 / 60.0`. This phase calcifies the cell.
+
     """
 
-    def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 99, dt: float = 0.1,
+    def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = -1, dt: float = 0.1,
                  time_unit: str = "min", name: str = "Necrotic (lysed)", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = True, fixed_duration: bool = True, phase_duration: float = None,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
@@ -1202,6 +1242,11 @@ class NecrosisLysed(Phase):
                          relative_rupture_volume=relative_rupture_volume)
 
     def _standard_lysis_entry_function(self, *none):
+        """
+        Zeroes all the cell's target volumes. Also zeroes the nuclear to cytoplasm ratio.
+        :param none: Not used. This is a custom entry function, therefore it has to have args
+        :return:
+        """
         self.volume.target_fluid_fraction = 0
         self.volume.nuclear_solid_target = 0
         self.volume.cytoplasm_solid_target = 0
