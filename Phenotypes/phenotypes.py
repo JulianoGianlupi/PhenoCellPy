@@ -1185,3 +1185,7 @@ if __name__ == "__main__":
     print(cycle_names)
 
     test = Ki67Basic()
+
+    for i in range(10000):
+        changed_phase, died, divides = test.time_step_phenotype()
+        print(changed_phase, died, divides)
