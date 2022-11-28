@@ -543,8 +543,8 @@ class Phenotype:
 
 class SimpleLiveCycle(Phenotype):
     """
-    Inherits :class:`Phenotype`. Simplest alive cycle, it has only one phase. When progressing to the "next" phase it
-    divides.
+    Inherits :class:`Phenotype`. Simplest alive cycle, it has only one phase. When progressing to the "next" phase the
+    cell should divide.
     """
 
     def __init__(self, time_unit: str = "min", name: str = "Simple Live", dt=1):
