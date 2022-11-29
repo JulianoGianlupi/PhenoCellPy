@@ -51,7 +51,6 @@ class CellType(tf.ParticleTypeSpec):
     radius = radius
     # volume = volume
     dynamics = tf.Overdamped
-    cycle = ki67_basic
 
 
 Cell = CellType.get()
@@ -64,10 +63,8 @@ rforce = tf.Force.random(mean=0, std=50)
 tf.bind.force(rforce, Cell)
 
 first_cell = Cell([d // 2 for d in dim])
-first_cell.cycle = ki67_basic
 
 global cells_cycles
-
 cells_cycles = {f"{first_cell.id}": ki67_basic}
 
 
