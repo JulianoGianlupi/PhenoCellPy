@@ -81,9 +81,9 @@ def step_cycle_and_divide(event):
         radius = get_radius_sphere(pcycle.current_phase.volume.total)
 
         # book-keeping, making sure the simulated cell grows
-        if p.radius < radius:
-            p.radius = radius
-            p.mass = ((4 / 3) * np.pi * radius * radius * radius) * density
+        # if p.radius < radius:
+        p.radius = radius
+        p.mass = ((4 / 3) * np.pi * radius * radius * radius) * density
 
         # if division occurs, divide
         if division:
@@ -99,7 +99,7 @@ def step_cycle_and_divide(event):
             child.mass = p.mass = cur_mass / 2
             child.radius = p.radius = get_radius_sphere((cur_mass / 2) / density)
 
-            cells_cycles[f"{child.id}"].volume = child.mass * density
+            cells_cycles[f"{child.id}"].volume.total = child.mass * density
             cells_cycles[f"{child.id}"].simulated_cell_volume = child.mass * density
 
     return 0
