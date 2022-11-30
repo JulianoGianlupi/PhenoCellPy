@@ -69,3 +69,26 @@ rforce = tf.Force.random(mean=0, std=50)
 
 # bind it just like any other force
 tf.bind.force(rforce, Cell)
+
+number_cells = 100
+
+x = np.random.uniform(0, dim[0], number_cells)
+y = np.random.uniform(0, dim[1], number_cells)
+z = np.random.uniform(0, dim[2], number_cells)
+
+[Cell([xx, yy, zz]) for xx, yy, zz in zip(x, y, z)]
+
+global necrotic_dict
+necrotic_dict = {}
+
+def select_cells_to_necrose(event):
+    if tf.universe.time == 10:
+        cids = np.random.randint(0, len(Cell.items())+1, 30)
+        for cid in cids:
+            for p in Cell.items():
+                if cid == p.id:
+                    necrotic_dict[f"{p.id}"] = necrosis_phenotype
+
+
+# run the simulator interactive
+tf.run()
