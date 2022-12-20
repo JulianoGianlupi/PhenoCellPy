@@ -1,10 +1,74 @@
 
 
 class CellVolumes:
+    """
+    Cell volume class, evolves the cell volume and its subvolumes
+
+    Methods:
+    --------
+
+    update_volume(dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomass_change_rate, calcification_rate)
+        Time steps the volume model by dt. Updates all the cell's subvolumes based on the set targets
+
+    Parameters:
+    -----------
+
+    :param target_fluid_fraction: Fraction of the cell volume that should be liquid
+    :type target_fluid_fraction: float in [0, 1]
+    :param nuclear_solid_target: How much of the nuclear volume should be solid
+    :type nuclear_solid_target: float
+    :param cytoplasm_solid_target: How much of the cytoplasm volume should be solid
+    :type cytoplasm_solid_target: float
+    :param target_cytoplasm_to_nuclear_ratio: How big the ratio "cytoplasm volume / nuclear volume" should be
+    :type target_cytoplasm_to_nuclear_ratio: float
+    :param relative_rupture_volume: Relative volume at which the cell should burst, set at the start. To do anything
+    should be checked by Phase or Phenotype
+    :type relative_rupture_volume: float
+
+    Attributes:
+    -----------
+
+    :param nuclear_fluid: How much of the nuclear volume is fluid
+    :type nuclear_fluid: float
+    :param nuclear_solid: How much of the nuclear volume is solid
+    :type nuclear_solid: float
+    :param cytoplasm_fluid: How much of the cytoplasm volume is fluid
+    :type cytoplasm_fluid: float
+    :param cytoplasm_solid: How much of the cytoplasm volume is solid
+    :type cytoplasm_solid: float
+    :param calcified_fraction: How much of the cell is calcified
+    :type calcified_fraction: float in range [0, 1]
+
+    """
     def __init__(self, target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, relative_rupture_volume=None):
-        # The defaults values below are reference parameter values for MCF-7, in cubic microns
+        """
+
+        :param target_fluid_fraction: Fraction of the cell volume that should be liquid
+        :type target_fluid_fraction: float in [0, 1]
+        :param nuclear_fluid: How much of the nuclear volume is fluid
+        :type nuclear_fluid: float
+        :param nuclear_solid: How much of the nuclear volume is solid
+        :type nuclear_solid: float
+        :param nuclear_solid_target: How much of the nuclear volume should be solid
+        :type nuclear_solid_target: float
+        :param cytoplasm_fluid: How much of the cytoplasm volume is fluid
+        :type cytoplasm_fluid: float
+        :param cytoplasm_solid: How much of the cytoplasm volume is solid
+        :type cytoplasm_solid: float
+        :param cytoplasm_solid_target: How much of the cytoplasm volume should be solid
+        :type cytoplasm_solid_target: float
+        :param target_cytoplasm_to_nuclear_ratio: How big the ratio "cytoplasm volume / nuclear volume" should be
+        :type target_cytoplasm_to_nuclear_ratio: float
+        :param calcified_fraction: How much of the cell is calcified
+        :type calcified_fraction: float in range [0, 1]
+        :param relative_rupture_volume: Relative volume at which the cell should burst, set at the start. To do anything
+        should be checked by Phase or Phenotype
+        :type relative_rupture_volume: float
+        """
+        # The defaults values below are reference parameter values for MCF-7, in cubic
+        # https://www.sciencedirect.com/topics/medicine-and-dentistry/mcf-7
         _total = 2494
         _fluid_fraction = .75
         _fluid = _fluid_fraction * _total

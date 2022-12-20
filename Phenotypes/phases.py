@@ -1132,7 +1132,9 @@ class NecrosisSwell(Phase):
 
     def _standard_necrosis_entry_function(self, *none):
         """
-        Responsible for causing the osmotic swell. Zeroes the solid target volumes, sets the target cytoplasm to nuclear
+        Responsible for causing the osmotic swell.
+
+        Zeroes the solid target volumes, sets the target cytoplasm to nuclear
         ratio to 0, sets the target fluid fraction to 1, sets the rupture volume to be double the current total volume.
         :param none: Not used. This is a custom entry function, therefore it has to have args
         :return: No return
