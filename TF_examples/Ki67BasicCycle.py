@@ -21,7 +21,6 @@ cutoff = 3
 dim = [50, 50, 50]
 tf.init(dim=dim, cutoff=cutoff)
 
-
 pot = tf.Potential.morse(d=3, a=5, min=-0.8, max=2)
 
 # Particle types
@@ -33,19 +32,17 @@ mass = 40
 radius = .4
 
 global density
-density = mass / ((4/3)*np.pi*radius*radius*radius)
+density = mass / ((4 / 3) * np.pi * radius * radius * radius)
 
-
-
-dt = 1  # min/time step
+dt = 10  # min/time step
 
 ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt, target_fluid_fraction=[1, 1],
-                                                # as the simulated cell "doesn't have" a nucleus
-                                                # we don't need to give it a volume
-                                                nuclear_fluid=[0, 0],
-                                                nuclear_solid=[0, 0], cytoplasm_fluid=[mass, mass],
-                                                cytoplasm_solid=[0, 0], cytoplasm_solid_target=[0, 0],
-                                                target_cytoplasm_to_nuclear_ratio=[0, 0])
+                                        # as the simulated cell "doesn't have" a nucleus
+                                        # we don't need to give it a volume
+                                        nuclear_fluid=[0, 0],
+                                        nuclear_solid=[0, 0], cytoplasm_fluid=[mass, mass],
+                                        cytoplasm_solid=[0, 0], cytoplasm_solid_target=[0, 0],
+                                        target_cytoplasm_to_nuclear_ratio=[0, 0])
 
 
 class CellType(tf.ParticleTypeSpec):
@@ -60,7 +57,6 @@ class CellType(tf.ParticleTypeSpec):
 Cell = CellType.get()
 
 tf.bind.types(pot, Cell, Cell)
-
 
 rforce = tf.Force.random(mean=0, std=50)
 
@@ -90,7 +86,7 @@ def step_cycle_and_divide(event):
         # book-keeping, making sure the simulated cell grows
         if p.radius < radius:
             p.radius = radius
-            p.mass = ((4/3)*np.pi*radius*radius*radius) * density
+            p.mass = ((4 / 3) * np.pi * radius * radius * radius) * density
 
         # if division occurs, divide
         if division:
@@ -104,10 +100,10 @@ def step_cycle_and_divide(event):
             cells_cycles[f"{child.id}"] = ki67_basic
 
             child.mass = p.mass = cur_mass / 2
-            child.radius = p.radius = get_radius_sphere((cur_mass / 2)/density)
+            child.radius = p.radius = get_radius_sphere((cur_mass / 2) / density)
 
-            cells_cycles[f"{child.id}"].volume = child.mass*density
-            cells_cycles[f"{child.id}"].simulated_cell_volume = child.mass*density
+            cells_cycles[f"{child.id}"].volume = child.mass * density
+            cells_cycles[f"{child.id}"].simulated_cell_volume = child.mass * density
 
     return 0
 
