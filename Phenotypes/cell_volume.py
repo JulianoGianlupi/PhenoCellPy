@@ -39,6 +39,25 @@ class CellVolumes:
     :param calcified_fraction: How much of the cell is calcified
     :type calcified_fraction: float in range [0, 1]
 
+    Default parameters:
+    ------------------
+
+    The defaults values below are reference parameter values for MCF-7, in cubic microns
+    https://www.sciencedirect.com/topics/medicine-and-dentistry/mcf-7
+
+    _total = 2494
+    _fluid_fraction = .75
+    _fluid = _fluid_fraction * _total
+    _solid = _total - _fluid
+    _nuclear = 540
+    _nuclear_fluid = _fluid_fraction * _nuclear
+    _nuclear_solid = _nuclear - _nuclear_fluid
+    _cytoplasm = _total - _nuclear
+    _cytoplasm_fluid = _fluid_fraction * _cytoplasm
+    _cytoplasm_solid = _cytoplasm - _cytoplasm_fluid
+    _calcified_fraction = 0
+    _relative_rupture_volume = 100
+
     """
     def __init__(self, target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
@@ -156,22 +175,27 @@ class CellVolumes:
 
     @property
     def cytoplasm_to_nuclear_ratio(self):
+        """Get the current cytoplasm to nuclear ratio"""
         return self.cytoplasm / (1e-16 + self.nuclear)
 
     @property
     def fluid(self):
+        """Get the total fluid part of the cell volume"""
         return self._fluid
 
     @fluid.setter
     def fluid(self, value):
+        """Negative volumes are not physical"""
         self._fluid = value if value > 0 else 0
 
     @property
     def target_fluid_fraction(self):
+        """Get the current target fluid section"""
         return self._tff
 
     @target_fluid_fraction.setter
     def target_fluid_fraction(self, value):
+        """A fraction of something must be in [0, 1]"""
         if value < 0:
             value = 0
         elif value > 1:
@@ -180,6 +204,7 @@ class CellVolumes:
 
     @property
     def total(self):
+        """Gets the total volume"""
         return self._total
 
     @total.setter
@@ -188,6 +213,7 @@ class CellVolumes:
 
     @property
     def nuclear_fluid(self):
+        """Gets the nuclear fluid volume"""
         return self._nuclear_fluid
 
     @nuclear_fluid.setter
@@ -196,6 +222,7 @@ class CellVolumes:
 
     @property
     def nuclear(self):
+        """Gets the nuclear volume"""
         return self._nuclear
 
     @nuclear.setter
@@ -204,6 +231,7 @@ class CellVolumes:
 
     @property
     def cytoplasm_fluid(self):
+        """Gets the fluid volume of the cytoplasm"""
         return self._cytoplasm_fluid
 
     @cytoplasm_fluid.setter
@@ -212,6 +240,7 @@ class CellVolumes:
 
     @property
     def nuclear_solid(self):
+        """Gets the solid volume of the nucleus"""
         return self._nuclear_solid
 
     @nuclear_solid.setter
@@ -220,6 +249,7 @@ class CellVolumes:
 
     @property
     def nuclear_solid_target(self):
+        """Gets the target volume for the solid part of the nucleus"""
         return self._nst
 
     @nuclear_solid_target.setter
@@ -228,6 +258,7 @@ class CellVolumes:
 
     @property
     def cytoplasm_solid_target(self):
+        """Gets the target volume for the solid part of the cytoplasm"""
         return self._cst
 
     @cytoplasm_solid_target.setter
@@ -240,10 +271,12 @@ class CellVolumes:
 
     @target_cytoplasm_to_nuclear_ratio.setter
     def target_cytoplasm_to_nuclear_ratio(self, value):
+        """Gets the target ratio cytoplasm/nucleus"""
         self._tctnr = value if value >= 0 else 0
 
     @property
     def cytoplasm_solid(self):
+        """Gets the solid part of the cytoplasm volume"""
         return self._cytoplasm_solid
 
     @cytoplasm_solid.setter
@@ -252,6 +285,7 @@ class CellVolumes:
 
     @property
     def solid(self):
+        """Gets the solid volume of the cell"""
         return self._solid
 
     @solid.setter
@@ -260,6 +294,7 @@ class CellVolumes:
 
     @property
     def cytoplasm(self):
+        """Gets the cytoplasm volume"""
         return self._cytoplasm
 
     @cytoplasm.setter
@@ -268,6 +303,7 @@ class CellVolumes:
 
     @property
     def calcified_fraction(self):
+        """Gets the calcified fraction of the cell"""
         return self._calc_frac
 
     @calcified_fraction.setter
@@ -280,6 +316,7 @@ class CellVolumes:
 
     @property
     def fluid_fraction(self):
+        """Gets how much of the cell volume if fluid as a fraction of the total"""
         return self._fluid_fraction
 
     @fluid_fraction.setter
@@ -288,6 +325,41 @@ class CellVolumes:
 
     def update_volume(self, dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomass_change_rate,
                       calcification_rate):
+        """
+        Updates the cell volume attributes.
+
+        Dynamic volumes (class parameters) updated as first order differential equations with a set rate and set target.
+        Other volumes (class attributes) are set as ratios/relations of the dynamic volumes.
+
+        The dynamic volumes change is, unless stated otherwise,
+        new_volume = volume + dt * change rate * (target -  volume)
+        and are updated by a forward Euler method
+
+        First the total fluid is updated with rate `fluid_change_rate` and target `target_fluid_fraction`.
+
+        Then the nuclear and cytoplasm fluid volumes are set
+
+        The next dynamic volume update is the solid nuclear with rate `fluid_change_rate` and target
+        `target_fluid_fraction`.
+
+        The solid target is then updated as `target_cytoplasm_to_nuclear_ratio` * `nuclear_solid_target`
+
+        The cytoplasm solid is dynamically updated with rate `cytoplasm_biomass_change_rate` and target
+        `cytoplasm_solid_target`
+
+        The solid, nuclear, and cytoplasm volumes are set
+
+        The calcified fraction is dynamically calculated with rate `calcification_rate` and no rate
+
+        Finally the total volume and fluid fractions are set
+
+        :param dt: Time step length
+        :param fluid_change_rate: How fast can the cell change the fluid fraction of its volume
+        :param nuclear_biomass_change_rate: How fast can the cell change its nuclear biomass
+        :param cytoplasm_biomass_change_rate: How fast can the cell change its cytoplasm biomass
+        :param calcification_rate: The rate at which the cell is calcifying
+        :return: None
+        """
         self.fluid += dt * fluid_change_rate * (self.target_fluid_fraction * self.total - self.fluid)
 
         self.nuclear_fluid = (self.nuclear / (self.total + 1e-12)) * self.fluid
