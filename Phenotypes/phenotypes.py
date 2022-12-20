@@ -1,7 +1,39 @@
+"""
+BSD 3-Clause License
+
+Copyright (c) 2022, Juliano Ferrari Gianlupi
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
 from warnings import warn
 
 import Phenotypes.phases as Phases
-from numpy.random import randint
+# from numpy.random import randint
 
 
 # todo:
@@ -14,22 +46,86 @@ from numpy.random import randint
 #    tion to use, log-normal, normal, etc). If true, rates, durations, and volumes are slightly shuffled. Also have
 #    an argument to set the variance
 #  - interface class
+#  - have the time unit define some unit conversions
+#  - have some pre-built secretions/absorption and stuff
 
-def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
+
+def _check_arguments(number_phases, phase_names, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
                      phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
                      arrest_functions, arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
                      cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate, calcified_fraction,
                      target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target, cytoplasm_fluid,
                      cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio, fluid_change_rate):
+    """
+    Checks that the numbers of parameters passed to Phenotype classes matches how many phases the phenotype has. E.g.,
+    the Ki67Basic Phenotype has 2 phases, therefore it should receive 2 phase names, 2 flags for division at phase
+    exit, etc.
+
+    :param number_phases: How many phases compose the phenotype
+    :type int
+    :param phase_names: Names of the phases
+    :type list
+    :param division_at_phase_exits: Flags for division at phase exit
+    :type list
+    :param removal_at_phase_exits: Flags for removal at phase exits
+    :type list
+    :param fixed_durations: Flags for fixed duration phase
+    :type list
+    :param phase_durations: Time lengths of the phases
+    :type list
+    :param entry_functions: Functions that are executed upon entering the phase
+    :type list
+    :param entry_functions_args: List of lists of arguments for the entry functions
+    :type list
+    :param exit_functions: Functions that are executed as the phsae is exited
+    :type list
+    :param exit_functions_args: List of lists of arguments for the exit functions
+    :type list
+    :param arrest_functions: Functions defining exit from the phenotype and entrance to quiescence
+    :type list
+    :param arrest_functions_args: List of lists of arguments for the arrest functions
+    :type list
+    :param transitions_to_next_phase: Functions for phase transition
+    :type list
+    :param transitions_to_next_phase_args: List of lists of arguments for the transition functions
+    :type list
+    :param cytoplasm_biomass_change_rate: Change rates for cytoplasmic mass
+    :type list
+    :param nuclear_biomass_change_rate: Change rates for nuclear mass
+    :type list
+    :param calcification_rate: Rates of calcification
+    :type list
+    :param calcified_fraction: Initially calcified fractions
+    :type list
+    :param target_fluid_fraction: Target fluid fractions for the phases
+    :type list
+    :param nuclear_fluid: Fluid nuclear volumes for the phases
+    :type list
+    :param nuclear_solid: Solid nuclear volumes for the phases
+    :type list
+    :param nuclear_solid_target: Target solid volumes for the phases
+    :type list
+    :param cytoplasm_fluid: Fluid cytoplasmic volume for each phase
+    :type list
+    :param cytoplasm_solid: Solid cytoplasmic volumes for each phase
+    :type list
+    :param cytoplasm_solid_target: Target solid cytoplasmic volumes for each phase
+    :type list
+    :param target_cytoplasm_to_nuclear_ratio: Target nuclear volume in relation to cytoplasmic volume
+    :type list
+    :param fluid_change_rate: Change rate for the fluid parts of the cell
+    :type list
+    :return: None
+    """
     if len(division_at_phase_exits) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(division_at_phase_exits)} division flags defined")
+            f"{phase_names} has {number_phases} phases, {len(division_at_phase_exits)} division flags defined")
     elif type(division_at_phase_exits) != list and type(division_at_phase_exits) != tuple:
         raise TypeError(f"`division_at_phase_exits` must be a list or tuple, got {type(division_at_phase_exits)}")
 
     if len(removal_at_phase_exits) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(removal_at_phase_exits)} removal flags defined")
+            f"{phase_names} has {number_phases} phases, {len(removal_at_phase_exits)} removal flags defined")
     elif type(removal_at_phase_exits) != list and type(removal_at_phase_exits) != tuple:
         raise TypeError(f"`removal_at_phase_exits` must be a list or tuple, got {type(removal_at_phase_exits)}")
 
@@ -37,57 +133,57 @@ def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal
         raise TypeError(f"`fixed_durations` must be a list or tuple, got {type(fixed_durations)}")
     elif len(fixed_durations) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(fixed_durations)} fixed duration flags defined")
+            f"{phase_names} has {number_phases} phases, {len(fixed_durations)} fixed duration flags defined")
 
     if len(phase_durations) != number_phases:
-        raise ValueError(f"{cycle_name} has {number_phases} phases, {len(phase_durations)} durations defined")
+        raise ValueError(f"{phase_names} has {number_phases} phases, {len(phase_durations)} durations defined")
     elif type(phase_durations) != list and type(phase_durations) != tuple:
         raise TypeError(f"`phase_durations` must be a list or tuple, got {type(phase_durations)}")
 
     if len(entry_functions) != number_phases:
-        raise ValueError(f"{cycle_name} has {number_phases} phases, {len(entry_functions)} entry functions defined")
+        raise ValueError(f"{phase_names} has {number_phases} phases, {len(entry_functions)} entry functions defined")
     elif type(entry_functions) != list and type(entry_functions) != tuple:
         raise TypeError(f"`entry_functions` must be a list or tuple, got {type(entry_functions)}")
 
     if len(entry_functions_args) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(entry_functions_args)} entry functions args defined")
+            f"{phase_names} has {number_phases} phases, {len(entry_functions_args)} entry functions args defined")
     elif type(entry_functions_args) != list and type(entry_functions_args) != tuple:
         raise TypeError(f"`entry_functions_args` must be a list or tuple, got {type(entry_functions_args)}")
     #
     if len(exit_functions) != number_phases:
-        raise ValueError(f"{cycle_name} has {number_phases} phases, {len(exit_functions)} exit functions defined")
+        raise ValueError(f"{phase_names} has {number_phases} phases, {len(exit_functions)} exit functions defined")
     elif type(exit_functions) != list and type(exit_functions) != tuple:
         raise TypeError(f"`exit_functions` must be a list or tuple, got {type(exit_functions)}")
 
     if len(exit_functions_args) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(exit_functions_args)} entry functions args defined")
+            f"{phase_names} has {number_phases} phases, {len(exit_functions_args)} entry functions args defined")
     elif type(exit_functions_args) != list and type(exit_functions_args) != tuple:
         raise TypeError(f"`entry_functions_args` must be a list or tuple, got {type(exit_functions_args)}")
     #
     if len(arrest_functions) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(arrest_functions)} arrest functions defined")
+            f"{phase_names} has {number_phases} phases, {len(arrest_functions)} arrest functions defined")
     elif type(arrest_functions) != list and type(arrest_functions) != tuple:
         raise TypeError(f"`arrest_functions` must be a list or tuple, got {type(exit_functions)}")
 
     if len(arrest_functions_args) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(arrest_functions_args)} arrest functions args defined")
+            f"{phase_names} has {number_phases} phases, {len(arrest_functions_args)} arrest functions args defined")
     elif type(arrest_functions_args) != list and type(arrest_functions_args) != tuple:
         raise TypeError(f"`arrest_functions_args` must be a list or tuple, got {type(arrest_functions_args)}")
     #
     if len(transitions_to_next_phase) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(transitions_to_next_phase)} transition functions defined")
+            f"{phase_names} has {number_phases} phases, {len(transitions_to_next_phase)} transition functions defined")
     elif type(transitions_to_next_phase) != list and type(transitions_to_next_phase) != tuple:
         raise TypeError(
             f"`transitions_to_next_phase` must be a list or tuple, got {type(transitions_to_next_phase)}")
 
     if len(transitions_to_next_phase_args) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(transitions_to_next_phase_args)} transition functions args "
+            f"{phase_names} has {number_phases} phases, {len(transitions_to_next_phase_args)} transition functions args "
             f"defined")
     elif type(transitions_to_next_phase_args) != list and type(transitions_to_next_phase_args) != tuple:
         raise TypeError(
@@ -96,7 +192,7 @@ def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal
     #
     if len(nuclear_biomass_change_rate) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(nuclear_biomass_change_rate)} nuclear biomass change rates "
+            f"{phase_names} has {number_phases} phases, {len(nuclear_biomass_change_rate)} nuclear biomass change rates "
             f"defined")
     elif type(nuclear_biomass_change_rate) != list and type(nuclear_biomass_change_rate) != tuple:
         raise TypeError(
@@ -105,7 +201,7 @@ def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal
     #
     if len(calcification_rate) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(calcification_rate)} calcification rates "
+            f"{phase_names} has {number_phases} phases, {len(calcification_rate)} calcification rates "
             f"defined")
     elif type(calcification_rate) != list and type(calcification_rate) != tuple:
         raise TypeError(
@@ -114,14 +210,14 @@ def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal
     #
     if len(calcified_fraction) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(calcified_fraction)} calcified fractions defined")
+            f"{phase_names} has {number_phases} phases, {len(calcified_fraction)} calcified fractions defined")
     elif type(calcified_fraction) != list and type(calcified_fraction) != tuple:
         raise TypeError(
             f"`calcified_fraction` must be a list or tuple, got {type(calcified_fraction)}")
         #
     if len(cytoplasm_biomass_change_rate) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_biomass_change_rate)} cytoplasm biomass change "
+            f"{phase_names} has {number_phases} phases, {len(cytoplasm_biomass_change_rate)} cytoplasm biomass change "
             f"rates defined")
     elif type(cytoplasm_biomass_change_rate) != list and type(cytoplasm_biomass_change_rate) != tuple:
         raise TypeError(
@@ -130,28 +226,28 @@ def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal
     #
     if len(target_fluid_fraction) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(target_fluid_fraction)} target fluid fractions defined")
+            f"{phase_names} has {number_phases} phases, {len(target_fluid_fraction)} target fluid fractions defined")
     elif not (type(target_fluid_fraction) == list or type(target_fluid_fraction) == tuple):
         raise TypeError(
             f"`target_fluid_fraction` must be a list or tuple, got {type(target_fluid_fraction)}")
     #
     if len(nuclear_fluid) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(nuclear_fluid)} nuclear fluid volumes defined")
+            f"{phase_names} has {number_phases} phases, {len(nuclear_fluid)} nuclear fluid volumes defined")
     elif not (type(nuclear_fluid) == list or type(nuclear_fluid) == tuple):
         raise TypeError(
             f"`nuclear_fluid` must be a list or tuple, got {type(nuclear_fluid)}")
     #
     if len(nuclear_solid) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(nuclear_solid)} nuclear solid volume defined")
+            f"{phase_names} has {number_phases} phases, {len(nuclear_solid)} nuclear solid volume defined")
     elif not (type(nuclear_solid) == list or type(nuclear_solid) == tuple):
         raise TypeError(
             f"`nuclear_solid` must be a list or tuple, got {type(nuclear_solid)}")
     #
     if len(nuclear_solid_target) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(nuclear_solid_target)} target target solid volumes defined")
+            f"{phase_names} has {number_phases} phases, {len(nuclear_solid_target)} target target solid volumes defined")
     elif not (type(nuclear_solid_target) == list or type(nuclear_solid_target) == tuple):
         raise TypeError(
             f"`nuclear_solid_target` must be a list or tuple, got {type(nuclear_solid_target)}")
@@ -159,21 +255,21 @@ def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal
     #
     if len(cytoplasm_fluid) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_fluid)} cytoplasm fluid volumes defined")
+            f"{phase_names} has {number_phases} phases, {len(cytoplasm_fluid)} cytoplasm fluid volumes defined")
     elif not (type(cytoplasm_fluid) == list or type(cytoplasm_fluid) == tuple):
         raise TypeError(
             f"`cytoplasm_fluid` must be a list or tuple, got {type(cytoplasm_fluid)}")
     #
     if len(cytoplasm_solid) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_solid)} cytoplasm solid volumes defined")
+            f"{phase_names} has {number_phases} phases, {len(cytoplasm_solid)} cytoplasm solid volumes defined")
     elif not (type(cytoplasm_solid) == list or type(cytoplasm_solid) == tuple):
         raise TypeError(
             f"`cytoplasm_solid` must be a list or tuple, got {type(cytoplasm_solid)}")
     #
     if len(cytoplasm_solid_target) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(cytoplasm_solid_target)} cytoplasm target solid volumes "
+            f"{phase_names} has {number_phases} phases, {len(cytoplasm_solid_target)} cytoplasm target solid volumes "
             f"defined")
     elif not (type(cytoplasm_solid_target) == list or type(cytoplasm_solid_target) == tuple):
         raise TypeError(
@@ -181,7 +277,7 @@ def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal
     #
     if len(target_cytoplasm_to_nuclear_ratio) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(target_cytoplasm_to_nuclear_ratio)} target cytoplasm to "
+            f"{phase_names} has {number_phases} phases, {len(target_cytoplasm_to_nuclear_ratio)} target cytoplasm to "
             f"nuclear ratios defined")
     elif not (type(target_cytoplasm_to_nuclear_ratio) == list or type(target_cytoplasm_to_nuclear_ratio) == tuple):
         raise TypeError(
@@ -190,7 +286,7 @@ def _check_arguments(number_phases, cycle_name, division_at_phase_exits, removal
     #
     if len(fluid_change_rate) != number_phases:
         raise ValueError(
-            f"{cycle_name} has {number_phases} phases, {len(fluid_change_rate)} fluid change rates defined")
+            f"{phase_names} has {number_phases} phases, {len(fluid_change_rate)} fluid change rates defined")
     elif not (type(fluid_change_rate) == list or type(fluid_change_rate) == tuple):
         raise TypeError(
             f"`fluid_change_rate` must be a list or tuple, got {type(fluid_change_rate)}")
@@ -201,8 +297,13 @@ class Phenotype:
 
     Base class to define a cell phenotype.
 
-    TODO: more description
+    Defines a cell phenotype, a sequence of phases with different behaviors. E.g., a quiescent-proliferating cell cycle
+    is a phenotype with two phases (quiescence, and growth/division); the necrotic phenotype starts with a osmotic swe-
+    ling phase, folowed by dissolution of the cell into its media after it bursts.
 
+    This class has methods to time-step the phenotype model (which time-steps all submodels), to change the phenotype
+    phase to an arbritary phase of the phenotype cycle, to go to the next phase in the cycle, and to go to a
+    non-changing quiescent phase.
 
     Methods:
     --------
@@ -224,7 +325,7 @@ class Phenotype:
     ----------
 
     name : str
-        Name of the cycle
+        Name of the phenotype
 
     dt : float
         Time-step size (in units of `time_unit`). Must be >0.
@@ -236,7 +337,8 @@ class Phenotype:
         Ordered list of phases this cycle goes through. Must be a list of :class:`Phases.Phase` objects.
 
     starting_phase_index : int
-        Index of which phase to start at. To start at a random phase set to -1
+        Index of which phase to start at. Currently there is no option to start at a random phase, but that capability
+        will be implemented soon. When it is, to start at a random phase set to -1
 
     quiescent_phase : :class:`Phases.Phase`, None, or False
         If false the cycle won't have a (stand-alone) quiescent phase defined. If None the default
@@ -255,16 +357,22 @@ class Phenotype:
                  quiescent_phase: Phases.Phase or False = None, starting_phase_index: int = 0):
         """
 
-        :param name:
-        :param dt:
-        :param time_unit:
-        :param phases:
-        :param quiescent_phase:
-        :param starting_phase_index:
+        :param name: Name for the phenotype
+        :type str
+        :param dt: time-step duration in units of `time_unit`
+        :type float
+        :param time_unit: Time unit
+        :type str
+        :param phases: The different phases of the phenotype
+        :type list of Phases.Phase
+        :param quiescent_phase: Special outside-of-phenotype-order quiescent phase
+        :type Phases.Phase or False
+        :param starting_phase_index: Which phase to start the phenotype model at
+        :type int
         """
         # todo: add __init__ parameters for custom functions for each class
         # todo: add alias for self.current_phase.volume, i.e. property self.volume that fetches
-        #  self.current_phase.volume
+        #  self.current_phase.volume. If read-only easy to do, not sure how to do it if I want to keep write abilities
         self.name = name
 
         self.time_unit = time_unit
@@ -290,7 +398,7 @@ class Phenotype:
             # todo: fix this. it won't actually work for many cells, as this randomization happens at class init, but
             #  the same class object is then copied to the cells
             warn("Randomization of the initial phase is currently disabled. Setting the initial phase to be "
-                          "phase of index 0.")
+                 "phase of index 0.")
             starting_phase_index = 0
             # starting_phase_index = randint(0, len(self.phases) + 1)
 
@@ -304,7 +412,8 @@ class Phenotype:
         Increments :attr:`time_in_cycle` by :attr:`dt`. Calls :func:`current_phase.time_step_phase`. If the phase time-
         step determines the cycle moves to the next phase (i.e., returns `True` for `next_phase`), calls
         :func:go_to_next_phase. If the phase time-step determines the cell exits the cell cycle and goes to quiescence
-        (i.e., returns `True` for `quies`) calls :func:`go_to_quiescence`.
+        (i.e., returns `True` for `quies`) calls :func:`go_to_quiescence`. If :attr:`time_in_cycle` is 0 and
+        :attr:current_phase has an entry function calls :func:current_phase.entry_function.
 
         :return: Flags (bool) for phase changing, cell death, and cell division
         :rtype: tuple of bool
@@ -466,8 +575,9 @@ class Phenotype:
 
 class SimpleLiveCycle(Phenotype):
     """
-        Simplest life cycle, it has only one phase. When "progressing" to the next phase it divides.
-        """
+    Inherits :class:`Phenotype`. Simplest alive cycle, it has only one phase. When progressing to the "next" phase the
+    cell should divide.
+    """
 
     def __init__(self, time_unit: str = "min", name: str = "Simple Live", dt=1):
         phases = [
@@ -479,9 +589,8 @@ class SimpleLiveCycle(Phenotype):
 class Ki67Basic(Phenotype):
     """
 
-    Simple proliferating-quiescent phase. Does not use the stand-alone quiescent phase. Cell divides upon leaving Ki67+
+    Inherits :class:`Phenotype`. Simple proliferating-quiescent phase. Cell divides upon leaving Ki67+
 
-    TODO: find where physicell found the definition of this cycle. Find their explanation for this cycle
     This is a two phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the quiescent phase, Ki67-'s mean du-
     ration is 4.59h (stochastic transition to Ki67+ by default). Ki67+ (defined in :class:`Phases.Ki67Positive`) is the
     proliferating phase. It is responsible for doubling the volume of the cell at a rate of
@@ -502,14 +611,13 @@ class Ki67Basic(Phenotype):
                  nuclear_solid_target=(None, None), cytoplasm_fluid=(None, None), cytoplasm_solid=(None, None),
                  cytoplasm_solid_target=(None, None), target_cytoplasm_to_nuclear_ratio=(None, None),
                  fluid_change_rate=(None, None)):
-        _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
-                         arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args,
+        _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
-                         calcified_fraction,
-                         target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target, cytoplasm_fluid,
-                         cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio, fluid_change_rate)
+                         calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
+                         cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
+                         fluid_change_rate)
 
         Ki67_positive = Phases.Ki67Positive(index=1, previous_phase_index=0, next_phase_index=0, dt=dt,
                                             time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[1],
@@ -565,6 +673,19 @@ class Ki67Basic(Phenotype):
 
 
 class Ki67Advanced(Phenotype):
+    """
+
+    Inherits :class:`Phenotype`. Simple quiescent-proliferating (mitosis)-rest cycle. Cell divides upon leaving Ki67+ pre
+
+    This is a three phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the quiescent phase, Ki67-'s mean
+    duration is 3.62h (stochastic transition to Ki67+ pre-mitotic by default). Ki67+ pre-mitotic (defined in
+    :class:`Phases.Ki67PositivePreMitotic`) is the proliferating phase. It is responsible for doubling the volume of the
+    cell at a rate of [increase in volume]/[Ki67+ pre duration]. Ki67+ pre-mitotic duration is fixed (by default) at 13
+    hours. Once the cell exits Ki67+ pre-mitotic it divides and enters Ki67+ post-mitotic. Ki67+ post-mitotic (defined
+    in :class:`Phases.Ki67PositivePostMitotic`) is a rest phase, Ki67+ post-mitotic duration is fixed (by default)
+    at 2.5 hours. Afterwards the cycle loops back to :class:`Phases.Ki67Negative`.
+
+    """
 
     def __init__(self, name="Ki67 Advanced", dt=0.1, time_unit="min", quiescent_phase=False,
                  division_at_phase_exits=(False, True, False), removal_at_phase_exits=(False, False, False),
@@ -583,14 +704,13 @@ class Ki67Advanced(Phenotype):
                  cytoplasm_solid=(None, None, None),
                  cytoplasm_solid_target=(None, None, None), target_cytoplasm_to_nuclear_ratio=(None, None, None),
                  fluid_change_rate=(None, None, None)):
-        _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
-                         arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args,
+        _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
-                         calcified_fraction,
-                         target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target, cytoplasm_fluid,
-                         cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio, fluid_change_rate)
+                         calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
+                         cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
+                         fluid_change_rate)
 
         Ki67_negative = Phases.Ki67Negative(index=0, previous_phase_index=2, next_phase_index=1, dt=dt,
                                             time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
@@ -684,10 +804,16 @@ class Ki67Advanced(Phenotype):
 
 class FlowCytometryBasic(Phenotype):
     """
-    Basic flow cytometry model.
+    Inherits :class:`Phenotype`. Basic flow cytometry model.
 
-    Cell cycle consists of G0/G1 -> S -> G2/M -> G0/G1. Reference cycle lengths from
-    https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    Three-phase live cell cycle consists of G0/G1 -> S -> G2/M -> (back to) G0/G1. Reference phases durations from
+    https://www.ncbi.nlm.nih.gov/books/NBK9876/. G0/G1 phase is defined in :class:`Phases.G0G1` is more representative
+    of the quiescent phase than the first growth phase, the cell transitions stochastically from this phase, its
+    (default) expected duration is 5.15h, transition to the next phase is stochastic. S phase is defined in
+    :class:`Phases.S` is the phase responsible for doubling the cell volume, its  (default) expected duration is 8h,
+    transition to the next phase is stochastic. G2/M is defined in :class:`Phases.G2M`. It is the pre-mitotic rest
+    phase. The cell divides when exiting this phase. Its (default) expected duration is 5h, transition to the next phase
+    is stochastic
     """
 
     def __init__(self, name="Flow Cytometry Basic", dt=0.1, time_unit="min", quiescent_phase=False,
@@ -707,14 +833,13 @@ class FlowCytometryBasic(Phenotype):
                  cytoplasm_solid=(None, None, None),
                  cytoplasm_solid_target=(None, None, None), target_cytoplasm_to_nuclear_ratio=(None, None, None),
                  fluid_change_rate=(None, None, None)):
-        _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
-                         arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args,
+        _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
-                         calcified_fraction,
-                         target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target, cytoplasm_fluid,
-                         cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio, fluid_change_rate)
+                         calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
+                         cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
+                         fluid_change_rate)
 
         G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
                            removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
@@ -777,10 +902,18 @@ class FlowCytometryBasic(Phenotype):
 
 class FlowCytometryAdvanced(Phenotype):
     """
-    Basic flow cytometry model.
+    Inherits :class:`Phenotype`. Flow cytometry model.
 
-    Cell cycle consists of G0/G1 -> S -> G2 -> M -> G0/G1. Reference cycle lengths from
-    https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    Four-phase live cell cycle consists of G0/G1 -> S -> G2 -> M -> (back to) G0/G1. Reference phases durations from
+    https://www.ncbi.nlm.nih.gov/books/NBK9876/. G0/G1 phase is defined in :class:`Phases.G0G1` is more representative
+    of the quiescent phase than the first growth phase, the cell transitions stochastically from this phase, its
+    (default) expected duration is 4.98h, transition to the next phase is stochastic. S phase is defined in
+    :class:`Phases.S` is the phase responsible for doubling the cell volume, its  (default) expected duration is 8h,
+    transition to the next phase is stochastic. The (default) cell volume growth rate is
+    [total volume growth]/[phase duration]. G2 is defined in :class:`Phases.G0G1` (using different parameters than this
+    phenotype G0/G1 phase). It is the pre-mitotic rest phase. Its (default) expected duration is 4h, transition to the
+    next phase is stochastic. M is defined in :class:`Phases.G2M`, it is the mitotic phase, the cell divides when exi-
+    ting this phase. Its expected duration is 1h, transition from this phase is stochastic.
     """
 
     def __init__(self, name="Flow Cytometry Advanced", dt=0.1, time_unit="min", quiescent_phase=False,
@@ -802,14 +935,13 @@ class FlowCytometryAdvanced(Phenotype):
                  cytoplasm_solid_target=(None, None, None, None),
                  target_cytoplasm_to_nuclear_ratio=(None, None, None, None),
                  fluid_change_rate=(None, None, None, None)):
-        _check_arguments(4, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
-                         arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args,
+        _check_arguments(4, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
-                         calcified_fraction,
-                         target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target, cytoplasm_fluid,
-                         cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio, fluid_change_rate)
+                         calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
+                         cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
+                         fluid_change_rate)
 
         G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
                            removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
@@ -892,7 +1024,13 @@ class FlowCytometryAdvanced(Phenotype):
 
 class ApoptosisStandard(Phenotype):
     """
-    The standard apoptotic model
+    Inherits :class:`Phenotype`. The standard apoptotic model.
+
+    A single phase phenotype, tje apoptotic phase, defined in :class:Phases.Apoptosis`. The phase has fixed length,
+    and reduces the cell volume, the cytoplasm diminishes at a rate of 1/60 1/min, the nucleus at a rate of 0.35/60
+    1/min. The (already dead) cell should be removed from the simulation once this phase is concluded. By default, this
+    phase duration is fixed at 8.6h
+
     """
 
     def __init__(self, name="Standard apoptosis model", dt=0.1, time_unit="min", quiescent_phase=False,
@@ -908,14 +1046,13 @@ class ApoptosisStandard(Phenotype):
                  nuclear_solid_target=(None,), cytoplasm_fluid=(None,), cytoplasm_solid=(None,),
                  cytoplasm_solid_target=(None,), target_cytoplasm_to_nuclear_ratio=(None,),
                  fluid_change_rate=(None,)):
-        _check_arguments(1, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
-                         arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args,
+        _check_arguments(1, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
-                         calcified_fraction,
-                         target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target, cytoplasm_fluid,
-                         cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio, fluid_change_rate)
+                         calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
+                         cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
+                         fluid_change_rate)
 
         apopto = Phases.Apoptosis(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
                                   name="Apoptosis", division_at_phase_exit=division_at_phase_exits[0],
@@ -935,8 +1072,7 @@ class ApoptosisStandard(Phenotype):
                                   cytoplasm_fluid=cytoplasm_fluid[0], cytoplasm_solid=cytoplasm_solid[0],
                                   cytoplasm_solid_target=cytoplasm_solid_target[0],
                                   target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
-                                  calcified_fraction=calcified_fraction[0],
-                                  fluid_change_rate=fluid_change_rate[0])
+                                  calcified_fraction=calcified_fraction[0], fluid_change_rate=fluid_change_rate[0])
 
         # a phase to help lyse the simulated cell, shouldn't do anything
         # debris = Phases.Phase(index=1, previous_phase_index=0, next_phase_index=1, dt=dt, time_unit=time_unit,
@@ -950,7 +1086,16 @@ class ApoptosisStandard(Phenotype):
 
 class NecrosisStandard(Phenotype):
     """
-    Standard Necrosis model
+    Inherits :class:`Phenotype`. Standard Necrosis model
+
+    Two-phase phenotype. The first phase represents the osmotic swell of a necrotic cell, defined in
+    :class:`Phases.NecrosisSwell` it doesn't have a set or expected phase duration, transition to the next phase happens
+    when the cell reaches its rupture volume (twice the original volume, by default). Osmotic swelling rates and calci-
+    fication rate in :class:`Phases.NecrosisSwell`. Second phase is the dissolution of the ruptured cell into its media,
+    defined in :class:`Phases.NecrosisLysed`, dissolving rates can be found there. As a safeguard, this phase has a
+    fixed duration of 60 days, after which, if the cell hasn't dissolved naturally, it should be removed from the si-
+    mulation.
+
     """
 
     def __init__(self, name="Standard necrosis model", dt=0.1, time_unit="min", quiescent_phase=False,
@@ -968,15 +1113,13 @@ class NecrosisStandard(Phenotype):
                  nuclear_solid_target=(None, None), cytoplasm_fluid=(None, None), cytoplasm_solid=(None, None),
                  cytoplasm_solid_target=(None, None), target_cytoplasm_to_nuclear_ratio=(None, None),
                  fluid_change_rate=(None, None)):
-
-        _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
-                         phase_durations, entry_functions, entry_functions_args, exit_functions, exit_functions_args,
-                         arrest_functions, arrest_functions_args, transitions_to_next_phase,
-                         transitions_to_next_phase_args,
+        _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
+                         entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
+                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
-                         calcified_fraction,
-                         target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target, cytoplasm_fluid,
-                         cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio, fluid_change_rate)
+                         calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
+                         cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
+                         fluid_change_rate)
 
         necro_swell = Phases.NecrosisSwell(index=0, previous_phase_index=0, next_phase_index=1, dt=dt,
                                            time_unit=time_unit,
@@ -1040,6 +1183,14 @@ cycle_names = ["Simple Live", "Ki67 Basic", "Ki67 Advanced", "Flow Cytometry Bas
 
 
 def get_phenotype_by_name(name):
+    """
+    Fetches a (uninitialized) phenotype class
+
+    :param name: Name of the phenotype model being fetched
+    :type name: str
+    :return: A phenotype model
+    :rtype: :class:`Phenotype`
+    """
     if name not in cycle_names:
         raise ValueError(f"{name} is not a pre-defined cycle")
 
@@ -1065,3 +1216,7 @@ if __name__ == "__main__":
     print(cycle_names)
 
     test = Ki67Basic()
+
+    for i in range(10000):
+        changed_phase, died, divides = test.time_step_phenotype()
+        print(changed_phase, died, divides)

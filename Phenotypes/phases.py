@@ -1,3 +1,35 @@
+"""
+BSD 3-Clause License
+
+Copyright (c) 2022, Juliano Ferrari Gianlupi
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
 from numpy import exp
 from numpy.random import uniform
 
@@ -8,18 +40,22 @@ from Phenotypes.cell_volume import CellVolumes
 
 class Phase:
     """
-    Base class to define phases of a cell cycle.
+    Base class to define phases of a cell phenotype.
+
+    This base class is inherited by all phases. It defines some methods to time-step the Phase model, to transition to
+    the next phase, and what should be done by the phenotype model when entering/exiting a phase. Initializes the cell
+    volume model.
 
     Methods:
     -------
 
     time_step_phase()
         Time steps the phase. Returns a tuple (did the cell transition to the next phase, did the cell enter
-        quiescence). See time_step_phase's documentation for further explanation.
+        quiescence). See `time_step_phase`'s documentation for further explanation.
 
-    transition_to_next_phase() or transition_to_next_phase(*args)
+    transition_to_next_phase(*args)
         One of the default transition functions (`_transition_to_next_phase_deterministic`,
-        `_transition_to_next_phase_stochastic`) or an user defined function. If user defined, it will be called with
+        `_transition_to_next_phase_stochastic`) or a user defined function. If user defined, it will be called with
         `transition_to_next_phase_args` as args. Must return a bool denoting if the transition occurs or not.
 
     _transition_to_next_phase_deterministic()
@@ -29,73 +65,153 @@ class Phase:
         Default stochastic transition function. Probability of transition depends on `dt` and `phase_duration`
 
     entry_function(*args)
-        Optional user defined function to be executed upon entering this phase. It gets called using attribute
-        `entry_function_args`. Must have no return
+        Optional function to be executed upon entering this phase. Some pre-build Phases have their own entry function
+        already defined. It gets called using attribute `entry_function_args`. Must have no return
 
     exit_function(*args)
-        Optional user defined function to be executed upon exiting this phase. It gets called using attribute
-        `exit_function_args`. Must have no return
+        Optional function to be executed just before exiting this phase. Some pre-build Phases have their own exit
+        function already defined. It gets called using attribute `exit_function_args`. Must have no return
 
     arrest_function(*args)
-        Optional user defined function that returns true if the cell should exit the cell cycle and enter quiescence
+        Optional function that returns true if the cell should exit the cell cycle and enter quiescence
 
-    update_volume() or update_volume(*args)
-        Function to update the volume of the cell. Can be user defined, in that case it has to use args and cannot have
-        a return value
+    update_volume()
+        Function to update the volume of the cell. Calls the cell volume submodel (class:CellVolume) `update_volume`
+        function
+
+    _double_target_volume()
+        Function that doubles all the target volumes of subclass class:CellVolume. Is used by some inheriting Phases as
+        the entry function
+
+    Parameters:
+    -----------
+
+    :param index: Index of this phase in the list of phases that forms a phenotype
+    :type index: int
+
+    :param previous_phase_index: Index of the phase preceding this phase in the list of phases that forms a
+    phenotype
+    :type previous_phase_index: int
+
+    :param next_phase_index: Index of the phase proceding this phase in the list of phases that forms a phenotype
+    :type next_phase_index: int
+
+    :param dt: Time step duration in units of `time_unit`. `dt > 0`
+    :type dt: float
+
+    :param time_unit: What time units are used by the model (e.g., minutes, hours, days)
+    :type time_unit: str
+
+    :param name: Descriptive name of this phase (e.g., S, G, M, necrotic swelling)
+    :type name: str
+
+    :param division_at_phase_exit: Boolean to define if the simulated cell should divide when switching phases.
+    :type division_at_phase_exit: bool
+
+    :param removal_at_phase_exit: Boolean defining if the simulated cell should be removed (i.e., it dies, is
+    killed, leaves the simulated domain) when leaving this phase
+    :type removal_at_phase_exit: bool
+
+    :param fixed_duration: Boolean seting the transition from this phase to the next to be deterministic (True) or
+    stochastic (False)
+    :type fixed_duration: bool
+
+    :param phase_duration: Time duration, in units of `time_unit`, of this phase. In the case of the stochastic
+    transition, the transition rate will be `dt/phase_duration`. `phase_duration > 0`
+    :type phase_duration: float
+
+    :param entry_function: Function that gets called immediately when entering this phase. Some phases have a
+    default `entry_function` defined, such as Apoptosis. Must be an *args function
+    :type entry_function: function
+
+    :param entry_function_args: Args for `entry_function`
+    :type entry_function_args: list or tuple
+
+    :param exit_function: Function that gets called just before exiting this phase. Some phases have a
+    default `exit_function` defined.
+    :type exit_function: function
+
+    :param exit_function_args: Args for `exit_function`
+    :type exit_function_args: list or tuple
+
+    :param arrest_function: Function that return if the cell should exit the current phase early and the cell cyle
+    and enter quiescence
+    :type arrest_function: function
+
+    :param arrest_function_args: Args for `arrest_function`
+    :type arrest_function_args: list or tuple
+
+    :param transition_to_next_phase: Default or custom function that returns if the cell should advance to the next
+    phase in the phenotype. If left as None the phase will pick either `_transition_to_next_phase_deterministic`
+    or `_transition_to_next_phase_stochastic` depending on the value of `fixed_duration`.
+    :type transition_to_next_phase: function
+
+    :param transition_to_next_phase_args: Args for `transition_to_next_phase`
+    :type transition_to_next_phase_args: list or tuple
+
+    :param simulated_cell_volume: Volume of the simulated cell (e.g., a CompuCell3D or Tissue Forge cell)
+    :type simulated_cell_volume: float
+
+    :param cytoplasm_biomass_change_rate: Change rate for the cytoplasmic volume. volume/`time_unit` units.
+    `cytoplasm_biomass_change_rate` >= 0. Passed to the `CellVolume` attribute class
+    :type cytoplasm_biomass_change_rate: float
+
+    :param nuclear_biomass_change_rate: Change rate for the nuclear volume. volume/`time_unit` units.
+    `nuclear_biomass_change_rate` >= 0. Passed to the `CellVolume` attribute class
+    :type nuclear_biomass_change_rate: float
+
+    :param calcification_rate: Rate of calcification of the cell. volume/`time_unit` units. `calcification_rate` >= 0
+    Passed to the `CellVolume` attribute class
+    :type calcification_rate: float
+
+    :param target_fluid_fraction: Fraction of the cell volume it will attempt to keep as fluid.
+    0 <= `target_fluid_fraction` <= 1. Passed to the `CellVolume` attribute class
+    :type target_fluid_fraction: float
+
+    :param nuclear_fluid: Initial volume of the fluid part of the nucleus. Passed to the `CellVolume` attribute class
+    :type nuclear_fluid: float
+
+    :param nuclear_solid: Initial volume of the solid part of the nucleus. Passed to the `CellVolume` attribute class
+    :type nuclear_solid: float
+
+    :param nuclear_solid_target: Nuclear solid volume the volume model will tend towards. `nuclear_solid_target`>=0.
+    Passed to the `CellVolume` attribute class
+    :type nuclear_solid_target: float
+
+    :param cytoplasm_fluid: Initial volume of the fluid part of the cytoplasm. Passed to the `CellVolume` attribute
+    class
+    :type cytoplasm_fluid: float
+
+    :param cytoplasm_solid: Initial volume of the solid part of the cytoplasm. Passed to the `CellVolume` attribute
+    class
+    :type cytoplasm_solid: float
+
+    :param cytoplasm_solid_target: Cytoplasm solid volume the volume model will tend towards.
+    `cytoplasm_solid_target`>=0. Passed to the `CellVolume` attribute class
+    :type cytoplasm_solid_target: float
+
+    :param target_cytoplasm_to_nuclear_ratio: Nuclear to cytoplasmic volumes ratio the volume model will tend
+    towards. `target_cytoplasm_to_nuclear_ratio`>0
+    :type target_cytoplasm_to_nuclear_ratio: float
+
+    :param calcified_fraction: Initial fraction of the cell that is calcified. 0<=`calcified_fraction`<=1
+    :type calcified_fraction: float
+
+    :param fluid_change_rate: Rate of change of the cell fluid part. volume/`time_unit` units.
+    `fluid_change_rate` >= 0. Passed to the `CellVolume` attribute class
+    :type fluid_change_rate: float
+
+    :param relative_rupture_volume: Proportion of the initial volume that causes cell lysis
+    :type relative_rupture_volume: float
 
     Attributes
     ----------
 
-    name : str
-        Name of the phase
-
-    index : int
-        The index of the phase in the cycle (0 idexed)
-
-    previous_phase_index : int
-        Index of the phase preceding this one (usually index-1)
-
-    next_phase_index : int
-        Index of the phase preceding this one (usually index+1)
-
-    time_unit : str
-        Time unit used by the model. TODO: defines unit conversions
-
-    dt : float
-        Size of the time-step in units of `time_unit`
-
-    division_at_phase_exit : bool
-        Flag for cell division at the end of the phase
-
-    removal_at_phase_exit : bool
-        Flag for cell removal (death) at the end of the phase
-
-    phase_duration : float
-        Average amount of time the phase lasts (in units of `time_unit`)
-
-    fixed_duration : bool
-        Flag for determining if the phase ends after a set amount of time or if it progresses to the next phase
-        in a stochastic manner with a rate `1/phase_duration`
-
     time_in_phase : float
         Time spent in this phase
 
-    simulated_cell_volume : float
-        The volume of the simulated cell object in this phase
-
-
-
-    entry_function_args : list
-        args for `entry_function`
-
-    exit_function_args : list
-        args for `exit_function`
-
-    arrest_function_args : list
-        args for `arrest_function`
-
-    transition_to_next_phase_args : list
-        args for `transition_to_next_phase` if a custom one is defined
+    volume : class:cell_volume.CellVolumes
+        Cell volume submodel
 
     """
 
@@ -111,37 +227,124 @@ class Phase:
                  cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
                  calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
         """
-        :param relative_rupture_volume:
-        :param fluid_change_rate:
-        :param target_fluid_fraction:
-        :param nuclear_fluid:
-        :param nuclear_solid:
-        :param nuclear_solid_target:
-        :param cytoplasm_fluid:
-        :param cytoplasm_solid:
-        :param cytoplasm_solid_target:
-        :param target_cytoplasm_to_nuclear_ratio:
-        :param calcified_fraction:
-        :param calcified_fraction:
-        :param calcification_rate:
-        :param cytoplasm_biomass_change_rate:
-        :param nuclear_biomass_change_rate:
-        :param index:
-        :param previous_phase_index:
-        :param next_phase_index:
-        :param time_unit:
-        :param name:
-        :param division_at_phase_exit:
-        :param removal_at_phase_exit:
-        :param fixed_duration:
-        :param phase_duration:
-        :param entry_function:
-        :param entry_function_args:
-        :param exit_function:
-        :param exit_function_args:
-        :param arrest_function:
-        :param arrest_function_args:
-        :param transition_to_next_phase:
+
+        :param index: Index of this phase in the list of phases that forms a phenotype
+        :type index: int
+
+        :param previous_phase_index: Index of the phase preceding this phase in the list of phases that forms a
+        phenotype
+        :type previous_phase_index: int
+
+        :param next_phase_index: Index of the phase proceding this phase in the list of phases that forms a phenotype
+        :type next_phase_index: int
+
+        :param dt: Time step duration in units of `time_unit`. `dt > 0`
+        :type dt: float
+
+        :param time_unit: What time units are used by the model (e.g., minutes, hours, days)
+        :type time_unit: str
+
+        :param name: Descriptive name of this phase (e.g., S, G, M, necrotic swelling)
+        :type name: str
+
+        :param division_at_phase_exit: Boolean to define if the simulated cell should divide when switching phases.
+        :type division_at_phase_exit: bool
+
+        :param removal_at_phase_exit: Boolean defining if the simulated cell should be removed (i.e., it dies, is
+        killed, leaves the simulated domain) when leaving this phase
+        :type removal_at_phase_exit: bool
+
+        :param fixed_duration: Boolean seting the transition from this phase to the next to be deterministic (True) or
+        stochastic (False)
+        :type fixed_duration: bool
+
+        :param phase_duration: Time duration, in units of `time_unit`, of this phase. In the case of the stochastic
+        transition, the transition rate will be `dt/phase_duration`. `phase_duration > 0`
+        :type phase_duration: float
+
+        :param entry_function: Function that gets called immediately when entering this phase. Some phases have a
+        default `entry_function` defined, such as Apoptosis. Must be an *args function
+        :type entry_function: function
+
+        :param entry_function_args: Args for `entry_function`
+        :type entry_function_args: list or tuple
+
+        :param exit_function: Function that gets called just before exiting this phase. Some phases have a
+        default `exit_function` defined.
+        :type exit_function: function
+
+        :param exit_function_args: Args for `exit_function`
+        :type exit_function_args: list or tuple
+
+        :param arrest_function: Function that return if the cell should exit the current phase early and the cell cyle
+        and enter quiescence
+        :type arrest_function: function
+
+        :param arrest_function_args: Args for `arrest_function`
+        :type arrest_function_args: list or tuple
+
+        :param transition_to_next_phase: Default or custom function that returns if the cell should advance to the next
+        phase in the phenotype. If left as None the phase will pick either `_transition_to_next_phase_deterministic`
+        or `_transition_to_next_phase_stochastic` depending on the value of `fixed_duration`.
+        :type transition_to_next_phase: function
+
+        :param transition_to_next_phase_args: Args for `transition_to_next_phase`
+        :type transition_to_next_phase_args: list or tuple
+
+        :param simulated_cell_volume: Volume of the simulated cell (e.g., a CompuCell3D or Tissue Forge cell)
+        :type simulated_cell_volume: float
+
+        :param cytoplasm_biomass_change_rate: Change rate for the cytoplasmic volume. volume/`time_unit` units.
+        `cytoplasm_biomass_change_rate` >= 0. Passed to the `CellVolume` attribute class
+        :type cytoplasm_biomass_change_rate: float
+
+        :param nuclear_biomass_change_rate: Change rate for the nuclear volume. volume/`time_unit` units.
+        `nuclear_biomass_change_rate` >= 0. Passed to the `CellVolume` attribute class
+        :type nuclear_biomass_change_rate: float
+
+        :param calcification_rate: Rate of calcification of the cell. volume/`time_unit` units. `calcification_rate` >= 0
+        Passed to the `CellVolume` attribute class
+        :type calcification_rate: float
+
+        :param target_fluid_fraction: Fraction of the cell volume it will attempt to keep as fluid.
+        0 <= `target_fluid_fraction` <= 1. Passed to the `CellVolume` attribute class
+        :type target_fluid_fraction: float
+
+        :param nuclear_fluid: Initial volume of the fluid part of the nucleus. Passed to the `CellVolume` attribute class
+        :type nuclear_fluid: float
+
+        :param nuclear_solid: Initial volume of the solid part of the nucleus. Passed to the `CellVolume` attribute class
+        :type nuclear_solid: float
+
+        :param nuclear_solid_target: Nuclear solid volume the volume model will tend towards. `nuclear_solid_target`>=0.
+        Passed to the `CellVolume` attribute class
+        :type nuclear_solid_target: float
+
+        :param cytoplasm_fluid: Initial volume of the fluid part of the cytoplasm. Passed to the `CellVolume` attribute
+        class
+        :type cytoplasm_fluid: float
+
+        :param cytoplasm_solid: Initial volume of the solid part of the cytoplasm. Passed to the `CellVolume` attribute
+        class
+        :type cytoplasm_solid: float
+
+        :param cytoplasm_solid_target: Cytoplasm solid volume the volume model will tend towards.
+        `cytoplasm_solid_target`>=0. Passed to the `CellVolume` attribute class
+        :type cytoplasm_solid_target: float
+
+        :param target_cytoplasm_to_nuclear_ratio: Nuclear to cytoplasmic volumes ratio the volume model will tend
+        towards. `target_cytoplasm_to_nuclear_ratio`>0
+        :type target_cytoplasm_to_nuclear_ratio: float
+
+        :param calcified_fraction: Initial fraction of the cell that is calcified. 0<=`calcified_fraction`<=1
+        :type calcified_fraction: float
+
+        :param fluid_change_rate: Rate of change of the cell fluid part. volume/`time_unit` units.
+        `fluid_change_rate` >= 0. Passed to the `CellVolume` attribute class
+        :type fluid_change_rate: float
+
+        :param relative_rupture_volume: Proportion of the initial volume that causes cell lysis
+        :type relative_rupture_volume: float
         """
 
         if index is None:
@@ -249,6 +452,12 @@ class Phase:
                                   relative_rupture_volume=relative_rupture_volume)
 
     def update_volume(self):
+        """
+        Calls the cell volume submodel :function:`CellVolumes.update_volume`. Passes the current phase volume change
+        rates as well as the timestep to it.
+
+        :return: No return
+        """
         self.volume.update_volume(self.dt, self.fluid_change_rate, self.nuclear_biomass_change_rate,
                                   self.cytoplasm_biomass_change_rate, self.calcification_rate)
 
@@ -259,7 +468,7 @@ class Phase:
         Calculates a Poisson probability based on dt and self.phase_duration (p=1-exp(-dt/phase_duration), rolls a
         random number, and returns random number < probability.
 
-        :param none: Not used. Place holder in case of user defined function with args
+        :param none: Not used. Placeholder in case of user defined function with args
         :return: bool. random number < probability of transition
         """
 
@@ -275,7 +484,7 @@ class Phase:
 
         If the time spent in this phase is greater than the phase duration, go to the next phase.
 
-        :param none: Not used. Place holder in case of user defined function with args
+        :param none: Not used. Placeholder in case of user defined function with args
         :return:
         """
         return self.time_in_phase > self.phase_duration
@@ -311,15 +520,40 @@ class Phase:
         return False, False
 
     def _double_target_volume(self, *none):
+        """
+
+        Doubles the cell volume submodel (:class:`Phenotypes.cell_volume`) target volumes. Used by several cell cycle
+        models to double the cell volume before mitosis
+
+        :param none: Not used. This is a custom entry function, therefore it has to have args
+        :return: No return
+        """
         self.volume.nuclear_solid_target *= 2
         self.volume.cytoplasm_solid_target *= 2
+
+    def _halve_target_volume(self, *none):
+        """
+
+        Halves the cell volume submodel (:class:`Phenotypes.cell_volume`) target volumes. Used by several cell cycle
+        models to halve the cell volume after mitosis
+
+        :param none: Not used. This is a custom entry function, therefore it has to have args
+        :return: No return
+        """
+        self.volume.cytoplasm_solid_target /= 2
+        self.volume.nuclear_solid_target /= 2
 
     def __str__(self):
         return f"{self.name} phase"
 
 
 class QuiescentPhase(Phase):
-    """Default Quiescent Phase. Inherits Phase()"""
+    """
+    Default Quiescent Phase. Inherits :class:`Phase`
+
+    This quiescent phase class is meant to be "outside" whatever phenotype progression is being used.
+
+    """
 
     def __init__(self, index: int = 9999, previous_phase_index: int = None, next_phase_index: int = 0, dt: float = None,
                  time_unit: str = "min", name: str = "quiescent", division_at_phase_exit: bool = False,
@@ -355,11 +589,14 @@ class QuiescentPhase(Phase):
 
 class Ki67Negative(Phase):
     """
+    Inherits :class:`Phase`. Defines Ki 67- quiescent phase.
 
-    Defines Ki 67- phase.
-
-    TODO: More description here
-
+    This is a quiescent phenotype for cells that are replicating. Ki67 is a protein marker associated with proliferation.
+    Transition to the next phase is set to be stochastic (the phase does not use a fixed duration) by default. Default
+    expected phase duration is 4.59h, the phase transition rate is, therefore, dt/4.59 1/h.
+    This phase does not calcify the cell. The parameters for this phase are based on the MCF-10A cell line
+    https://www.sciencedirect.com/topics/medicine-and-dentistry/mcf-10a-cell-line
+    https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FBTO_0001939
     """
 
     def __init__(self, index: int = 0, previous_phase_index: int = 1, next_phase_index: int = 1, dt: float = 0.1,
@@ -396,13 +633,18 @@ class Ki67Negative(Phase):
 class Ki67Positive(Phase):
     """
 
-    Defines the simple Ki 67+ phase. Inherits Phase().
+    Inherits :class:`Phase`. Defines Ki 67+ proliferating phase.
 
-    Methods
-    -------
+    This is a proliferating phenotype for cells that are replicating. Ki67 is a protein marker associated with prolife-
+    ration. Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by default.
+    Default phase duration is 15.5h. By default, if no user defined custom entry function is defined (i.e.,
+    `entry_function=None`), this phase will set its entry function to be :class:`Phase._double_target_volume`.
+    By default, will set the volume change rates to be [change in volume]/[phase duration]. This phase does not calcify
+    the cell.
 
-    _standard_Ki67_entry_function
-        Default standard entry function to this phase.
+    The parameters for this phase are based on the MCF-10A cell line
+    https://www.sciencedirect.com/topics/medicine-and-dentistry/mcf-10a-cell-line
+    https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FBTO_0001939
 
     """
 
@@ -483,6 +725,21 @@ class Ki67Positive(Phase):
 
 
 class Ki67PositivePreMitotic(Ki67Positive):
+    """
+
+    Inherits :class:`Ki67Positive`. Defines Ki 67+ pre-mitotic proliferating phase. Only difference to
+    :class:`Ki67Positive` is the phase length.
+
+    This is a proliferating phenotype for cells that are replicating. Ki67 is a protein marker associated with prolife-
+    ration. Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by default.
+    Default phase duration is 13h. By default, if no user defined custom entry function is defined (i.e.,
+    `entry_function=None`), this phase will set its entry function to be :class:`Phase._double_target_volume`
+
+    The parameters for this phase are based on the MCF-10A cell line
+    https://www.sciencedirect.com/topics/medicine-and-dentistry/mcf-10a-cell-line
+    https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FBTO_0001939
+
+    """
 
     def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2, dt: float = 0.1,
                  time_unit: str = "min", name: str = "Ki 67+ pre-mitotic", division_at_phase_exit: bool = True,
@@ -516,6 +773,20 @@ class Ki67PositivePreMitotic(Ki67Positive):
 
 
 class Ki67PositivePostMitotic(Phase):
+    """
+    Inherits :class:`Phase`. Defines Ki 67+ post-mitotic phase, it represents the cell's reorganization.
+
+    This is a rest phenotype for cells that are replicating. Ki67 is a protein marker associated with proliferation.
+    Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by default. Default
+    phase duration is 2.5h. By default, if no user defined custom entry function is defined (i.e.,
+    `entry_function=None`), this phase will set its entry function to be
+    :class:`Ki67PositivePostMitotic._standard_Ki67_positive_postmit_entry_function`, which calls
+    :class:`Phase._halve_target_volume`.
+
+    The parameters for this phase are based on the MCF-10A cell line
+    https://www.sciencedirect.com/topics/medicine-and-dentistry/mcf-10a-cell-line
+    https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FBTO_0001939
+    """
     def __init__(self, index: int = 2, previous_phase_index: int = 1, next_phase_index: int = 0, dt: float = 0.1,
                  time_unit: str = "min", name: str = "Ki 67+ post-mitotic", division_at_phase_exit: bool = True,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = True, phase_duration: float = 2.5 * 60.0,
@@ -555,13 +826,27 @@ class Ki67PositivePostMitotic(Phase):
                          relative_rupture_volume=relative_rupture_volume)
 
     def _standard_Ki67_positive_postmit_entry_function(self, *args):
-        self.volume.cytoplasm_solid_target /= 2
-        self.volume.nuclear_solid_target /= 2
+        """
+        Calls :class:`Phase._halve_target_volume`.
+
+        :param args: Not used
+        :return:
+        """
+        self._halve_target_volume(*args)
 
 
 class G0G1(Phase):
+    """
+    Inherits :class:`Phase`. Defines G0/G1 phase, it more representative of the quiescent phase than the first growth
+    phase.
+
+    This is a quiescent phenotype for cells that are replicating. Transition to the next phase is set to be stochastic
+    (the phase does not use a fixed duration) by default. Default
+    expected phase duration is 5.15h, the phase transition rate is, therefore, dt/5.15 1/h.
+    This phase does not calcify the cell. Reference phase duration from https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    """
     def __init__(self, index: int = 0, previous_phase_index: int = 2, next_phase_index: int = 1, dt: float = 0.1,
-                 time_unit: str = "min", name: str = "G0/G1", division_at_phase_exit: bool = True,
+                 time_unit: str = "min", name: str = "G0/G1", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 5.15 * 60.0,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
@@ -592,8 +877,17 @@ class G0G1(Phase):
 
 
 class S(Phase):
+    """
+    Inherits :class:`Phase`. Defines S phase, it more representative of the growth phase than the inter-growth rest.
+
+    This is a growth phenotype for cells that are replicating. Transition to the next phase is set to be stochastic
+    (the phase does not use a fixed duration) by default. Default expected phase duration is 8h, the phase transition
+    rate is, therefore, dt/8 1/h. By default, will set the volume change rates to be
+    [change in volume]/[phase duration]. This phase does not calcify the cell. Reference phase duration from
+    https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    """
     def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2, dt: float = 0.1,
-                 time_unit: str = "min", name: str = "S", division_at_phase_exit: bool = True,
+                 time_unit: str = "min", name: str = "S", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 8 * 60.0,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
@@ -669,6 +963,15 @@ class S(Phase):
 
 
 class G2M(Phase):
+    """
+    Inherits :class:`Phase`. Defines G2M phase, it more representative of the mitosis phase than the growth.
+
+    This is a growth phenotype for cells that are replicating. Transition to the next phase is set to be stochastic
+    (the phase does not use a fixed duration) by default. Default expected phase duration is 5h, the phase transition
+    rate is, therefore, dt/5 1/h. By default, will set the volume change rates to be
+    [change in volume]/[phase duration]. This phase does not calcify the cell. Reference phase duration from
+    https://www.ncbi.nlm.nih.gov/books/NBK9876/
+    """
     def __init__(self, index: int = 2, previous_phase_index: int = 1, next_phase_index: int = 0, dt: float = 0.1,
                  time_unit: str = "min", name: str = "G2/M", division_at_phase_exit: bool = True,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 5 * 60.0,
@@ -701,6 +1004,18 @@ class G2M(Phase):
 
 
 class Apoptosis(Phase):
+    """
+    Inherits :class:`Phase`. Defines apoptotic phenotype phase.
+
+    This is a dead cell phenotype phase, the cell will shrink itself and should be removed from the simulation when this
+    phase ends. Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by
+    default. Default phase duration is 8.6h. By default, if no custom user defined entry function is used (i.e.,
+    `entry_function=None`), entry function is set to :class:`Apoptosis._standard_apoptosis_entry`.
+    :class:`Apoptosis._standard_apoptosis_entry` sets all the cell target volumes from :class:`Phenotypes.cell_volume`
+    to 0. The default mass change rates are `cytoplasm_biomass_change_rate = 1/60` [volume/min],
+    `nuclear_biomass_change_rate = 0.35 / 60` [volume/min], `fluid_change_rate = 3 / 60`. This phase does not calcify
+    the cell.
+    """
     def __init__(self, index: int = 0, previous_phase_index: int = 0, next_phase_index: int = 0, dt: float = 0.1,
                  time_unit: str = "min", name: str = "Apoptosis", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = True, fixed_duration: bool = True, phase_duration: float = 8.6 * 60.0,
@@ -708,25 +1023,20 @@ class Apoptosis(Phase):
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
                  transition_to_next_phase=None, transition_to_next_phase_args: list = None,
                  simulated_cell_volume: float = None, cytoplasm_biomass_change_rate: float = 1 / 60,
-                 nuclear_biomass_change_rate: float = 0.35 / 60, unlysed_fluid_change_rate: float = 3 / 60,
-                 lysed_fluid_change_rate: float = 0, calcification_rate: float = 0, relative_rupture_volume: float = 2,
-                 target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
-                 cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
-                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None):
+                 nuclear_biomass_change_rate: float = 0.35 / 60, calcification_rate: float = 0,
+                 relative_rupture_volume: float = 2, target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None,
+                 nuclear_solid_target=None, cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
+                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate = 3 / 60):
 
         if entry_function is None:
             entry_function = self._standard_apoptosis_entry
             entry_function_args = [None]
 
-        if unlysed_fluid_change_rate is not None:
-            self.unlysed_fluid_change_rate = unlysed_fluid_change_rate
+        if fluid_change_rate is not None:
+            self.fluid_change_rate = fluid_change_rate
         else:
-            self.unlysed_fluid_change_rate = 3 / 60
+            self.fluid_change_rate = 3 / 60
 
-        if lysed_fluid_change_rate is not None:
-            self.lysed_fluid_change_rate = lysed_fluid_change_rate
-        else:
-            self.lysed_fluid_change_rate = 0
 
         if relative_rupture_volume is None:
             self.relative_rupture_volume = 2
@@ -753,19 +1063,33 @@ class Apoptosis(Phase):
                          relative_rupture_volume=relative_rupture_volume)
 
     def _standard_apoptosis_entry(self, *none):
+        """
+        Zeroes all the cell's target volumes. Keeps the nuclear to cytoplasm ratio the same.
+
+        :param none: Not used. This is a custom entry function, therefore it has to have args
+        :return:
+        """
 
         # shrink cell
         self.volume.target_fluid_fraction = 0
         self.volume.cytoplasm_solid_target = 0
         self.volume.nuclear_solid_target = 0
 
-        # set fluid change rate
-        self.fluid_change_rate = self.unlysed_fluid_change_rate
-
 
 class NecrosisSwell(Phase):
     """
-    Swelling part of the necrosis process
+    Inherits :class:`Phase`. Swelling part of the necrosis process.
+
+    Represents the osmotic swell a necrotic cell goes through. By default, this phase uses a custom transition function
+    (i.e., `transition_to_next_phase=None`), it can be overwritten by a user defined one. The custom transition
+    function is :class:`NecrosisSwell._necrosis_transition_function`, it returns true when the cell becomes bigger than
+    its rupture volume. The default relative rupture volume is 2, i.e., the cell ruptures after doubling in volume.
+    By default, if no custom user defined entry function is used (i.e., `entry_function=None`), entry function is set
+    to :class:`NecrosisSwell._standard_necrosis_entry_function`. It zeroes the solid target volumes and the target
+    cytoplasm to nuclear ratio, and sets the target fluid fraction to 1. This causes the cell to increase its volume.
+    The default volume change rates are `cytoplasm_biomass_change_rate = 0.0032 / 60.0`,
+    `nuclear_biomass_change_rate = 0.013 / 60.0`, `fluid_change_rate = 0.67 / 60.0`,
+    `calcification_rate = 0.0042 / 60.0`. This phase does calcify the cell.
     """
 
     def __init__(self, index: int = 0, previous_phase_index: int = 0, next_phase_index: int = 1, dt: float = 0.1,
@@ -839,6 +1163,14 @@ class NecrosisSwell(Phase):
                          relative_rupture_volume=relative_rupture_volume)
 
     def _standard_necrosis_entry_function(self, *none):
+        """
+        Responsible for causing the osmotic swell.
+
+        Zeroes the solid target volumes, sets the target cytoplasm to nuclear
+        ratio to 0, sets the target fluid fraction to 1, sets the rupture volume to be double the current total volume.
+        :param none: Not used. This is a custom entry function, therefore it has to have args
+        :return: No return
+        """
 
         # the cell wants to degrade the solids and swell by osmosis
         self.volume.target_fluid_fraction = 1
@@ -852,15 +1184,33 @@ class NecrosisSwell(Phase):
         self.volume.rupture_volume = self.volume.relative_rupture_volume * self.volume.total
 
     def _necrosis_transition_function(self, *none):
+        """
+        Custom phase transition function. The simulated cell should only change phase once it bursts (i.e., when its
+        volume is above the rupture volume), it cares not how long or how little time it takes to reach that state.
+        :param none: Not used. This is a custom transition function, therefore it has to have args
+        :return: Flag for phase transition
+        :rtype: bool
+        """
         return self.volume.total > self.volume.rupture_volume
 
 
 class NecrosisLysed(Phase):
     """
-    Ruptured necrotic cell
+    Inherits :class:`Phase`. Ruptured necrotic cell
+
+    Represents the already ruptured necrotic cell. The modeler should find a way to represent this fragmentary state,
+    either create several tiny cells from the cell that ruptured, or create a disconnected cell.  By default, the
+    transition to the next phase is deterministic and the phase lasts 60 days. The simulated cell should shrink and
+    disappear before then, this is a safeguard to remove the cell "by hand" if it hasn't. By default, if no custom user
+    defined entry function is used (i.e., `entry_function=None`), entry function is set to
+    :class:`NecrosisLysed._standard_lysis_entry_function`. It zeroes all target volumes from
+    :class:`Phenotypes.cell_volume`. The default volume change rates are:
+    `cytoplasm_biomass_change_rate = 0.0032 / 60.0`, `nuclear_biomass_change_rate = 0.013 / 60.0`,
+    `fluid_change_rate = 0.050 / 60.0`, `calcification_rate = 0.0042 / 60.0`. This phase calcifies the cell.
+
     """
 
-    def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 99, dt: float = 0.1,
+    def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = -1, dt: float = 0.1,
                  time_unit: str = "min", name: str = "Necrotic (lysed)", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = True, fixed_duration: bool = True, phase_duration: float = None,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
@@ -926,6 +1276,11 @@ class NecrosisLysed(Phase):
                          relative_rupture_volume=relative_rupture_volume)
 
     def _standard_lysis_entry_function(self, *none):
+        """
+        Zeroes all the cell's target volumes. Also zeroes the nuclear to cytoplasm ratio.
+        :param none: Not used. This is a custom entry function, therefore it has to have args
+        :return:
+        """
         self.volume.target_fluid_fraction = 0
         self.volume.nuclear_solid_target = 0
         self.volume.cytoplasm_solid_target = 0
