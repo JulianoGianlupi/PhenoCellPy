@@ -48,6 +48,8 @@ import Phenotypes.phases as Phases
 #  - interface class
 #  - have the time unit define some unit conversions
 #  - have some pre-built secretions/absorption and stuff
+#  - pre-calculate the transition probability when using the stochastic transition (no need to calculate it every step,
+#    as it is fixed)
 
 
 def _check_arguments(number_phases, phase_names, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
@@ -299,7 +301,7 @@ class Phenotype:
 
     Defines a cell phenotype, a sequence of phases with different behaviors. E.g., a quiescent-proliferating cell cycle
     is a phenotype with two phases (quiescence, and growth/division); the necrotic phenotype starts with a osmotic swe-
-    ling phase, folowed by dissolution of the cell into its media after it bursts.
+    ling phase, followed by dissolution of the cell into its media after it bursts.
 
     This class has methods to time-step the phenotype model (which time-steps all submodels), to change the phenotype
     phase to an arbritary phase of the phenotype cycle, to go to the next phase in the cycle, and to go to a
