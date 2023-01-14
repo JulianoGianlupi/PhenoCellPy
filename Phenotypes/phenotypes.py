@@ -37,8 +37,7 @@ import Phenotypes.phases as Phases
 
 
 # todo:
-#  - implement physicell's phenotypes
-#  - documentation
+#  - a JJ tyson cycle model
 #  - add biomodels ontology anotation
 #  - switch how defalts are handled to be like phases.NecrosisLysed
 #  - add copyright
