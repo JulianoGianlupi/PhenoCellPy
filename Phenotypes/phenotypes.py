@@ -37,7 +37,7 @@ import Phenotypes.phases as Phases
 
 
 # todo:
-#  - a JJ tyson cycle model
+#  - a JJ tyson cycle model (https://www.ebi.ac.uk/biomodels/BIOMD0000000003)
 #  - add biomodels ontology anotation
 #  - switch how defalts are handled to be like phases.NecrosisLysed
 #  - add copyright
