@@ -506,14 +506,14 @@ class Phase:
         self.update_volume()
 
         if self.arrest_function is not None:
-            if self.arrest_function(*self.arrest_function_args):
-                return False, True
+            quies = self.arrest_function(*self.exit_function_args)
+            return False, quies
 
         transition = self.transition_to_next_phase(*self.transition_to_next_phase_args)
 
         if transition and self.exit_function is not None:
-            quies = self.exit_function(*self.exit_function_args)
-            return transition, quies
+            self.exit_function(*self.exit_function_args)
+            return transition, False
         elif transition:
             return transition, False
 
