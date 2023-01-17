@@ -37,8 +37,7 @@ import Phenotypes.phases as Phases
 
 
 # todo:
-#  - implement physicell's phenotypes
-#  - documentation
+#  - a JJ tyson cycle model (https://www.ebi.ac.uk/biomodels/BIOMD0000000003)
 #  - add biomodels ontology anotation
 #  - switch how defalts are handled to be like phases.NecrosisLysed
 #  - add copyright
@@ -48,6 +47,8 @@ import Phenotypes.phases as Phases
 #  - interface class
 #  - have the time unit define some unit conversions
 #  - have some pre-built secretions/absorption and stuff
+#  - pre-calculate the transition probability when using the stochastic transition (no need to calculate it every step,
+#    as it is fixed)
 
 
 def _check_arguments(number_phases, phase_names, division_at_phase_exits, removal_at_phase_exits, fixed_durations,
@@ -299,10 +300,10 @@ class Phenotype:
 
     Defines a cell phenotype, a sequence of phases with different behaviors. E.g., a quiescent-proliferating cell cycle
     is a phenotype with two phases (quiescence, and growth/division); the necrotic phenotype starts with a osmotic swe-
-    ling phase, folowed by dissolution of the cell into its media after it bursts.
+    ling phase, followed by dissolution of the cell into its media after it bursts.
 
     This class has methods to time-step the phenotype model (which time-steps all submodels), to change the phenotype
-    phase to an arbritary phase of the phenotype cycle, to go to the next phase in the cycle, and to go to a
+    phase to an arbitrary phase of the phenotype cycle, to go to the next phase in the cycle, and to go to a
     non-changing quiescent phase.
 
     Methods:
@@ -449,8 +450,7 @@ class Phenotype:
         divides = self.current_phase.division_at_phase_exit
         dies = self.current_phase.removal_at_phase_exit
         self.set_phase(self.current_phase.next_phase_index)
-        if self.current_phase.entry_function is not None:
-            self.current_phase.entry_function(*self.current_phase.entry_function_args)
+
         return True, dies, divides
 
     def set_phase(self, idx):
@@ -458,7 +458,7 @@ class Phenotype:
 
         Sets cycle phase to be phase of index :param:`idx`.
 
-        This function moves the cycle to the next phase and coordinates their volume attributes. Saves current
+        This function moves the cycle to an arbitrary phase and coordinates their volume attributes. Saves current
         :attr:`current_phase.volume` and :attr:`current_phase.volume` to variables, sets :attr:`current_phase` to be
         `phases[idx]`, resets :attr:`current_phase.volume` and :attr:`current_phase.volume` to be the previously saved
         values, sets :attr:`current_phase.time_in_phase` to 0.
