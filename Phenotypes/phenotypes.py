@@ -425,15 +425,17 @@ class Phenotype:
 
         self.time_in_phenotype += self.dt
 
-        next_phase, quies = self.current_phase.time_step_phase()
+        go_next_phase, exit_phenotype = self.current_phase.time_step_phase()
 
-        if next_phase:
+        if go_next_phase:
             changed_phases, cell_dies, cell_divides = self.go_to_next_phase()
             return changed_phases, cell_dies, cell_divides
-        elif quies:
+        elif exit_phenotype:
             self.go_to_quiescence()
-            return True, False, False
-        return False, False, False
+            changed_phases, cell_dies, cell_divides = (True, False, False)
+            return changed_phases, cell_dies, cell_divides
+        changed_phases, cell_dies, cell_divides = (False, False, False)
+        return changed_phases, cell_dies, cell_divides
 
     def go_to_next_phase(self):
         """
@@ -447,11 +449,12 @@ class Phenotype:
         :return: Flags (bool) for phase changing, cell death, and cell division
         :rtype: tuple of bool
         """
+        changed_phases = True
         divides = self.current_phase.division_at_phase_exit
         dies = self.current_phase.removal_at_phase_exit
         self.set_phase(self.current_phase.next_phase_index)
 
-        return True, dies, divides
+        return changed_phases, dies, divides
 
     def set_phase(self, idx):
         """
