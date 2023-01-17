@@ -506,18 +506,18 @@ class Phase:
         self.update_volume()
 
         if self.arrest_function is not None:
-            quies = self.arrest_function(*self.exit_function_args)
-            return False, quies
+            exit_phenotype = self.arrest_function(*self.exit_function_args)
+            go_to_next_phase_in_phenotype = False
+            return go_to_next_phase_in_phenotype, exit_phenotype
+        else:
+            exit_phenotype = False
 
-        transition = self.transition_to_next_phase(*self.transition_to_next_phase_args)
+        go_to_next_phase_in_phenotype = self.transition_to_next_phase(*self.transition_to_next_phase_args)
 
-        if transition and self.exit_function is not None:
+        if go_to_next_phase_in_phenotype and self.exit_function is not None:
             self.exit_function(*self.exit_function_args)
-            return transition, False
-        elif transition:
-            return transition, False
-
-        return False, False
+            return go_to_next_phase_in_phenotype, exit_phenotype
+        return go_to_next_phase_in_phenotype, exit_phenotype
 
     def _double_target_volume(self, *none):
         """
