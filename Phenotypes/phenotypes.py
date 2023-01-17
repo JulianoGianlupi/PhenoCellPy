@@ -304,7 +304,7 @@ class Phenotype:
     ling phase, followed by dissolution of the cell into its media after it bursts.
 
     This class has methods to time-step the phenotype model (which time-steps all submodels), to change the phenotype
-    phase to an arbritary phase of the phenotype cycle, to go to the next phase in the cycle, and to go to a
+    phase to an arbitrary phase of the phenotype cycle, to go to the next phase in the cycle, and to go to a
     non-changing quiescent phase.
 
     Methods:
