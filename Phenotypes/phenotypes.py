@@ -449,11 +449,12 @@ class Phenotype:
         :return: Flags (bool) for phase changing, cell death, and cell division
         :rtype: tuple of bool
         """
+        changed_phases = True
         divides = self.current_phase.division_at_phase_exit
         dies = self.current_phase.removal_at_phase_exit
         self.set_phase(self.current_phase.next_phase_index)
 
-        return True, dies, divides
+        return changed_phases, dies, divides
 
     def set_phase(self, idx):
         """
