@@ -460,7 +460,7 @@ class Phenotype:
 
         Sets cycle phase to be phase of index :param:`idx`.
 
-        This function moves the cycle to the next phase and coordinates their volume attributes. Saves current
+        This function moves the cycle to an arbitrary phase and coordinates their volume attributes. Saves current
         :attr:`current_phase.volume` and :attr:`current_phase.volume` to variables, sets :attr:`current_phase` to be
         `phases[idx]`, resets :attr:`current_phase.volume` and :attr:`current_phase.volume` to be the previously saved
         values, sets :attr:`current_phase.time_in_phase` to 0.
