@@ -30,6 +30,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+
 class CellVolumes:
     """
     Cell volume class, evolves the cell volume and its subvolumes
@@ -203,6 +204,68 @@ class CellVolumes:
 
         self.rupture_volume = self.relative_rupture_volume * self.total
 
+    def update_volume(self, dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomass_change_rate,
+                      calcification_rate):
+        """
+        Updates the cell volume attributes.
+
+        Dynamic volumes (class parameters) updated as first order differential equations with a set rate and set target.
+        Other volumes (class attributes) are set as ratios/relations of the dynamic volumes.
+
+        The dynamic volumes change is, unless stated otherwise,
+        new_volume = volume + dt * change rate * (target -  volume)
+        and are updated by a forward Euler method
+
+        First the total fluid is updated with rate `fluid_change_rate` and target `target_fluid_fraction`.
+
+        Then the nuclear and cytoplasm fluid volumes are set
+
+        The next dynamic volume update is the solid nuclear with rate `fluid_change_rate` and target
+        `target_fluid_fraction`.
+
+        The solid target is then updated as `target_cytoplasm_to_nuclear_ratio` * `nuclear_solid_target`
+
+        The cytoplasm solid is dynamically updated with rate `cytoplasm_biomass_change_rate` and target
+        `cytoplasm_solid_target`
+
+        The solid, nuclear, and cytoplasm volumes are set
+
+        The calcified fraction is dynamically calculated with rate `calcification_rate` and no rate
+
+        Finally the total volume and fluid fractions are set
+
+        :param dt: Time step length
+        :param fluid_change_rate: How fast can the cell change the fluid fraction of its volume
+        :param nuclear_biomass_change_rate: How fast can the cell change its nuclear biomass
+        :param cytoplasm_biomass_change_rate: How fast can the cell change its cytoplasm biomass
+        :param calcification_rate: The rate at which the cell is calcifying
+        :return: None
+        """
+        self.fluid += dt * fluid_change_rate * (self.target_fluid_fraction * self.total - self.fluid)
+
+        self.nuclear_fluid = (self.nuclear / (self.total + 1e-12)) * self.fluid
+
+        self.cytoplasm_fluid = self.fluid - self.nuclear_fluid
+
+        self.nuclear_solid += dt * nuclear_biomass_change_rate * (self.nuclear_solid_target - self.nuclear_solid)
+
+        self.cytoplasm_solid_target = self.target_cytoplasm_to_nuclear_ratio * self.nuclear_solid_target
+
+        self.cytoplasm_solid += dt * cytoplasm_biomass_change_rate * (self.cytoplasm_solid_target -
+                                                                      self.cytoplasm_solid)
+
+        self.solid = self.nuclear_solid + self.cytoplasm_solid  # maybe this could be a pure property?
+
+        self.nuclear = self.nuclear_solid + self.nuclear_fluid
+
+        self.cytoplasm = self.cytoplasm_fluid + self.cytoplasm_solid
+
+        self.calcified_fraction += dt * calcification_rate * (1 - self.calcified_fraction)
+
+        self.total = self.cytoplasm + self.nuclear
+
+        self.fluid_fraction = self.fluid / (self.total + 1e-12)
+
     @property
     def cytoplasm_to_nuclear_ratio(self):
         """Get the current cytoplasm to nuclear ratio"""
@@ -352,68 +415,6 @@ class CellVolumes:
     @fluid_fraction.setter
     def fluid_fraction(self, value):
         self._fluid_fraction = value if value >= 0 else 0
-
-    def update_volume(self, dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomass_change_rate,
-                      calcification_rate):
-        """
-        Updates the cell volume attributes.
-
-        Dynamic volumes (class parameters) updated as first order differential equations with a set rate and set target.
-        Other volumes (class attributes) are set as ratios/relations of the dynamic volumes.
-
-        The dynamic volumes change is, unless stated otherwise,
-        new_volume = volume + dt * change rate * (target -  volume)
-        and are updated by a forward Euler method
-
-        First the total fluid is updated with rate `fluid_change_rate` and target `target_fluid_fraction`.
-
-        Then the nuclear and cytoplasm fluid volumes are set
-
-        The next dynamic volume update is the solid nuclear with rate `fluid_change_rate` and target
-        `target_fluid_fraction`.
-
-        The solid target is then updated as `target_cytoplasm_to_nuclear_ratio` * `nuclear_solid_target`
-
-        The cytoplasm solid is dynamically updated with rate `cytoplasm_biomass_change_rate` and target
-        `cytoplasm_solid_target`
-
-        The solid, nuclear, and cytoplasm volumes are set
-
-        The calcified fraction is dynamically calculated with rate `calcification_rate` and no rate
-
-        Finally the total volume and fluid fractions are set
-
-        :param dt: Time step length
-        :param fluid_change_rate: How fast can the cell change the fluid fraction of its volume
-        :param nuclear_biomass_change_rate: How fast can the cell change its nuclear biomass
-        :param cytoplasm_biomass_change_rate: How fast can the cell change its cytoplasm biomass
-        :param calcification_rate: The rate at which the cell is calcifying
-        :return: None
-        """
-        self.fluid += dt * fluid_change_rate * (self.target_fluid_fraction * self.total - self.fluid)
-
-        self.nuclear_fluid = (self.nuclear / (self.total + 1e-12)) * self.fluid
-
-        self.cytoplasm_fluid = self.fluid - self.nuclear_fluid
-
-        self.nuclear_solid += dt * nuclear_biomass_change_rate * (self.nuclear_solid_target - self.nuclear_solid)
-
-        self.cytoplasm_solid_target = self.target_cytoplasm_to_nuclear_ratio * self.nuclear_solid_target
-
-        self.cytoplasm_solid += dt * cytoplasm_biomass_change_rate * (self.cytoplasm_solid_target -
-                                                                      self.cytoplasm_solid)
-
-        self.solid = self.nuclear_solid + self.cytoplasm_solid  # maybe this could be a pure property?
-
-        self.nuclear = self.nuclear_solid + self.nuclear_fluid
-
-        self.cytoplasm = self.cytoplasm_fluid + self.cytoplasm_solid
-
-        self.calcified_fraction = dt * calcification_rate * (1 - self.calcified_fraction)
-
-        self.total = self.cytoplasm + self.nuclear
-
-        self.fluid_fraction = self.fluid / (self.total + 1e-12)
 
 
 
