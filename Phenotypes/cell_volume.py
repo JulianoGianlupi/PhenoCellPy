@@ -410,7 +410,7 @@ class CellVolumes:
 
         self.cytoplasm = self.cytoplasm_fluid + self.cytoplasm_solid
 
-        self.calcified_fraction = dt * calcification_rate * (1 - self.calcified_fraction)
+        self.calcified_fraction += dt * calcification_rate * (1 - self.calcified_fraction)
 
         self.total = self.cytoplasm + self.nuclear
 
