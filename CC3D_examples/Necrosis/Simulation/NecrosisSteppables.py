@@ -107,7 +107,7 @@ class NecrosisSteppable(SteppableBasePy):
                 if cell is not None:  # if the cell has died (disappeared, deleted from the simulation) cell is a null
                     # object
                     # todo: monitor the phase change, change type when it happens, etc
-                    changed_phase, died, divides = cell.dict["phenotype"].time_step_phenotype()
+                    changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
                     print("TARGET VOLUMES:\n",
                           "Cyto solid:", cell.dict["phenotype"].current_phase.volume.cytoplasm_solid_target,
                           ". Nucl solid:", cell.dict["phenotype"].current_phase.volume.nuclear_solid_target,
@@ -125,6 +125,8 @@ class NecrosisSteppable(SteppableBasePy):
                         if cell.dict["phenotype"].current_phase.name == "Necrotic (lysed)":
                             # if the cell has ruptured
                             cell.type = self.RUPTURED
+                    if should_be_removed:
+                        self.delete_cell(cell)
 
     def finish(self):
         """

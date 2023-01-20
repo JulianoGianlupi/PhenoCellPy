@@ -428,14 +428,14 @@ class Phenotype:
         go_next_phase, exit_phenotype = self.current_phase.time_step_phase()
 
         if go_next_phase:
-            changed_phases, cell_dies, cell_divides = self.go_to_next_phase()
-            return changed_phases, cell_dies, cell_divides
+            changed_phases, cell_removed, cell_divides = self.go_to_next_phase()
+            return changed_phases, cell_removed, cell_divides
         elif exit_phenotype:
             self.go_to_quiescence()
-            changed_phases, cell_dies, cell_divides = (True, False, False)
-            return changed_phases, cell_dies, cell_divides
-        changed_phases, cell_dies, cell_divides = (False, False, False)
-        return changed_phases, cell_dies, cell_divides
+            changed_phases, cell_removed, cell_divides = (True, False, False)
+            return changed_phases, cell_removed, cell_divides
+        changed_phases, cell_removed, cell_divides = (False, False, False)
+        return changed_phases, cell_removed, cell_divides
 
     def go_to_next_phase(self):
         """
@@ -451,10 +451,10 @@ class Phenotype:
         """
         changed_phases = True
         divides = self.current_phase.division_at_phase_exit
-        dies = self.current_phase.removal_at_phase_exit
+        removal = self.current_phase.removal_at_phase_exit
         self.set_phase(self.current_phase.next_phase_index)
 
-        return changed_phases, dies, divides
+        return changed_phases, removal, divides
 
     def set_phase(self, idx):
         """
