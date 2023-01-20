@@ -175,7 +175,7 @@ class MitosisSteppable(MitosisSteppableBase):
             elif cell.dict["phenotype"].current_phase.index == 1:
                 n_one += 1
                 time_spent_in_1.append(cell.dict["phenotype"].current_phase.time_in_phase)
-            changed_phase, died, divides = cell.dict["phenotype"].time_step_phenotype()
+            changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
 
             if cell.targetVolume < cell.dict["phenotype"].current_phase.volume.total:
                 cell.targetVolume = cell.dict["phenotype"].current_phase.volume.total

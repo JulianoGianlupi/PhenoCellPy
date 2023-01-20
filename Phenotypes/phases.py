@@ -368,7 +368,7 @@ class Phase:
             self.name = name
 
         self.division_at_phase_exit = division_at_phase_exit  # bool flagging for division
-        self.removal_at_phase_exit = removal_at_phase_exit  # bool flagging for removal (death?)
+        self.removal_at_phase_exit = removal_at_phase_exit  # bool flagging for removal (e.g., death)
 
         self.fixed_duration = fixed_duration
 
