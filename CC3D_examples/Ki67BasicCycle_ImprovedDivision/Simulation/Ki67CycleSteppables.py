@@ -195,7 +195,7 @@ class MitosisSteppable(MitosisSteppableBase):
                 cell.dict["phenotype"].current_phase.transition_to_next_phase_args = args
                 # print("_", len(cell.dict["phenotype"].current_phase.transition_to_next_phase_args))
 
-            changed_phase, died, divides = cell.dict["phenotype"].time_step_phenotype()
+            changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
 
             if cell.targetVolume < cell.dict["phenotype"].current_phase.volume.total:
                 cell.targetVolume = cell.dict["phenotype"].current_phase.volume.total

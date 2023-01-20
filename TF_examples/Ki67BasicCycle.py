@@ -107,7 +107,7 @@ def step_cycle_and_divide(event):
     for p in Cell.items():
         pcycle = cells_cycles[f"{p.id}"]
         pcycle.current_phase.simulated_cell_volume = p.mass * density
-        phase_change, death, division = pcycle.time_step_phenotype()
+        phase_change, should_be_removed, division = pcycle.time_step_phenotype()
 
         if phase_change and len(Cell.items()) < 10:
             print("@@@\nPHASE CHANGE\n@@@")

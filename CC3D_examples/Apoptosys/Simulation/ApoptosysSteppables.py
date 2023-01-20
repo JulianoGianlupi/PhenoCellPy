@@ -83,13 +83,15 @@ class ApoptosysSteppable(SteppableBasePy):
                                                             simulated_cell_volume=cell.volume)
 
                 pheno.utils.add_phenotype_to_CC3D_cell(cell, apopto)
-                changed_phase, died, divides = cell.dict["phenotype"].time_step_phenotype()
+                changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
+                if should_be_removed:
+                    self.delete_cell(cell)
 
         if mcs > 50:
             for cid in self.selected_cell_ids:
                 cell = self.fetch_cell_by_id(int(cid))
                 if cell is not None:
-                    changed_phase, died, divides = cell.dict["phenotype"].time_step_phenotype()
+                    changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
                     print(cell.dict["phenotype"].current_phase.volume.cytoplasm_solid_target,
                           cell.dict["phenotype"].current_phase.volume.nuclear_solid_target,
                           cell.dict["phenotype"].current_phase.volume.target_fluid_fraction,
@@ -97,6 +99,8 @@ class ApoptosysSteppable(SteppableBasePy):
                           cell.volume)
                     cell.targetVolume = cell.dict["phenotype"].current_phase.volume.total
                     cell.dict["phenotype"].current_phase.simulated_cell_volume = cell.volume
+                    if should_be_removed:
+                        self.delete_cell(cell)
 
     def finish(self):
         """
