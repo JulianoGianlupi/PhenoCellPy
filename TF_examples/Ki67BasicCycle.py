@@ -140,7 +140,7 @@ def step_cycle_and_divide(event):
     return 0
 
 
-tf.event.on_time(invoke_method=step_cycle_and_divide, period=tf.Universe.dt)
+tf.event.on_time(invoke_method=step_cycle_and_divide, period=.9*tf.Universe.dt)
 
 # run the simulator interactive
 tf.run()
