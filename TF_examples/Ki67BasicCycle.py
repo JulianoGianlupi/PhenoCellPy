@@ -81,7 +81,6 @@ class CellType(tf.ParticleTypeSpec):
     mass = mass
     target_temperature = 0
     radius = radius
-    # volume = volume
     dynamics = tf.Overdamped
     cycle = ki67_basic
 
