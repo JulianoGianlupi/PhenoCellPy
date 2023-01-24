@@ -107,7 +107,7 @@ def step_cycle_and_divide(event):
     for p in Cell.items():
         pcycle = cells_cycles[f"{p.id}"]
         pcycle.current_phase.simulated_cell_volume = p.mass * density
-        phase_change, death, division = pcycle.time_step_phenotype()
+        phase_change, should_be_removed, division = pcycle.time_step_phenotype()
 
         if phase_change and len(Cell.items()) < 10:
             print("@@@\nPHASE CHANGE\n@@@")
@@ -140,7 +140,7 @@ def step_cycle_and_divide(event):
     return 0
 
 
-tf.event.on_time(invoke_method=step_cycle_and_divide, period=tf.Universe.dt)
+tf.event.on_time(invoke_method=step_cycle_and_divide, period=.9*tf.Universe.dt)
 
 # run the simulator interactive
 tf.run()
