@@ -56,9 +56,15 @@ class ConstraintInitializerSteppable(SteppableBasePy):
     def __init__(self, frequency=1):
         SteppableBasePy.__init__(self, frequency)
         self.track_cell_level_scalar_attribute(field_name='phase_index_plus_1', attribute_name='phase_index_plus_1')
+        self.target_volume = None
+        self.doubling_volume = None
+        self.volume_conversion_unit = None
 
     def start(self):
         side = 10
+
+        self.target_volume = side * side
+        self.doubling_volume = 2 * self.target_volume
 
         x = self.dim.x // 2 - side // 2
         y = self.dim.x // 2 - side // 2
@@ -74,6 +80,8 @@ class ConstraintInitializerSteppable(SteppableBasePy):
                                                                     transitions_to_next_phase_args=[None,
                                                                                                     [-9, 1, -9, 1]])
 
+        self.volume_conversion_unit = self.target_volume / ki67_basic_modified_transition.current_phase.volume.total
+
         for cell in self.cell_list:
             cell.targetVolume = side * side
             cell.lambdaVolume = 2.0
@@ -82,10 +90,15 @@ class ConstraintInitializerSteppable(SteppableBasePy):
             # print(hasattr(cell, "phenotype"))
             cell.dict["phase_index_plus_1"] = cell.dict["phenotype"].current_phase.index + 1
 
+        self.shared_steppable_vars["constraints"] = self
+
 
 class MitosisSteppable(MitosisSteppableBase):
     def __init__(self, frequency=1):
         MitosisSteppableBase.__init__(self, frequency)
+
+        self.constraint_vars = None
+
         self.previous_number_cells = 0
 
         self.plot = False
@@ -107,7 +120,7 @@ class MitosisSteppable(MitosisSteppableBase):
             self.number_cells_file.write("MCS, N, N+, N-\n")
 
     def start(self):
-
+        self.constraint_vars = self.shared_steppable_vars["constraints"]
         if self.plot:
             self.plot_win_vol = self.add_new_plot_window(title='Volume metrics',
                                                          x_axis_title='MonteCarlo Step (MCS)',
@@ -186,10 +199,10 @@ class MitosisSteppable(MitosisSteppableBase):
                     cell.dict["phenotype"].current_phase.phase_duration]
 
                 cell.dict["phenotype"].current_phase.transition_to_next_phase_args = args
-                # print("_", len(cell.dict["phenotype"].current_phase.transition_to_next_phase_args))
 
             changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
-            converted_volume = (100/2494) * cell.dict["phenotype"].current_phase.volume.total
+            converted_volume = self.constraint_vars.volume_conversion_unit * \
+                               cell.dict["phenotype"].current_phase.volume.total
 
             cell.targetVolume = converted_volume
 
@@ -288,8 +301,7 @@ class MitosisSteppable(MitosisSteppableBase):
 
     def update_attributes(self):
         # resetting target volume
-        # todo: use parameter instead of 100/2494
-        converted_volume = (100/2494) * self.parent_cell.dict["phenotype"].current_phase.volume.total
+        converted_volume = self.constraint_vars.volume_conversion_unit * self.parent_cell.dict["phenotype"].current_phase.volume.total
         self.parent_cell.targetVolume = converted_volume
 
         self.clone_parent_2_child()
