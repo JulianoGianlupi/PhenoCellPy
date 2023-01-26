@@ -354,16 +354,17 @@ class Phenotype:
 
     """
 
-    def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", phases: list = None,
-                 quiescent_phase: Phases.Phase or False = None, starting_phase_index: int = 0):
+    def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", space_unit="micrometer",
+                 phases: list = None, quiescent_phase: Phases.Phase or False = None, starting_phase_index: int = 0):
         """
-
         :param name: Name for the phenotype
         :type str
         :param dt: time-step duration in units of `time_unit`
         :type float
         :param time_unit: Time unit
         :type str
+        :param space_unit: Space unit
+        :type space_unit: str
         :param phases: The different phases of the phenotype
         :type list of Phases.Phase
         :param quiescent_phase: Special outside-of-phenotype-order quiescent phase
@@ -377,6 +378,7 @@ class Phenotype:
         self.name = name
 
         self.time_unit = time_unit
+        self.space_unit = space_unit
 
         if dt <= 0 or dt is None:
             raise ValueError(f"'dt' must be greater than 0. Got {dt}.")
@@ -582,11 +584,12 @@ class SimpleLiveCycle(Phenotype):
     cell should divide.
     """
 
-    def __init__(self, time_unit: str = "min", name: str = "Simple Live", dt=1):
+    def __init__(self, time_unit: str = "min", space_unit="micrometer", name: str = "Simple Live", dt=1):
         phases = [
             Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit, name="alive",
                          division_at_phase_exit=True, phase_duration=60 / 0.0432)]
-        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=False)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer", phases=phases,
+                         quiescent_phase=False)
 
 
 class Ki67Basic(Phenotype):
@@ -602,7 +605,7 @@ class Ki67Basic(Phenotype):
 
     """
 
-    def __init__(self, name="Ki67 Basic", dt=0.1, time_unit="min", quiescent_phase=False,
+    def __init__(self, name="Ki67 Basic", dt=0.1, time_unit="min", space_unit="micrometer", quiescent_phase=False,
                  division_at_phase_exits=(False, True), removal_at_phase_exits=(False, False),
                  fixed_durations=(False, True), phase_durations: list = (4.59 * 60, 15.5 * 60.0),
                  entry_functions=(None, None), entry_functions_args=(None, None), exit_functions=(None, None),
@@ -672,7 +675,8 @@ class Ki67Basic(Phenotype):
 
         phases = [Ki67_negative, Ki67_positive]
 
-        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer", phases=phases,
+                         quiescent_phase=quiescent_phase)
 
 
 class Ki67Advanced(Phenotype):
@@ -690,7 +694,7 @@ class Ki67Advanced(Phenotype):
 
     """
 
-    def __init__(self, name="Ki67 Advanced", dt=0.1, time_unit="min", quiescent_phase=False,
+    def __init__(self, name="Ki67 Advanced", dt=0.1, time_unit="min", space_unit="micrometer", quiescent_phase=False,
                  division_at_phase_exits=(False, True, False), removal_at_phase_exits=(False, False, False),
                  fixed_durations=(False, True, True), phase_durations: list = (3.62 * 60, 13.0 * 60.0, 2.5 * 60),
                  entry_functions=(None, None, None), entry_functions_args=(None, None, None),
@@ -802,7 +806,8 @@ class Ki67Advanced(Phenotype):
                                                             calcified_fraction=calcified_fraction[2],
                                                             fluid_change_rate=fluid_change_rate[2])
         phases = [Ki67_negative, Ki67_positive_pre, Ki67_positive_post]
-        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer", phases=phases,
+                         quiescent_phase=quiescent_phase)
 
 
 class FlowCytometryBasic(Phenotype):
@@ -819,7 +824,8 @@ class FlowCytometryBasic(Phenotype):
     is stochastic
     """
 
-    def __init__(self, name="Flow Cytometry Basic", dt=0.1, time_unit="min", quiescent_phase=False,
+    def __init__(self, name="Flow Cytometry Basic", dt=0.1, time_unit="min", space_unit="micrometer",
+                 quiescent_phase=False,
                  division_at_phase_exits=(False, False, True), removal_at_phase_exits=(False, False, False),
                  fixed_durations=(False, False, False), phase_durations: list = (5.15 * 60, 8 * 60.0, 5 * 60),
                  entry_functions=(None, None, None), entry_functions_args=(None, None, None),
@@ -900,7 +906,8 @@ class FlowCytometryBasic(Phenotype):
 
         phases = [G0G1, S, G2M]
 
-        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer", phases=phases,
+                         quiescent_phase=quiescent_phase)
 
 
 class FlowCytometryAdvanced(Phenotype):
@@ -919,7 +926,8 @@ class FlowCytometryAdvanced(Phenotype):
     ting this phase. Its expected duration is 1h, transition from this phase is stochastic.
     """
 
-    def __init__(self, name="Flow Cytometry Advanced", dt=0.1, time_unit="min", quiescent_phase=False,
+    def __init__(self, name="Flow Cytometry Advanced", dt=0.1, time_unit="min", space_unit="micrometer",
+                 quiescent_phase=False,
                  division_at_phase_exits=(False, False, False, True),
                  removal_at_phase_exits=(False, False, False, False), fixed_durations=(False, False, False, False),
                  phase_durations: list = (4.98 * 60, 8 * 60.0, 4 * 60, 1 * 60),
@@ -1022,7 +1030,8 @@ class FlowCytometryAdvanced(Phenotype):
 
         phases = [G0G1, S, G2, M]
 
-        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, space_unit="micrometer",
+                         quiescent_phase=quiescent_phase)
 
 
 class ApoptosisStandard(Phenotype):
@@ -1036,7 +1045,8 @@ class ApoptosisStandard(Phenotype):
 
     """
 
-    def __init__(self, name="Standard apoptosis model", dt=0.1, time_unit="min", quiescent_phase=False,
+    def __init__(self, name="Standard apoptosis model", dt=0.1, time_unit="min", space_unit="micrometer",
+                 quiescent_phase=False,
                  division_at_phase_exits=(False,), removal_at_phase_exits=(True,), fixed_durations=(True,),
                  phase_durations=(8.6 * 60,), entry_functions=(None,), entry_functions_args=(None,),
                  exit_functions=(None,), exit_functions_args=(None,), arrest_functions=(None,),
@@ -1084,7 +1094,8 @@ class ApoptosisStandard(Phenotype):
 
         phases = [apopto]
 
-        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer",
+                         phases=phases, quiescent_phase=quiescent_phase)
 
 
 class NecrosisStandard(Phenotype):
@@ -1101,7 +1112,8 @@ class NecrosisStandard(Phenotype):
 
     """
 
-    def __init__(self, name="Standard necrosis model", dt=0.1, time_unit="min", quiescent_phase=False,
+    def __init__(self, name="Standard necrosis model", dt=0.1, time_unit="min", space_unit="micrometer",
+                 quiescent_phase=False,
                  division_at_phase_exits=(False, False), removal_at_phase_exits=(False, True),
                  fixed_durations=(False, True),
                  phase_durations=(None, None), entry_functions=(None, None), entry_functions_args=(None, None),
@@ -1176,7 +1188,8 @@ class NecrosisStandard(Phenotype):
 
         phases = [necro_swell, necro_lysed]
 
-        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer", phases=phases,
+                         quiescent_phase=quiescent_phase)
 
         return
 
