@@ -55,12 +55,18 @@ class ApoptosysSteppable(SteppableBasePy):
         """
 
         self.side = 8  # cell side
-        self.dt = 2.5  # min/MCS
+        self.dt = .1  # min/MCS
 
         self.to_apoptose = 5
 
+        self.target_volume = self.side * self.side
+
+        self.apopto = pheno.phenotypes.ApoptosisStandard(dt=self.dt)
+
+        self.volume_conversion_unit = self.target_volume / self.apopto.current_phase.volume.total
+
         for cell in self.cell_list:
-            cell.targetVolume = self.side*self.side
+            cell.targetVolume = self.target_volume
             cell.lambdaVolume = 8
 
     def step(self, mcs):
@@ -76,13 +82,8 @@ class ApoptosysSteppable(SteppableBasePy):
                 cell.type = self.SELECTED
                 cell.lambdaVolume = 25  # the cell is not alive anymore, so it should be pretty stiff as it can't
                 # reshape itself actively
-                apopto = pheno.phenotypes.ApoptosisStandard(dt=self.dt, nuclear_fluid=[0], nuclear_solid=[0],
-                                                            cytoplasm_fluid=[.75*cell.volume],  # the default volume
-                                                            # model uses a .75 fluid fraction
-                                                            cytoplasm_solid=[(1-.75)*cell.volume],
-                                                            simulated_cell_volume=cell.volume)
 
-                pheno.utils.add_phenotype_to_CC3D_cell(cell, apopto)
+                pheno.utils.add_phenotype_to_CC3D_cell(cell, self.apopto)
                 changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
                 if should_be_removed:
                     self.delete_cell(cell)
@@ -97,7 +98,8 @@ class ApoptosysSteppable(SteppableBasePy):
                           cell.dict["phenotype"].current_phase.volume.target_fluid_fraction,
                           cell.dict["phenotype"].current_phase.volume.total,
                           cell.volume)
-                    cell.targetVolume = cell.dict["phenotype"].current_phase.volume.total
+                    cell.targetVolume = self.volume_conversion_unit * \
+                                        cell.dict["phenotype"].current_phase.volume.total
                     cell.dict["phenotype"].current_phase.simulated_cell_volume = cell.volume
                     if should_be_removed:
                         self.delete_cell(cell)

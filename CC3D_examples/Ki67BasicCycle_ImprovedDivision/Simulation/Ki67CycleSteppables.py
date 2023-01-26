@@ -83,11 +83,9 @@ class ConstraintInitializerSteppable(SteppableBasePy):
         self.volume_conversion_unit = self.target_volume / ki67_basic_modified_transition.current_phase.volume.total
 
         for cell in self.cell_list:
-            cell.targetVolume = side * side
+            cell.targetVolume = self.target_volume
             cell.lambdaVolume = 2.0
-            # print(hasattr(cell, "__dict__"))
             pheno.utils.add_phenotype_to_CC3D_cell(cell, ki67_basic_modified_transition)
-            # print(hasattr(cell, "phenotype"))
             cell.dict["phase_index_plus_1"] = cell.dict["phenotype"].current_phase.index + 1
 
         self.shared_steppable_vars["constraints"] = self
@@ -180,8 +178,6 @@ class MitosisSteppable(MitosisSteppableBase):
         time_spent_in_1 = []
 
         for cell in self.cell_list:
-            # if cell.volume<=90:
-            #     print(cell.volume, mcs)
             volumes.append(cell.volume)
             cell.dict["phenotype"].current_phase.simulated_cell_volume = cell.volume
             # print(len(args))
@@ -194,7 +190,7 @@ class MitosisSteppable(MitosisSteppableBase):
                 # args = [cc3d cell volume, doubling colume, time in phase, phase duration
                 args = [
                     cell.volume,
-                    .9*self.constraint_vars.doubling_volume,  # we use 90% of the doubling volume because cc3d cells
+                    .9 * self.constraint_vars.doubling_volume,  # we use 90% of the doubling volume because cc3d cells
                     # will always be slightly below their target due to the contact energy
                     cell.dict["phenotype"].current_phase.time_in_phase + cell.dict["phenotype"].dt,
                     cell.dict["phenotype"].current_phase.phase_duration]
@@ -302,18 +298,20 @@ class MitosisSteppable(MitosisSteppableBase):
 
     def update_attributes(self):
         # resetting target volume
-        converted_volume = self.constraint_vars.volume_conversion_unit * self.parent_cell.dict["phenotype"].current_phase.volume.total
+        converted_volume = self.constraint_vars.volume_conversion_unit * \
+                           self.parent_cell.dict["phenotype"].current_phase.volume.total
         self.parent_cell.targetVolume = converted_volume
 
         self.clone_parent_2_child()
         self.parent_cell.dict["phase_index_plus_1"] = self.parent_cell.dict["phenotype"].current_phase.index + 1
 
         self.child_cell.dict["phase_index_plus_1"] = self.child_cell.dict["phenotype"].current_phase.index + 1
+        self.child_cell.dict["phenotype"].time_in_phenotype = 0
         if len(self.cell_list) < 10:
-            print("@@@\nCHILD ATTRIBS\n@@@\n", self.child_cell.volume, self.child_cell.dict["phenotype"].time_in_phenotype,
+            print("@@@\nCHILD ATTRIBS\n@@@\n", self.child_cell.volume,
+                  self.child_cell.dict["phenotype"].time_in_phenotype,
                   self.child_cell.dict["phenotype"].current_phase,
                   self.child_cell.dict["phenotype"].current_phase.time_in_phase)
-        # self.child_cell.dict["phenotype"].time_in_phenotype = 0
 
     def on_stop(self):
         self.finish()

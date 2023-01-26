@@ -57,23 +57,18 @@ class NecrosisSteppable(SteppableBasePy):
         """
 
         self.side = 8  # cell side
-        self.dt = 2.5  # min/MCS
+        self.dt = .1  # min/MCS
 
-        self.to_necrose = 5  # how many cells we will necrose
+        self.to_necrose = 15  # how many cells we will necrose
+        self.target_volume = self.side * self.side
+
+        self.necrotic_phenotype = pheno.phenotypes.NecrosisStandard(dt=self.dt)
+        self.volume_conversion_unit = self.target_volume / self.necrotic_phenotype.current_phase.volume.total
 
         for cell in self.cell_list:
-            cell.targetVolume = self.side * self.side
+            cell.targetVolume = self.target_volume
             cell.lambdaVolume = 8
-            necrotic_phenotype = pheno.phenotypes.NecrosisStandard(dt=self.dt,
-                                                                   nuclear_fluid=[0, 0],
-                                                                   nuclear_solid=[0, 0],
-                                                                   cytoplasm_fluid=[.75 * cell.volume,
-                                                                                    .75 * cell.volume],
-                                                                   # the default volume
-                                                                   # model uses a .75 fluid fraction
-                                                                   cytoplasm_solid=[(1 - .75) * cell.volume,
-                                                                                    (1 - .75) * cell.volume],
-                                                                   simulated_cell_volume=cell.volume)
+
 
     def step(self, mcs):
         """
@@ -88,43 +83,24 @@ class NecrosisSteppable(SteppableBasePy):
                 cell.type = self.NECROTIC
                 cell.lambdaVolume = 25  # the cell is not alive anymore, so it should be pretty stiff as it can't
                 # reshape itself actively
-
-                necrotic_phenotype = pheno.phenotypes.NecrosisStandard(dt=self.dt,
-                                                                       nuclear_fluid=[0, 0],
-                                                                       nuclear_solid=[0, 0],
-                                                                       cytoplasm_fluid=[.75 * cell.volume,
-                                                                                        .75 * cell.volume],
-                                                                       # the default volume
-                                                                       # model uses a .75 fluid fraction
-                                                                       cytoplasm_solid=[(1 - .75) * cell.volume,
-                                                                                        (1 - .75) * cell.volume],
-                                                                       simulated_cell_volume=cell.volume)
-                pheno.utils.add_phenotype_to_CC3D_cell(cell, necrotic_phenotype)
+                pheno.utils.add_phenotype_to_CC3D_cell(cell, self.necrotic_phenotype)
 
         if mcs > 50:
             for cid in self.selected_cell_ids:
                 cell = self.fetch_cell_by_id(int(cid))
                 if cell is not None:  # if the cell has died (disappeared, deleted from the simulation) cell is a null
                     # object
-                    # todo: monitor the phase change, change type when it happens, etc
                     changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
-                    print("TARGET VOLUMES:\n",
-                          "Cyto solid:", cell.dict["phenotype"].current_phase.volume.cytoplasm_solid_target,
-                          ". Nucl solid:", cell.dict["phenotype"].current_phase.volume.nuclear_solid_target,
-                          ". Fluid frac solid:", cell.dict["phenotype"].current_phase.volume.target_fluid_fraction,
-                          "\n CURRENT VOLUMES:\n",
-                          "TOTAL:", cell.dict["phenotype"].current_phase.volume.total,
-                          "cyto:", cell.dict["phenotype"].current_phase.volume.cytoplasm,
-                          ". nucl:", cell.dict["phenotype"].current_phase.volume.nuclear,
-                          ". fluid:", cell.dict["phenotype"].current_phase.volume.fluid,
-                          "\n SIMULATED CELL:", cell.volume)
-                    cell.targetVolume = cell.dict["phenotype"].current_phase.volume.total
+                    cell.targetVolume = self.volume_conversion_unit * \
+                                        cell.dict["phenotype"].current_phase.volume.total
                     cell.dict["phenotype"].current_phase.simulated_cell_volume = cell.volume
-                    if changed_phase:
+                    print(cell.dict["phenotype"].current_phase.name)
+                    if not cell.type == self.RUPTURED and \
+                            (changed_phase or cell.dict["phenotype"].current_phase.name == "Necrotic (lysed)"):
                         print("CELL BURST!")
-                        if cell.dict["phenotype"].current_phase.name == "Necrotic (lysed)":
+                        # if cell.dict["phenotype"].current_phase.name == "Necrotic (lysed)":
                             # if the cell has ruptured
-                            cell.type = self.RUPTURED
+                        cell.type = self.RUPTURED
                     if should_be_removed:
                         self.delete_cell(cell)
 

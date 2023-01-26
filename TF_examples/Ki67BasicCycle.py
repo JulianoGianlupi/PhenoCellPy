@@ -68,13 +68,10 @@ density = mass / ((4 / 3) * np.pi * radius * radius * radius)
 
 dt = 10  # min/time step
 
-ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt, target_fluid_fraction=[1, 1],
-                                        # as the simulated cell "doesn't have" a nucleus
-                                        # we don't need to give it a volume
-                                        nuclear_fluid=[0, 0],
-                                        nuclear_solid=[0, 0], cytoplasm_fluid=[mass, mass],
-                                        cytoplasm_solid=[0, 0], cytoplasm_solid_target=[0, 0],
-                                        target_cytoplasm_to_nuclear_ratio=[0, 0])
+ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt)
+
+global volume_conversion_unit
+volume_conversion_unit = mass/ki67_basic.current_phase.volume.total
 
 
 class CellType(tf.ParticleTypeSpec):
@@ -112,12 +109,12 @@ def step_cycle_and_divide(event):
             print("@@@\nPHASE CHANGE\n@@@")
             # time.sleep(1)
 
-        radius = get_radius_sphere(pcycle.current_phase.volume.total)
+        radius = get_radius_sphere(volume_conversion_unit*pcycle.current_phase.volume.total)
 
         # book-keeping, making sure the simulated cell grows
-        if p.radius < radius:
-            p.radius = radius
-            p.mass = ((4 / 3) * np.pi * radius * radius * radius) * density
+        # if p.radius < radius:
+        p.radius = radius
+        p.mass = ((4 / 3) * np.pi * radius * radius * radius) * density
 
         # if division occurs, divide
         if division:

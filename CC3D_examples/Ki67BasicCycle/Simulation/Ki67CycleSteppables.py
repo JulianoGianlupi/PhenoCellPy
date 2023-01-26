@@ -30,7 +30,6 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-
 from cc3d.cpp.PlayerPython import *
 from cc3d import CompuCellSetup
 
@@ -52,9 +51,15 @@ class ConstraintInitializerSteppable(SteppableBasePy):
     def __init__(self, frequency=1):
         SteppableBasePy.__init__(self, frequency)
         self.track_cell_level_scalar_attribute(field_name='phase_index_plus_1', attribute_name='phase_index_plus_1')
+        self.target_volume = None
+        self.doubling_volume = None
+        self.volume_conversion_unit = None
 
     def start(self):
         side = 10
+
+        self.target_volume = side * side
+        self.doubling_volume = 2 * self.target_volume
 
         x = self.dim.x // 2 - side // 2
         y = self.dim.x // 2 - side // 2
@@ -64,26 +69,25 @@ class ConstraintInitializerSteppable(SteppableBasePy):
 
         dt = 5  # 5 min/mcs
 
-        ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt, target_fluid_fraction=[1, 1],
-                                                # as the simulated cell "doesn't have" a nucleus
-                                                # we don't need to give it a volume
-                                                nuclear_fluid=[0, 0],
-                                                nuclear_solid=[0, 0], cytoplasm_fluid=[side * side, side * side],
-                                                cytoplasm_solid=[0, 0], cytoplasm_solid_target=[0, 0],
-                                                target_cytoplasm_to_nuclear_ratio=[0, 0])
+        ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt)
+
+        self.volume_conversion_unit = self.target_volume / ki67_basic.current_phase.volume.total
 
         for cell in self.cell_list:
-            cell.targetVolume = side * side
+            cell.targetVolume = self.target_volume
             cell.lambdaVolume = 2.0
-            # print(hasattr(cell, "__dict__"))
             pheno.utils.add_phenotype_to_CC3D_cell(cell, ki67_basic)
-            # print(hasattr(cell, "phenotype"))
             cell.dict["phase_index_plus_1"] = cell.dict["phenotype"].current_phase.index + 1
+
+        self.shared_steppable_vars["constraints"] = self
 
 
 class MitosisSteppable(MitosisSteppableBase):
     def __init__(self, frequency=1):
         MitosisSteppableBase.__init__(self, frequency)
+
+        self.constraint_vars = None
+
         self.previous_number_cells = 0
 
         self.plot = False
@@ -106,7 +110,7 @@ class MitosisSteppable(MitosisSteppableBase):
             self.number_cells_file.write("MCS, N, N+, N-\n")
 
     def start(self):
-
+        self.constraint_vars = self.shared_steppable_vars["constraints"]
         if self.plot:
             self.plot_win_vol = self.add_new_plot_window(title='Volume metrics',
                                                          x_axis_title='MonteCarlo Step (MCS)',
@@ -177,8 +181,8 @@ class MitosisSteppable(MitosisSteppableBase):
                 time_spent_in_1.append(cell.dict["phenotype"].current_phase.time_in_phase)
             changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
 
-            if cell.targetVolume < cell.dict["phenotype"].current_phase.volume.total:
-                cell.targetVolume = cell.dict["phenotype"].current_phase.volume.total
+            cell.targetVolume = self.constraint_vars.volume_conversion_unit * \
+                                cell.dict["phenotype"].current_phase.volume.total
 
             if changed_phase:
                 cell.dict["phase_index_plus_1"] = cell.dict["phenotype"].current_phase.index + 1
@@ -275,7 +279,9 @@ class MitosisSteppable(MitosisSteppableBase):
 
     def update_attributes(self):
         # reducing parent target volume
-        self.parent_cell.targetVolume = 100  # todo: use parameter
+        converted_volume = self.constraint_vars.volume_conversion_unit * \
+                           self.parent_cell.dict["phenotype"].current_phase.volume.total
+        self.parent_cell.targetVolume = converted_volume
 
         self.clone_parent_2_child()
         self.parent_cell.dict["phenotype"].current_phase.volume.target_cytoplasm = self.parent_cell.targetVolume
@@ -285,11 +291,13 @@ class MitosisSteppable(MitosisSteppableBase):
         self.child_cell.dict["phenotype"].current_phase.volume.target_cytoplasm = self.parent_cell.targetVolume
         self.child_cell.dict["phenotype"].current_phase.volume.cytoplasm_fluid = self.parent_cell.targetVolume
         self.child_cell.dict["phase_index_plus_1"] = self.child_cell.dict["phenotype"].current_phase.index + 1
+        self.child_cell.dict["phenotype"].time_in_phenotype = 0
         if len(self.cell_list) < 10:
-            print("@@@\nCHILD ATTRIBS\n@@@\n", self.child_cell.volume, self.child_cell.dict["phenotype"].time_in_phenotype,
+            print("@@@\nCHILD ATTRIBS\n@@@\n", self.child_cell.volume,
+                  self.child_cell.dict["phenotype"].time_in_phenotype,
                   self.child_cell.dict["phenotype"].current_phase,
                   self.child_cell.dict["phenotype"].current_phase.time_in_phase)
-        # self.child_cell.dict["phenotype"].time_in_phenotype = 0
+
 
     def on_stop(self):
         self.finish()
