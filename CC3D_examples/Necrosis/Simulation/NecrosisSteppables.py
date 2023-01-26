@@ -94,7 +94,7 @@ class NecrosisSteppable(SteppableBasePy):
                     cell.targetVolume = self.volume_conversion_unit * \
                                         cell.dict["phenotype"].current_phase.volume.total
                     cell.dict["phenotype"].current_phase.simulated_cell_volume = cell.volume
-                    print(cell.dict["phenotype"].current_phase.name)
+                    # print(cell.dict["phenotype"].current_phase.name)
                     if not cell.type == self.RUPTURED and \
                             (changed_phase or cell.dict["phenotype"].current_phase.name == "Necrotic (lysed)"):
                         print("CELL BURST!")

@@ -33,6 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from warnings import warn
 
 import Phenotypes.phases as Phases
+
+
 # from numpy.random import randint
 
 
@@ -179,7 +181,7 @@ def _check_arguments(number_phases, phase_names, division_at_phase_exits, remova
             f"{phase_names} has {number_phases} phases, {len(transitions_to_next_phase)} transition functions defined")
     elif type(transitions_to_next_phase) != list and type(transitions_to_next_phase) != tuple:
         raise TypeError(
-            f"`transitions_to_next_phase` must be a list or tuple, got {type(transitions_to_next_phase)}")
+            f"`check_transition_to_next_phase_function` must be a list or tuple, got {type(transitions_to_next_phase)}")
 
     if len(transitions_to_next_phase_args) != number_phases:
         raise ValueError(
@@ -187,7 +189,7 @@ def _check_arguments(number_phases, phase_names, division_at_phase_exits, remova
             f"defined")
     elif type(transitions_to_next_phase_args) != list and type(transitions_to_next_phase_args) != tuple:
         raise TypeError(
-            f"`transitions_to_next_phase_args` must be a list or tuple, got {type(arrest_functions_args)}")
+            f"`check_transition_to_next_phase_functions_args` must be a list or tuple, got {type(arrest_functions_args)}")
 
     #
     if len(nuclear_biomass_change_rate) != number_phases:
@@ -611,7 +613,8 @@ class Ki67Basic(Phenotype):
                  fixed_durations=(False, True), phase_durations: list = (4.59 * 60, 15.5 * 60.0),
                  entry_functions=(None, None), entry_functions_args=(None, None), exit_functions=(None, None),
                  exit_functions_args=(None, None), arrest_functions=(None, None), arrest_functions_args=(None, None),
-                 transitions_to_next_phase=(None, None), transitions_to_next_phase_args: list = (None, None),
+                 check_transition_to_next_phase_functions=(None, None),
+                 check_transition_to_next_phase_functions_args: list = (None, None),
                  simulated_cell_volume=None, cytoplasm_biomass_change_rate=(None, None),
                  nuclear_biomass_change_rate=(None, None), calcification_rate=(None, None), calcified_fraction=(0, 0),
                  target_fluid_fraction=(None, None), nuclear_fluid=(None, None), nuclear_solid=(None, None),
@@ -620,7 +623,8 @@ class Ki67Basic(Phenotype):
                  fluid_change_rate=(None, None)):
         _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
-                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         arrest_functions_args, check_transition_to_next_phase_functions,
+                         check_transition_to_next_phase_functions_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
                          calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
                          cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
@@ -636,8 +640,10 @@ class Ki67Basic(Phenotype):
                                             exit_function=exit_functions[1], exit_function_args=exit_functions_args[1],
                                             arrest_function=arrest_functions[1],
                                             arrest_function_args=arrest_functions_args[1],
-                                            transition_to_next_phase=transitions_to_next_phase[1],
-                                            transition_to_next_phase_args=transitions_to_next_phase_args[1],
+                                            check_transition_to_next_phase_function=
+                                            check_transition_to_next_phase_functions[1],
+                                            check_transition_to_next_phase_function_args=
+                                            check_transition_to_next_phase_functions_args[1],
                                             simulated_cell_volume=simulated_cell_volume,
                                             cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[1],
                                             nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
@@ -661,8 +667,10 @@ class Ki67Basic(Phenotype):
                                             exit_function=exit_functions[0], exit_function_args=exit_functions_args[0],
                                             arrest_function=arrest_functions[0],
                                             arrest_function_args=arrest_functions_args[0],
-                                            transition_to_next_phase=transitions_to_next_phase[0],
-                                            transition_to_next_phase_args=transitions_to_next_phase_args[0],
+                                            check_transition_to_next_phase_function=
+                                            check_transition_to_next_phase_functions[0],
+                                            check_transition_to_next_phase_function_args=
+                                            check_transition_to_next_phase_functions_args[0],
                                             simulated_cell_volume=simulated_cell_volume,
                                             cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
                                             nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
@@ -703,8 +711,8 @@ class Ki67Advanced(Phenotype):
                  entry_functions=(None, None, None), entry_functions_args=(None, None, None),
                  exit_functions=(None, None, None), exit_functions_args=(None, None, None),
                  arrest_functions=(None, None, None), arrest_functions_args=(None, None, None),
-                 transitions_to_next_phase=(None, None, None),
-                 transitions_to_next_phase_args: list = (None, None, None), simulated_cell_volume=None,
+                 check_transition_to_next_phase_functions=(None, None, None),
+                 check_transition_to_next_phase_functions_args: list = (None, None, None), simulated_cell_volume=None,
                  cytoplasm_biomass_change_rate=(None, None, None),
                  nuclear_biomass_change_rate=(None, None, None), calcification_rate=(None, None, None),
                  calcified_fraction=(0, 0, 0),
@@ -716,7 +724,8 @@ class Ki67Advanced(Phenotype):
                  fluid_change_rate=(None, None, None)):
         _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
-                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         arrest_functions_args, check_transition_to_next_phase_functions,
+                         check_transition_to_next_phase_functions_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
                          calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
                          cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
@@ -732,8 +741,10 @@ class Ki67Advanced(Phenotype):
                                             exit_function=exit_functions[0], exit_function_args=exit_functions_args[0],
                                             arrest_function=arrest_functions[0],
                                             arrest_function_args=arrest_functions_args[0],
-                                            transition_to_next_phase=transitions_to_next_phase[0],
-                                            transition_to_next_phase_args=transitions_to_next_phase_args[0],
+                                            check_transition_to_next_phase_function=
+                                            check_transition_to_next_phase_functions[0],
+                                            check_transition_to_next_phase_function_args=
+                                            check_transition_to_next_phase_functions_args[0],
                                             simulated_cell_volume=simulated_cell_volume,
                                             cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
                                             nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
@@ -759,8 +770,10 @@ class Ki67Advanced(Phenotype):
                                                           exit_function_args=exit_functions_args[1],
                                                           arrest_function=arrest_functions[1],
                                                           arrest_function_args=arrest_functions_args[1],
-                                                          transition_to_next_phase=transitions_to_next_phase[1],
-                                                          transition_to_next_phase_args=transitions_to_next_phase_args[
+                                                          check_transition_to_next_phase_function=
+                                                          check_transition_to_next_phase_functions[1],
+                                                          check_transition_to_next_phase_function_args=
+                                                          check_transition_to_next_phase_functions_args[
                                                               1], simulated_cell_volume=simulated_cell_volume,
                                                           cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[
                                                               1],
@@ -790,9 +803,10 @@ class Ki67Advanced(Phenotype):
                                                             exit_function_args=exit_functions_args[2],
                                                             arrest_function=arrest_functions[2],
                                                             arrest_function_args=arrest_functions_args[2],
-                                                            transition_to_next_phase=transitions_to_next_phase[2],
-                                                            transition_to_next_phase_args=
-                                                            transitions_to_next_phase_args[2],
+                                                            check_transition_to_next_phase_function=
+                                                            check_transition_to_next_phase_functions[2],
+                                                            check_transition_to_next_phase_function_args=
+                                                            check_transition_to_next_phase_functions_args[2],
                                                             simulated_cell_volume=simulated_cell_volume,
                                                             cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[
                                                                 2],
@@ -835,8 +849,8 @@ class FlowCytometryBasic(Phenotype):
                  entry_functions=(None, None, None), entry_functions_args=(None, None, None),
                  exit_functions=(None, None, None), exit_functions_args=(None, None, None),
                  arrest_functions=(None, None, None), arrest_functions_args=(None, None, None),
-                 transitions_to_next_phase=(None, None, None),
-                 transitions_to_next_phase_args: list = (None, None, None), simulated_cell_volume=None,
+                 check_transition_to_next_phase_functions=(None, None, None),
+                 check_transition_to_next_phase_functions_args: list = (None, None, None), simulated_cell_volume=None,
                  cytoplasm_biomass_change_rate=(None, None, None),
                  nuclear_biomass_change_rate=(None, None, None), calcification_rate=(None, None, None),
                  calcified_fraction=(0, 0, 0),
@@ -848,7 +862,8 @@ class FlowCytometryBasic(Phenotype):
                  fluid_change_rate=(None, None, None)):
         _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
-                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         arrest_functions_args, check_transition_to_next_phase_functions,
+                         check_transition_to_next_phase_functions_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
                          calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
                          cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
@@ -861,8 +876,9 @@ class FlowCytometryBasic(Phenotype):
                            entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
                            exit_function_args=exit_functions_args[0], arrest_function=arrest_functions[0],
                            arrest_function_args=arrest_functions_args[0],
-                           transition_to_next_phase=transitions_to_next_phase[0],
-                           transition_to_next_phase_args=transitions_to_next_phase_args[0],
+                           check_transition_to_next_phase_function=check_transition_to_next_phase_functions[0],
+                           check_transition_to_next_phase_function_args=check_transition_to_next_phase_functions_args[
+                               0],
                            simulated_cell_volume=simulated_cell_volume,
                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
@@ -880,8 +896,8 @@ class FlowCytometryBasic(Phenotype):
                      entry_function_args=entry_functions_args[1], exit_function=exit_functions[1],
                      exit_function_args=exit_functions_args[1], arrest_function=arrest_functions[1],
                      arrest_function_args=arrest_functions_args[1],
-                     transition_to_next_phase=transitions_to_next_phase[1],
-                     transition_to_next_phase_args=transitions_to_next_phase_args[1],
+                     check_transition_to_next_phase_function=check_transition_to_next_phase_functions[1],
+                     check_transition_to_next_phase_function_args=check_transition_to_next_phase_functions_args[1],
                      simulated_cell_volume=simulated_cell_volume,
                      cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[1],
                      nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
@@ -899,8 +915,8 @@ class FlowCytometryBasic(Phenotype):
                          entry_function_args=entry_functions_args[2], exit_function=exit_functions[2],
                          exit_function_args=exit_functions_args[2], arrest_function=arrest_functions[2],
                          arrest_function_args=arrest_functions_args[2],
-                         transition_to_next_phase=transitions_to_next_phase[2],
-                         transition_to_next_phase_args=transitions_to_next_phase_args[2],
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_functions[2],
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_functions_args[2],
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[2],
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate[2],
@@ -941,8 +957,9 @@ class FlowCytometryAdvanced(Phenotype):
                  entry_functions=(None, None, None, None), entry_functions_args=(None, None, None, None),
                  exit_functions=(None, None, None, None), exit_functions_args=(None, None, None),
                  arrest_functions=(None, None, None, None), arrest_functions_args=(None, None, None, None),
-                 transitions_to_next_phase=(None, None, None, None),
-                 transitions_to_next_phase_args: list = (None, None, None, None), simulated_cell_volume=None,
+                 check_transition_to_next_phase_functions=(None, None, None, None),
+                 check_transition_to_next_phase_functions_args: list = (None, None, None, None),
+                 simulated_cell_volume=None,
                  cytoplasm_biomass_change_rate=(None, None, None, None),
                  nuclear_biomass_change_rate=(None, None, None, None), calcification_rate=(None, None, None, None),
                  calcified_fraction=(0, 0, 0, 0),
@@ -955,7 +972,8 @@ class FlowCytometryAdvanced(Phenotype):
                  fluid_change_rate=(None, None, None, None)):
         _check_arguments(4, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
-                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         arrest_functions_args, check_transition_to_next_phase_functions,
+                         check_transition_to_next_phase_functions_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
                          calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
                          cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
@@ -968,8 +986,9 @@ class FlowCytometryAdvanced(Phenotype):
                            entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
                            exit_function_args=exit_functions_args[0], arrest_function=arrest_functions[0],
                            arrest_function_args=arrest_functions_args[0],
-                           transition_to_next_phase=transitions_to_next_phase[0],
-                           transition_to_next_phase_args=transitions_to_next_phase_args[0],
+                           check_transition_to_next_phase_function=check_transition_to_next_phase_functions[0],
+                           check_transition_to_next_phase_function_args=check_transition_to_next_phase_functions_args[
+                               0],
                            simulated_cell_volume=simulated_cell_volume,
                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
@@ -987,8 +1006,8 @@ class FlowCytometryAdvanced(Phenotype):
                      entry_function_args=entry_functions_args[1], exit_function=exit_functions[1],
                      exit_function_args=exit_functions_args[1], arrest_function=arrest_functions[1],
                      arrest_function_args=arrest_functions_args[1],
-                     transition_to_next_phase=transitions_to_next_phase[1],
-                     transition_to_next_phase_args=transitions_to_next_phase_args[1],
+                     check_transition_to_next_phase_function=check_transition_to_next_phase_functions[1],
+                     check_transition_to_next_phase_function_args=check_transition_to_next_phase_functions_args[1],
                      simulated_cell_volume=simulated_cell_volume,
                      cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[1],
                      nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
@@ -1007,8 +1026,8 @@ class FlowCytometryAdvanced(Phenotype):
                          entry_function_args=entry_functions_args[2], exit_function=exit_functions[2],
                          exit_function_args=exit_functions_args[2], arrest_function=arrest_functions[2],
                          arrest_function_args=arrest_functions_args[2],
-                         transition_to_next_phase=transitions_to_next_phase[2],
-                         transition_to_next_phase_args=transitions_to_next_phase_args[2],
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_functions[2],
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_functions_args[2],
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[2],
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate[2],
@@ -1027,8 +1046,8 @@ class FlowCytometryAdvanced(Phenotype):
                        entry_function_args=entry_functions_args[3], exit_function=exit_functions[3],
                        exit_function_args=exit_functions_args[3], arrest_function=arrest_functions[3],
                        arrest_function_args=arrest_functions_args[3],
-                       transition_to_next_phase=transitions_to_next_phase[3],
-                       transition_to_next_phase_args=transitions_to_next_phase_args[3],
+                       check_transition_to_next_phase_function=check_transition_to_next_phase_functions[3],
+                       check_transition_to_next_phase_function_args=check_transition_to_next_phase_functions_args[3],
                        simulated_cell_volume=simulated_cell_volume,
                        cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[3],
                        nuclear_biomass_change_rate=nuclear_biomass_change_rate[3],
@@ -1061,8 +1080,8 @@ class ApoptosisStandard(Phenotype):
                  division_at_phase_exits=(False,), removal_at_phase_exits=(True,), fixed_durations=(True,),
                  phase_durations=(8.6 * 60,), entry_functions=(None,), entry_functions_args=(None,),
                  exit_functions=(None,), exit_functions_args=(None,), arrest_functions=(None,),
-                 arrest_functions_args=(None,), transitions_to_next_phase=(None,),
-                 transitions_to_next_phase_args=(None,), simulated_cell_volume=None,
+                 arrest_functions_args=(None,), check_transition_to_next_phase_functions=(None,),
+                 check_transition_to_next_phase_functions_args=(None,), simulated_cell_volume=None,
                  cytoplasm_biomass_change_rate=(1 / 60,),
                  nuclear_biomass_change_rate=(0.35 / 60,), calcification_rate=(0,),
                  calcified_fraction=(0,),
@@ -1072,7 +1091,8 @@ class ApoptosisStandard(Phenotype):
                  fluid_change_rate=(None,)):
         _check_arguments(1, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
-                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         arrest_functions_args, check_transition_to_next_phase_functions,
+                         check_transition_to_next_phase_functions_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
                          calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
                          cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
@@ -1086,8 +1106,9 @@ class ApoptosisStandard(Phenotype):
                                   entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
                                   exit_function_args=exit_functions_args[0], arrest_function=arrest_functions[0],
                                   arrest_function_args=arrest_functions_args[0],
-                                  transition_to_next_phase=transitions_to_next_phase[0],
-                                  transition_to_next_phase_args=transitions_to_next_phase_args[0],
+                                  check_transition_to_next_phase_function=check_transition_to_next_phase_functions[0],
+                                  check_transition_to_next_phase_function_args=
+                                  check_transition_to_next_phase_functions_args[0],
                                   simulated_cell_volume=simulated_cell_volume,
                                   cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
                                   nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
@@ -1130,8 +1151,8 @@ class NecrosisStandard(Phenotype):
                  fixed_durations=(False, True),
                  phase_durations=(None, None), entry_functions=(None, None), entry_functions_args=(None, None),
                  exit_functions=(None, None), exit_functions_args=(None, None), arrest_functions=(None, None),
-                 arrest_functions_args=(None, None), transitions_to_next_phase=(None, None),
-                 transitions_to_next_phase_args=(None, None), simulated_cell_volume=None,
+                 arrest_functions_args=(None, None), check_transition_to_next_phase_functions=(None, None),
+                 check_transition_to_next_phase_functions_args=(None, None), simulated_cell_volume=None,
                  cytoplasm_biomass_change_rate=(None, None),
                  nuclear_biomass_change_rate=(None, None),
                  calcification_rate=(None, None),
@@ -1142,7 +1163,8 @@ class NecrosisStandard(Phenotype):
                  fluid_change_rate=(None, None)):
         _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
-                         arrest_functions_args, transitions_to_next_phase, transitions_to_next_phase_args,
+                         arrest_functions_args, check_transition_to_next_phase_functions,
+                         check_transition_to_next_phase_functions_args,
                          cytoplasm_biomass_change_rate, nuclear_biomass_change_rate, calcification_rate,
                          calcified_fraction, target_fluid_fraction, nuclear_fluid, nuclear_solid, nuclear_solid_target,
                          cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
@@ -1158,8 +1180,10 @@ class NecrosisStandard(Phenotype):
                                            exit_function_args=exit_functions_args[0],
                                            arrest_function=arrest_functions[0],
                                            arrest_function_args=arrest_functions_args[0],
-                                           transition_to_next_phase=transitions_to_next_phase[0],
-                                           transition_to_next_phase_args=transitions_to_next_phase_args[0],
+                                           check_transition_to_next_phase_function=
+                                           check_transition_to_next_phase_functions[0],
+                                           check_transition_to_next_phase_function_args=
+                                           check_transition_to_next_phase_functions_args[0],
                                            simulated_cell_volume=simulated_cell_volume,
                                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[0],
                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
@@ -1174,7 +1198,7 @@ class NecrosisStandard(Phenotype):
                                            fluid_change_rate=fluid_change_rate[0])
 
         necro_lysed = Phases.NecrosisLysed(index=1, previous_phase_index=0, next_phase_index=1, dt=dt,
-                                           time_unit=time_unit,space_unit=space_unit,
+                                           time_unit=time_unit, space_unit=space_unit,
                                            division_at_phase_exit=division_at_phase_exits[1],
                                            removal_at_phase_exit=removal_at_phase_exits[1],
                                            fixed_duration=fixed_durations[1], phase_duration=phase_durations[1],
@@ -1183,8 +1207,10 @@ class NecrosisStandard(Phenotype):
                                            exit_function_args=exit_functions_args[1],
                                            arrest_function=arrest_functions[1],
                                            arrest_function_args=arrest_functions_args[1],
-                                           transition_to_next_phase=transitions_to_next_phase[1],
-                                           transition_to_next_phase_args=transitions_to_next_phase_args[1],
+                                           check_transition_to_next_phase_function=
+                                           check_transition_to_next_phase_functions[1],
+                                           check_transition_to_next_phase_function_args=
+                                           check_transition_to_next_phase_functions_args[1],
                                            simulated_cell_volume=simulated_cell_volume,
                                            cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate[1],
                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],

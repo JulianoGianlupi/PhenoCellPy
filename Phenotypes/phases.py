@@ -141,13 +141,13 @@ class Phase:
     :param arrest_function_args: Args for `arrest_function`
     :type arrest_function_args: list or tuple
 
-    :param transition_to_next_phase: Default or custom function that returns if the cell should advance to the next
+    :param check_transition_to_next_phase_function: Default or custom function that returns if the cell should advance to the next
     phase in the phenotype. If left as None the phase will pick either `_transition_to_next_phase_deterministic`
     or `_transition_to_next_phase_stochastic` depending on the value of `fixed_duration`.
-    :type transition_to_next_phase: function
+    :type check_transition_to_next_phase_function: function
 
-    :param transition_to_next_phase_args: Args for `transition_to_next_phase`
-    :type transition_to_next_phase_args: list or tuple
+    :param check_transition_to_next_phase_function_args: Args for `transition_to_next_phase`
+    :type check_transition_to_next_phase_function_args: list or tuple
 
     :param simulated_cell_volume: Volume of the simulated cell (e.g., a CompuCell3D or Tissue Forge cell)
     :type simulated_cell_volume: float
@@ -220,8 +220,8 @@ class Phase:
                  division_at_phase_exit: bool = False, removal_at_phase_exit: bool = False,
                  fixed_duration: bool = False, phase_duration: float = 10, entry_function=None,
                  entry_function_args: list = None, exit_function=None, exit_function_args: list = None,
-                 arrest_function=None, arrest_function_args: list = None, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, simulated_cell_volume: float = None,
+                 arrest_function=None, arrest_function_args: list = None, check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
                  cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None, calcification_rate=None,
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
@@ -286,13 +286,13 @@ class Phase:
         :param arrest_function_args: Args for `arrest_function`
         :type arrest_function_args: list or tuple
 
-        :param transition_to_next_phase: Default or custom function that returns if the cell should advance to the next
+        :param check_transition_to_next_phase_function: Default or custom function that returns if the cell should advance to the next
         phase in the phenotype. If left as None the phase will pick either `_transition_to_next_phase_deterministic`
         or `_transition_to_next_phase_stochastic` depending on the value of `fixed_duration`.
-        :type transition_to_next_phase: function
+        :type check_transition_to_next_phase_function: function
 
-        :param transition_to_next_phase_args: Args for `transition_to_next_phase`
-        :type transition_to_next_phase_args: list or tuple
+        :param check_transition_to_next_phase_function_args: Args for `transition_to_next_phase`
+        :type check_transition_to_next_phase_function_args: list or tuple
 
         :param simulated_cell_volume: Volume of the simulated cell (e.g., a CompuCell3D or Tissue Forge cell)
         :type simulated_cell_volume: float
@@ -400,19 +400,19 @@ class Phase:
             raise TypeError("Arrest function defined but no args given. Was expecting "
                             f"'arrest_function_args' to be a list, got {type(arrest_function_args)}.")
 
-        if transition_to_next_phase is None:
+        if check_transition_to_next_phase_function is None:
             self.transition_to_next_phase_args = [None]
             if fixed_duration:
                 self.check_transition_to_next_phase = self._check_transition_to_next_phase_deterministic
             else:
                 self.check_transition_to_next_phase = self._check_transition_to_next_phase_stochastic
         else:
-            if type(transition_to_next_phase_args) != list:
+            if type(check_transition_to_next_phase_function_args) != list:
                 raise TypeError("Custom exit function selected but no args given. Was expecting "
-                                "'transition_to_next_phase_args' to be a list, got "
-                                f"{type(transition_to_next_phase_args)}.")
-            self.transition_to_next_phase_args = transition_to_next_phase_args
-            self.check_transition_to_next_phase = transition_to_next_phase
+                                "'check_transition_to_next_phase_function_args' to be a list, got "
+                                f"{type(check_transition_to_next_phase_function_args)}.")
+            self.transition_to_next_phase_args = check_transition_to_next_phase_function_args
+            self.check_transition_to_next_phase = check_transition_to_next_phase_function
 
         if simulated_cell_volume is None:
             self.simulated_cell_volume = 1
@@ -564,8 +564,8 @@ class QuiescentPhase(Phase):
                  division_at_phase_exit: bool = False, removal_at_phase_exit: bool = False,
                  fixed_duration: bool = False, phase_duration: float = 4.59 * 60, entry_function=None,
                  entry_function_args: list = None, exit_function=None, exit_function_args: list = None,
-                 arrest_function=None, arrest_function_args: list = None, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, simulated_cell_volume: float = None,
+                 arrest_function=None, arrest_function_args: list = None, check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
                  cytoplasm_biomass_change_rate=0, nuclear_biomass_change_rate=0, calcification_rate=0,
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
@@ -578,8 +578,8 @@ class QuiescentPhase(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
@@ -610,8 +610,8 @@ class Ki67Negative(Phase):
                  division_at_phase_exit: bool = False, removal_at_phase_exit: bool = False,
                  fixed_duration: bool = False, phase_duration: float = 4.59 * 60, entry_function=None,
                  entry_function_args: list = None, exit_function=None, exit_function_args: list = None,
-                 arrest_function=None, arrest_function_args: list = None, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, simulated_cell_volume: float = None,
+                 arrest_function=None, arrest_function_args: list = None, check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
                  cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None, calcification_rate=None,
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
@@ -624,8 +624,8 @@ class Ki67Negative(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
@@ -661,8 +661,8 @@ class Ki67Positive(Phase):
                  division_at_phase_exit: bool = True, removal_at_phase_exit: bool = False, fixed_duration: bool = True,
                  phase_duration: float = 15.5 * 60.0, entry_function=None, entry_function_args: list = None,
                  exit_function=None, exit_function_args: list = None, arrest_function=None,
-                 arrest_function_args: list = None, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, simulated_cell_volume: float = None,
+                 arrest_function_args: list = None, check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
                  cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None, calcification_rate=None,
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
@@ -727,8 +727,8 @@ class Ki67Positive(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
@@ -763,8 +763,8 @@ class Ki67PositivePreMitotic(Ki67Positive):
                  division_at_phase_exit: bool = True, removal_at_phase_exit: bool = False, fixed_duration: bool = True,
                  phase_duration: float = 13.0 * 60.0, entry_function=None, entry_function_args: list = None,
                  exit_function=None, exit_function_args: list = None, arrest_function=None,
-                 arrest_function_args: list = None, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, simulated_cell_volume: float = None,
+                 arrest_function_args: list = None, check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
                  cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None, calcification_rate=None,
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
@@ -777,8 +777,8 @@ class Ki67PositivePreMitotic(Ki67Positive):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
@@ -811,8 +811,8 @@ class Ki67PositivePostMitotic(Phase):
                  division_at_phase_exit: bool = True, removal_at_phase_exit: bool = False, fixed_duration: bool = True,
                  phase_duration: float = 2.5 * 60.0, entry_function=None, entry_function_args: list = None,
                  exit_function=None, exit_function_args: list = None, arrest_function=None,
-                 arrest_function_args: list = None, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, simulated_cell_volume: float = None,
+                 arrest_function_args: list = None, check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
                  cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None, calcification_rate=None,
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
@@ -833,8 +833,8 @@ class Ki67PositivePostMitotic(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
@@ -871,8 +871,8 @@ class G0G1(Phase):
                  division_at_phase_exit: bool = False, removal_at_phase_exit: bool = False,
                  fixed_duration: bool = False, phase_duration: float = 5.15 * 60.0, entry_function=None,
                  entry_function_args: list = None, exit_function=None, exit_function_args: list = None,
-                 arrest_function=None, arrest_function_args: list = None, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, simulated_cell_volume: float = None,
+                 arrest_function=None, arrest_function_args: list = None, check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
                  cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None, calcification_rate=None,
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
@@ -885,8 +885,8 @@ class G0G1(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
@@ -914,7 +914,7 @@ class S(Phase):
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 8 * 60.0,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
-                 transition_to_next_phase=None, transition_to_next_phase_args: list = None,
+                 check_transition_to_next_phase_function=None, check_transition_to_next_phase_function_args: list = None,
                  simulated_cell_volume: float = None, cytoplasm_biomass_change_rate=None,
                  nuclear_biomass_change_rate=None, calcification_rate=None, target_fluid_fraction=None,
                  nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
@@ -972,8 +972,8 @@ class S(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
@@ -1001,8 +1001,8 @@ class G2M(Phase):
                  division_at_phase_exit: bool = True, removal_at_phase_exit: bool = False, fixed_duration: bool = False,
                  phase_duration: float = 5 * 60.0, entry_function=None, entry_function_args: list = None,
                  exit_function=None, exit_function_args: list = None, arrest_function=None,
-                 arrest_function_args: list = None, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, simulated_cell_volume: float = None,
+                 arrest_function_args: list = None, check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
                  cytoplasm_biomass_change_rate=None, nuclear_biomass_change_rate=None, calcification_rate=None,
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
@@ -1030,8 +1030,8 @@ class G2M(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
@@ -1062,8 +1062,8 @@ class Apoptosis(Phase):
                  division_at_phase_exit: bool = False, removal_at_phase_exit: bool = True, fixed_duration: bool = True,
                  phase_duration: float = 8.6 * 60.0, entry_function=None, entry_function_args: list = None,
                  exit_function=None, exit_function_args: list = None, arrest_function=None,
-                 arrest_function_args: list = None, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, simulated_cell_volume: float = None,
+                 arrest_function_args: list = None, check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
                  cytoplasm_biomass_change_rate: float = 1 / 60, nuclear_biomass_change_rate: float = 0.35 / 60,
                  calcification_rate: float = 0, relative_rupture_volume: float = 2, target_fluid_fraction=None,
                  nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
@@ -1092,8 +1092,8 @@ class Apoptosis(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
@@ -1124,7 +1124,7 @@ class NecrosisSwell(Phase):
     Inherits :class:`Phase`. Swelling part of the necrosis process.
 
     Represents the osmotic swell a necrotic cell goes through. By default, this phase uses a custom transition function
-    (i.e., `transition_to_next_phase=None`), it can be overwritten by a user defined one. The custom transition
+    (i.e., `check_transition_to_next_phase_functions=None`), it can be overwritten by a user defined one. The custom transition
     function is :class:`NecrosisSwell._necrosis_transition_function`, it returns true when the cell becomes bigger than
     its rupture volume. The default relative rupture volume is 2, i.e., the cell ruptures after doubling in volume.
     By default, if no custom user defined entry function is used (i.e., `entry_function=None`), entry function is set
@@ -1140,8 +1140,8 @@ class NecrosisSwell(Phase):
                  division_at_phase_exit: bool = False, removal_at_phase_exit: bool = False,
                  fixed_duration: bool = False, phase_duration: float = None, entry_function=None,
                  entry_function_args: list = None, exit_function=None, exit_function_args: list = None,
-                 arrest_function=None, arrest_function_args: list = None, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, simulated_cell_volume: float = None,
+                 arrest_function=None, arrest_function_args: list = None, check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
                  cytoplasm_biomass_change_rate: float = None, nuclear_biomass_change_rate: float = None,
                  calcification_rate: float = None, relative_rupture_volume: float = None, target_fluid_fraction=None,
                  nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
@@ -1182,9 +1182,9 @@ class NecrosisSwell(Phase):
             entry_function = self._standard_necrosis_entry_function
             entry_function_args = [None]
 
-        if transition_to_next_phase is None:
-            transition_to_next_phase = self._necrosis_transition_function
-            transition_to_next_phase_args = [None]
+        if check_transition_to_next_phase_function is None:
+            check_transition_to_next_phase_function = self._necrosis_transition_function
+            check_transition_to_next_phase_function_args = [None]
 
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, space_unit=space_unit,
@@ -1193,8 +1193,8 @@ class NecrosisSwell(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
@@ -1259,8 +1259,8 @@ class NecrosisLysed(Phase):
                  division_at_phase_exit: bool = False, removal_at_phase_exit: bool = True, fixed_duration: bool = True,
                  phase_duration: float = None, entry_function=None, entry_function_args: list = None,
                  exit_function=None, exit_function_args: list = None, arrest_function=None,
-                 arrest_function_args: list = None, transition_to_next_phase=None,
-                 transition_to_next_phase_args: list = None, simulated_cell_volume: float = None,
+                 arrest_function_args: list = None, check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
                  cytoplasm_biomass_change_rate: float = None, nuclear_biomass_change_rate: float = None,
                  calcification_rate: float = None, relative_rupture_volume: float = None, target_fluid_fraction=None,
                  nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
@@ -1306,8 +1306,8 @@ class NecrosisLysed(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, transition_to_next_phase=transition_to_next_phase,
-                         transition_to_next_phase_args=transition_to_next_phase_args,
+                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_biomass_change_rate=cytoplasm_biomass_change_rate,
                          nuclear_biomass_change_rate=nuclear_biomass_change_rate, calcification_rate=calcification_rate,
