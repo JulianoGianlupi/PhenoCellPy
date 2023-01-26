@@ -308,8 +308,8 @@ class Phenotype:
     Methods:
     --------
 
-    time_step_cycle()
-        Time-steps the cycle model. Returns a tuple (cell changed phases, cell died, cell divided). See
+    time_step_phenotype()
+        Time-steps the phenotype model. Returns a tuple (cell changed phases, cell died, cell divided). See
         :func:`time_step_cycle` for further information.
 
     go_to_next_phase()
@@ -410,7 +410,7 @@ class Phenotype:
 
     def time_step_phenotype(self):
         """
-        Time-steps the cycle.
+        Time-steps the phenotype.
 
         Increments :attr:`time_in_cycle` by :attr:`dt`. Calls :func:`current_phase.time_step_phase`. If the phase time-
         step determines the cycle moves to the next phase (i.e., returns `True` for `next_phase`), calls
