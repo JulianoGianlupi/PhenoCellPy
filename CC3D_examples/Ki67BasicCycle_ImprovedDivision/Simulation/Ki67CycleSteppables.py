@@ -75,10 +75,10 @@ class ConstraintInitializerSteppable(SteppableBasePy):
         dt = 5  # 5 min/mcs
 
         ki67_basic_modified_transition = pheno.phenotypes.Ki67Basic(dt=dt,
-                                                                    transitions_to_next_phase=[None,
-                                                                                               Ki67pos_transition],
-                                                                    transitions_to_next_phase_args=[None,
-                                                                                                    [-9, 1, -9, 1]])
+                                                                    check_transition_to_next_phase_functions=[None,
+                                                                                                              Ki67pos_transition],
+                                                                    check_transition_to_next_phase_functions_args=[None,
+                                                                                                                   [-9, 1, -9, 1]])
 
         self.volume_conversion_unit = self.target_volume / ki67_basic_modified_transition.current_phase.volume.total
 
