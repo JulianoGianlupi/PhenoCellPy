@@ -92,9 +92,14 @@ class CellVolumes:
     """
     def __init__(self, target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
-                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, relative_rupture_volume=None):
+                 target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, relative_rupture_volume=None,
+                 time_unit="min", space_unit="micrometer"):
         """
 
+        :param time_unit:
+        :type time_unit:
+        :param space_unit:
+        :type space_unit:
         :param target_fluid_fraction: Fraction of the cell volume that should be liquid
         :type target_fluid_fraction: float in [0, 1]
         :param nuclear_fluid: How much of the nuclear volume is fluid
@@ -133,6 +138,10 @@ class CellVolumes:
         _relative_rupture_volume = 100
 
         # setting class parameters
+
+        self.time_unit = time_unit
+        self.space_unit = space_unit
+
         if target_fluid_fraction is None:
             self.target_fluid_fraction = _fluid_fraction
         else:
