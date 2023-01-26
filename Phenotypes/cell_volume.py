@@ -40,7 +40,7 @@ class CellVolumes:
     Methods:
     --------
 
-    update_volume(dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomass_change_rate, calcification_rate)
+    update_volume(dt, fluid_change_rate, nuclear_volume_change_rate, cytoplasm_volume_change_rate, calcification_rate)
         Time steps the volume model by dt. Updates all the cell's subvolumes based on the set targets by using scipy's
         odeint and the general ODE form of the volume relaxation `volume_relaxation`
 
@@ -231,7 +231,7 @@ class CellVolumes:
         :type current_volume: float
         :param t: time points to solve the ODE at. Always [0, dt]
         :type t: numpy array
-        :param rate: biomass change rate for this volume
+        :param rate: volume change rate for this volume
         :type rate: float
         :param target_volume: target volume to relax towards
         :type target_volume: float
@@ -241,7 +241,7 @@ class CellVolumes:
         dvdt = rate * (target_volume - current_volume)
         return dvdt
 
-    def update_volume(self, dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomass_change_rate,
+    def update_volume(self, dt, fluid_change_rate, nuclear_volume_change_rate, cytoplasm_volume_change_rate,
                       calcification_rate):
         """
         Updates the cell volume attributes.
@@ -262,7 +262,7 @@ class CellVolumes:
 
         The solid target is then updated as `target_cytoplasm_to_nuclear_ratio` * `nuclear_solid_target`
 
-        The cytoplasm solid is dynamically updated with rate `cytoplasm_biomass_change_rate` and target
+        The cytoplasm solid is dynamically updated with rate `cytoplasm_volume_change_rate` and target
         `cytoplasm_solid_target`
 
         The solid, nuclear, and cytoplasm volumes are set
@@ -273,8 +273,8 @@ class CellVolumes:
 
         :param dt: Time step length
         :param fluid_change_rate: How fast can the cell change the fluid fraction of its volume
-        :param nuclear_biomass_change_rate: How fast can the cell change its nuclear biomass
-        :param cytoplasm_biomass_change_rate: How fast can the cell change its cytoplasm biomass
+        :param nuclear_volume_change_rate: How fast can the cell change its nuclear volume
+        :param cytoplasm_volume_change_rate: How fast can the cell change its cytoplasm volume
         :param calcification_rate: The rate at which the cell is calcifying
         :return: None
         """
@@ -290,17 +290,17 @@ class CellVolumes:
 
         self.cytoplasm_fluid = self.fluid - self.nuclear_fluid
 
-        # self.nuclear_solid += dt * nuclear_biomass_change_rate * (self.nuclear_solid_target - self.nuclear_solid)
+        # self.nuclear_solid += dt * nuclear_volume_change_rate * (self.nuclear_solid_target - self.nuclear_solid)
         self.nuclear_solid = odeint(self.volume_relaxation, self.nuclear_solid, dt_array,
-                                    args=(nuclear_biomass_change_rate, self.nuclear_solid_target))[-1][0]
+                                    args=(nuclear_volume_change_rate, self.nuclear_solid_target))[-1][0]
 
         self.cytoplasm_solid_target = self.target_cytoplasm_to_nuclear_ratio * self.nuclear_solid_target
 
-        # self.cytoplasm_solid += dt * cytoplasm_biomass_change_rate * (self.cytoplasm_solid_target -
+        # self.cytoplasm_solid += dt * cytoplasm_volume_change_rate * (self.cytoplasm_solid_target -
         #                                                               self.cytoplasm_solid)
         # (current_volume, t, rate, target_volume)
         self.cytoplasm_solid = odeint(self.volume_relaxation, self.cytoplasm_solid, dt_array,
-                                      args=(cytoplasm_biomass_change_rate, self.cytoplasm_solid_target))[-1][0]
+                                      args=(cytoplasm_volume_change_rate, self.cytoplasm_solid_target))[-1][0]
 
         self.solid = self.nuclear_solid + self.cytoplasm_solid  # maybe this could be a pure property?
 
