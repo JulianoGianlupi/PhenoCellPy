@@ -101,7 +101,7 @@ class MitosisSteppable(MitosisSteppableBase):
 
         self.previous_number_cells = 0
 
-        self.plot = False
+        self.plot = True
         self.save = False
 
         if self.save:
@@ -191,10 +191,11 @@ class MitosisSteppable(MitosisSteppableBase):
             elif cell.dict["phenotype"].current_phase.index == 1:
                 n_one += 1
                 time_spent_in_1.append(cell.dict["phenotype"].current_phase.time_in_phase)
-                # args = [cc3d cell volume, phase's target volume, time in phase, phase duration
+                # args = [cc3d cell volume, doubling colume, time in phase, phase duration
                 args = [
                     cell.volume,
-                    cell.targetVolume,
+                    .9*self.constraint_vars.doubling_volume,  # we use 90% of the doubling volume because cc3d cells
+                    # will always be slightly below their target due to the contact energy
                     cell.dict["phenotype"].current_phase.time_in_phase + cell.dict["phenotype"].dt,
                     cell.dict["phenotype"].current_phase.phase_duration]
 
