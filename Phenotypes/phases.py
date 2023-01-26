@@ -672,10 +672,17 @@ class Ki67Positive(Phase):
         if entry_function is None:
             entry_function = self._double_target_volume
             entry_function_args = [None]
-        elif type(entry_function_args) != list:
-            raise TypeError("'entry_function' was defined but no value for 'entry_function_args' was given. Expected "
-                            f"list got {type(entry_function_args)}")
-
+        elif type(entry_function_args) != list and type(entry_function_args) != tuple:
+            raise TypeError("'entry_function' was defined but no valid value for 'entry_function_args' was given. "
+                            "Expected "
+                            f"list or tuple got {type(entry_function_args)}")
+        if exit_function is None:
+            exit_function = self._halve_target_volume
+            exit_function_args = [None]
+        elif type(exit_function_args) != list and type(exit_function_args) != tuple:
+            raise TypeError("'exit_function' was defined but no  valid value for 'entry_function_args' was given. "
+                            "Expected "
+                            f"list or tuple got {type(exit_function_args)}")
         if cytoplasm_biomass_change_rate is None and cytoplasm_fluid is not None and cytoplasm_solid is not None:
             cytoplasm_biomass_change_rate = (cytoplasm_fluid + cytoplasm_solid) / (phase_duration / dt)
 
@@ -1001,6 +1008,21 @@ class G2M(Phase):
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
                  relative_rupture_volume=None):
+        if entry_function is None:
+            entry_function = self._double_target_volume
+            entry_function_args = [None]
+        elif type(entry_function_args) != list and type(entry_function_args) != tuple:
+            raise TypeError("'entry_function' was defined but no valid value for 'entry_function_args' was given. "
+                            "Expected "
+                            f"list or tuple got {type(entry_function_args)}")
+        if exit_function is None:
+            exit_function = self._halve_target_volume
+            exit_function_args = [None]
+        elif type(exit_function_args) != list and type(exit_function_args) != tuple:
+            raise TypeError("'exit_function' was defined but no  valid value for 'entry_function_args' was given. "
+                            "Expected "
+                            f"list or tuple got {type(exit_function_args)}")
+
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, space_unit=space_unit,
                          name=name, division_at_phase_exit=division_at_phase_exit,
