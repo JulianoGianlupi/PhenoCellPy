@@ -29,6 +29,8 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+from scipy.integrate import odeint
+from numpy import array
 
 
 class CellVolumes:
@@ -39,7 +41,14 @@ class CellVolumes:
     --------
 
     update_volume(dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomass_change_rate, calcification_rate)
-        Time steps the volume model by dt. Updates all the cell's subvolumes based on the set targets
+        Time steps the volume model by dt. Updates all the cell's subvolumes based on the set targets by using scipy's
+        odeint and the general ODE form of the volume relaxation `volume_relaxation`
+
+    Static Methods:
+    ---------------
+    volume_relaxation(current_volume, t, rate, target_volume)
+        General form of the volume dynamics ODE. Passed to scipy's odeint to be solved.
+
 
     Parameters:
     -----------
@@ -90,6 +99,7 @@ class CellVolumes:
     _relative_rupture_volume = 100
 
     """
+
     def __init__(self, target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, relative_rupture_volume=None,
@@ -213,6 +223,24 @@ class CellVolumes:
 
         self.rupture_volume = self.relative_rupture_volume * self.total
 
+    @staticmethod
+    def volume_relaxation(current_volume, t, rate, target_volume):
+        """
+
+        :param current_volume: Current volume value to be relaxed
+        :type current_volume: float
+        :param t: time points to solve the ODE at. Always [0, dt]
+        :type t: numpy array
+        :param rate: biomass change rate for this volume
+        :type rate: float
+        :param target_volume: target volume to relax towards
+        :type target_volume: float
+        :return dvdt: ODE computed at times of t
+        :rtype: float
+        """
+        dvdt = rate * (target_volume - current_volume)
+        return dvdt
+
     def update_volume(self, dt, fluid_change_rate, nuclear_biomass_change_rate, cytoplasm_biomass_change_rate,
                       calcification_rate):
         """
@@ -250,18 +278,29 @@ class CellVolumes:
         :param calcification_rate: The rate at which the cell is calcifying
         :return: None
         """
-        self.fluid += dt * fluid_change_rate * (self.target_fluid_fraction * self.total - self.fluid)
+
+        dt_array = array([0, dt])
+
+        # self.fluid += dt * fluid_change_rate * (self.target_fluid_fraction * self.total - self.fluid)
+        # (current_volume, t, rate, target_volume)
+        self.fluid = odeint(self.volume_relaxation, self.fluid, dt_array,
+                            args=(fluid_change_rate, self.target_fluid_fraction * self.total))[-1][0]
 
         self.nuclear_fluid = (self.nuclear / (self.total + 1e-12)) * self.fluid
 
         self.cytoplasm_fluid = self.fluid - self.nuclear_fluid
 
-        self.nuclear_solid += dt * nuclear_biomass_change_rate * (self.nuclear_solid_target - self.nuclear_solid)
+        # self.nuclear_solid += dt * nuclear_biomass_change_rate * (self.nuclear_solid_target - self.nuclear_solid)
+        self.nuclear_solid = odeint(self.volume_relaxation, self.nuclear_solid, dt_array,
+                                    args=(nuclear_biomass_change_rate, self.nuclear_solid_target))[-1][0]
 
         self.cytoplasm_solid_target = self.target_cytoplasm_to_nuclear_ratio * self.nuclear_solid_target
 
-        self.cytoplasm_solid += dt * cytoplasm_biomass_change_rate * (self.cytoplasm_solid_target -
-                                                                      self.cytoplasm_solid)
+        # self.cytoplasm_solid += dt * cytoplasm_biomass_change_rate * (self.cytoplasm_solid_target -
+        #                                                               self.cytoplasm_solid)
+        # (current_volume, t, rate, target_volume)
+        self.cytoplasm_solid = odeint(self.volume_relaxation, self.cytoplasm_solid, dt_array,
+                                      args=(cytoplasm_biomass_change_rate, self.cytoplasm_solid_target))[-1][0]
 
         self.solid = self.nuclear_solid + self.cytoplasm_solid  # maybe this could be a pure property?
 
@@ -269,7 +308,10 @@ class CellVolumes:
 
         self.cytoplasm = self.cytoplasm_fluid + self.cytoplasm_solid
 
-        self.calcified_fraction += dt * calcification_rate * (1 - self.calcified_fraction)
+        # self.calcified_fraction += dt * calcification_rate * (1 - self.calcified_fraction)
+        # (current_volume, t, rate, target_volume)
+        self.calcified_fraction = odeint(self.volume_relaxation, self.calcified_fraction, dt_array,
+                                         args=(calcification_rate, 1))[-1][0]
 
         self.total = self.cytoplasm + self.nuclear
 
@@ -689,12 +731,17 @@ if __name__ == "__main__":
     from numpy.random import uniform
     cv = CellVolumes()
 
-    for i in range(10):
-        cv.update_volume(0.1, .1, .1, .1, .1)
+    for i in range(300):
+        cv.update_volume(.500, 2, 2, 2, 2)
 
-        print(cv.total)
-
-        cv.target_cytoplasm_to_nuclear_ratio *= uniform(0.8, 1.2)
-        cv.target_fluid_fraction *= uniform(0.8, 1.2)
-        cv.nuclear_solid_target *= uniform(0.8, 1.2)
-        cv.cytoplasm_solid_target *= uniform(0.8, 1.2)
+        print(cv.total, (cv.nuclear_solid_target + cv.cytoplasm_solid_target) / (1 - cv.target_fluid_fraction))
+        if i == 100:
+            # cv.target_cytoplasm_to_nuclear_ratio *= 2
+            # cv.target_fluid_fraction *= uniform(0.8, 1.2)
+            cv.nuclear_solid_target *= 2
+            cv.cytoplasm_solid_target *= 2
+        if i == 200:
+            # cv.target_cytoplasm_to_nuclear_ratio *= 2
+            # cv.target_fluid_fraction *= uniform(0.8, 1.2)
+            cv.nuclear_solid_target /= 2
+            cv.cytoplasm_solid_target /= 2
