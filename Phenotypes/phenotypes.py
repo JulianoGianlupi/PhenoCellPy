@@ -384,7 +384,8 @@ class Phenotype:
             raise ValueError(f"'dt' must be greater than 0. Got {dt}.")
         self.dt = dt
         if phases is None:
-            self.phases = [Phases.Phase(previous_phase_index=0, next_phase_index=0, dt=self.dt, time_unit=time_unit)]
+            self.phases = [Phases.Phase(previous_phase_index=0, next_phase_index=0, dt=self.dt, time_unit=time_unit,
+                                        space_unit=space_unit)]
         else:
             self.phases = phases
         if quiescent_phase is None:
@@ -586,9 +587,10 @@ class SimpleLiveCycle(Phenotype):
 
     def __init__(self, time_unit: str = "min", space_unit="micrometer", name: str = "Simple Live", dt=1):
         phases = [
-            Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit, name="alive",
+            Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
+                         space_unit=space_unit, name="alive",
                          division_at_phase_exit=True, phase_duration=60 / 0.0432)]
-        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer", phases=phases,
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
                          quiescent_phase=False)
 
 
@@ -626,7 +628,8 @@ class Ki67Basic(Phenotype):
                          fluid_change_rate)
 
         Ki67_positive = Phases.Ki67Positive(index=1, previous_phase_index=0, next_phase_index=0, dt=dt,
-                                            time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[1],
+                                            time_unit=time_unit, space_unit=space_unit,
+                                            division_at_phase_exit=division_at_phase_exits[1],
                                             removal_at_phase_exit=removal_at_phase_exits[1],
                                             fixed_duration=fixed_durations[1], phase_duration=phase_durations[1],
                                             entry_function=entry_functions[1],
@@ -650,7 +653,8 @@ class Ki67Basic(Phenotype):
                                             fluid_change_rate=fluid_change_rate[1])
 
         Ki67_negative = Phases.Ki67Negative(index=0, previous_phase_index=1, next_phase_index=1, dt=dt,
-                                            time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
+                                            time_unit=time_unit, space_unit=space_unit,
+                                            division_at_phase_exit=division_at_phase_exits[0],
                                             removal_at_phase_exit=removal_at_phase_exits[0],
                                             fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
                                             entry_function=entry_functions[0],
@@ -675,7 +679,7 @@ class Ki67Basic(Phenotype):
 
         phases = [Ki67_negative, Ki67_positive]
 
-        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer", phases=phases,
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
                          quiescent_phase=quiescent_phase)
 
 
@@ -720,7 +724,8 @@ class Ki67Advanced(Phenotype):
                          fluid_change_rate)
 
         Ki67_negative = Phases.Ki67Negative(index=0, previous_phase_index=2, next_phase_index=1, dt=dt,
-                                            time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
+                                            time_unit=time_unit, space_unit=space_unit,
+                                            division_at_phase_exit=division_at_phase_exits[0],
                                             removal_at_phase_exit=removal_at_phase_exits[0],
                                             fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
                                             entry_function=entry_functions[0],
@@ -744,7 +749,7 @@ class Ki67Advanced(Phenotype):
                                             fluid_change_rate=fluid_change_rate[0])
 
         Ki67_positive_pre = Phases.Ki67PositivePreMitotic(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
-                                                          time_unit=time_unit,
+                                                          time_unit=time_unit, space_unit=space_unit,
                                                           division_at_phase_exit=division_at_phase_exits[1],
                                                           removal_at_phase_exit=removal_at_phase_exits[1],
                                                           fixed_duration=fixed_durations[1],
@@ -775,7 +780,7 @@ class Ki67Advanced(Phenotype):
                                                           fluid_change_rate=fluid_change_rate[1])
 
         Ki67_positive_post = Phases.Ki67PositivePostMitotic(index=2, previous_phase_index=1, next_phase_index=0, dt=dt,
-                                                            time_unit=time_unit,
+                                                            time_unit=time_unit, space_unit=space_unit,
                                                             division_at_phase_exit=division_at_phase_exits[2],
                                                             removal_at_phase_exit=removal_at_phase_exits[2],
                                                             fixed_duration=fixed_durations[2],
@@ -806,7 +811,7 @@ class Ki67Advanced(Phenotype):
                                                             calcified_fraction=calcified_fraction[2],
                                                             fluid_change_rate=fluid_change_rate[2])
         phases = [Ki67_negative, Ki67_positive_pre, Ki67_positive_post]
-        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer", phases=phases,
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
                          quiescent_phase=quiescent_phase)
 
 
@@ -850,7 +855,8 @@ class FlowCytometryBasic(Phenotype):
                          cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
                          fluid_change_rate)
 
-        G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
+        G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, space_unit=space_unit,
+                           division_at_phase_exit=division_at_phase_exits[0],
                            removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
                            phase_duration=phase_durations[0], entry_function=entry_functions[0],
                            entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
@@ -868,7 +874,8 @@ class FlowCytometryBasic(Phenotype):
                            target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
                            calcified_fraction=calcified_fraction[0], fluid_change_rate=fluid_change_rate[0])
 
-        S = Phases.S(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[1],
+        S = Phases.S(dt=dt, time_unit=time_unit, space_unit=space_unit,
+                     division_at_phase_exit=division_at_phase_exits[1],
                      removal_at_phase_exit=removal_at_phase_exits[1], fixed_duration=fixed_durations[1],
                      phase_duration=phase_durations[1], entry_function=entry_functions[1],
                      entry_function_args=entry_functions_args[1], exit_function=exit_functions[1],
@@ -886,7 +893,8 @@ class FlowCytometryBasic(Phenotype):
                      target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[1],
                      calcified_fraction=calcified_fraction[1], fluid_change_rate=fluid_change_rate[1])
 
-        G2M = Phases.G2M(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[2],
+        G2M = Phases.G2M(dt=dt, time_unit=time_unit, space_unit=space_unit,
+                         division_at_phase_exit=division_at_phase_exits[2],
                          removal_at_phase_exit=removal_at_phase_exits[2], fixed_duration=fixed_durations[2],
                          phase_duration=phase_durations[2], entry_function=entry_functions[2],
                          entry_function_args=entry_functions_args[2], exit_function=exit_functions[2],
@@ -906,7 +914,7 @@ class FlowCytometryBasic(Phenotype):
 
         phases = [G0G1, S, G2M]
 
-        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer", phases=phases,
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
                          quiescent_phase=quiescent_phase)
 
 
@@ -954,7 +962,8 @@ class FlowCytometryAdvanced(Phenotype):
                          cytoplasm_fluid, cytoplasm_solid, cytoplasm_solid_target, target_cytoplasm_to_nuclear_ratio,
                          fluid_change_rate)
 
-        G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[0],
+        G0G1 = Phases.G0G1(dt=dt, time_unit=time_unit, space_unit=space_unit,
+                           division_at_phase_exit=division_at_phase_exits[0],
                            removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
                            phase_duration=phase_durations[0], entry_function=entry_functions[0],
                            entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
@@ -972,7 +981,8 @@ class FlowCytometryAdvanced(Phenotype):
                            target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
                            calcified_fraction=calcified_fraction[0], fluid_change_rate=fluid_change_rate[0])
 
-        S = Phases.S(dt=dt, time_unit=time_unit, division_at_phase_exit=division_at_phase_exits[1],
+        S = Phases.S(dt=dt, time_unit=time_unit, space_unit=space_unit,
+                     division_at_phase_exit=division_at_phase_exits[1],
                      removal_at_phase_exit=removal_at_phase_exits[1], fixed_duration=fixed_durations[1],
                      phase_duration=phase_durations[1], entry_function=entry_functions[1],
                      entry_function_args=entry_functions_args[1], exit_function=exit_functions[1],
@@ -990,7 +1000,8 @@ class FlowCytometryAdvanced(Phenotype):
                      target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[1],
                      fluid_change_rate=fluid_change_rate[1])
 
-        G2 = Phases.G0G1(index=2, previous_phase_index=1, next_phase_index=3, dt=dt, time_unit=time_unit, name="G2",
+        G2 = Phases.G0G1(index=2, previous_phase_index=1, next_phase_index=3, dt=dt, time_unit=time_unit,
+                         space_unit=space_unit, name="G2",
                          division_at_phase_exit=division_at_phase_exits[2],
                          removal_at_phase_exit=removal_at_phase_exits[2], fixed_duration=fixed_durations[2],
                          phase_duration=phase_durations[2], entry_function=entry_functions[2],
@@ -1009,7 +1020,8 @@ class FlowCytometryAdvanced(Phenotype):
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[2],
                          fluid_change_rate=fluid_change_rate[2])
 
-        M = Phases.G2M(index=3, previous_phase_index=2, next_phase_index=0, dt=dt, time_unit=time_unit, name="M",
+        M = Phases.G2M(index=3, previous_phase_index=2, next_phase_index=0, dt=dt, time_unit=time_unit,
+                       space_unit=space_unit, name="M",
                        division_at_phase_exit=division_at_phase_exits[3],
                        removal_at_phase_exit=removal_at_phase_exits[3], fixed_duration=fixed_durations[3],
                        phase_duration=phase_durations[3], entry_function=entry_functions[3],
@@ -1030,7 +1042,7 @@ class FlowCytometryAdvanced(Phenotype):
 
         phases = [G0G1, S, G2, M]
 
-        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, space_unit="micrometer",
+        super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, space_unit=space_unit,
                          quiescent_phase=quiescent_phase)
 
 
@@ -1068,6 +1080,7 @@ class ApoptosisStandard(Phenotype):
                          fluid_change_rate)
 
         apopto = Phases.Apoptosis(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
+                                  space_unit=space_unit,
                                   name="Apoptosis", division_at_phase_exit=division_at_phase_exits[0],
                                   removal_at_phase_exit=removal_at_phase_exits[0], fixed_duration=fixed_durations[0],
                                   phase_duration=phase_durations[0], entry_function=entry_functions[0],
@@ -1094,7 +1107,7 @@ class ApoptosisStandard(Phenotype):
 
         phases = [apopto]
 
-        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer",
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit,
                          phases=phases, quiescent_phase=quiescent_phase)
 
 
@@ -1137,11 +1150,11 @@ class NecrosisStandard(Phenotype):
                          fluid_change_rate)
 
         necro_swell = Phases.NecrosisSwell(index=0, previous_phase_index=0, next_phase_index=1, dt=dt,
-                                           time_unit=time_unit,
+                                           time_unit=time_unit, space_unit=space_unit,
                                            division_at_phase_exit=division_at_phase_exits[0],
                                            removal_at_phase_exit=removal_at_phase_exits[0],
-                                           fixed_duration=fixed_durations[0],
-                                           phase_duration=phase_durations[0], entry_function=entry_functions[0],
+                                           fixed_duration=fixed_durations[0], phase_duration=phase_durations[0],
+                                           entry_function=entry_functions[0],
                                            entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
                                            exit_function_args=exit_functions_args[0],
                                            arrest_function=arrest_functions[0],
@@ -1153,8 +1166,8 @@ class NecrosisStandard(Phenotype):
                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[0],
                                            calcification_rate=calcification_rate[0],
                                            target_fluid_fraction=target_fluid_fraction[0],
-                                           nuclear_fluid=nuclear_fluid[0],
-                                           nuclear_solid=nuclear_solid[0], nuclear_solid_target=nuclear_solid_target[0],
+                                           nuclear_fluid=nuclear_fluid[0], nuclear_solid=nuclear_solid[0],
+                                           nuclear_solid_target=nuclear_solid_target[0],
                                            cytoplasm_fluid=cytoplasm_fluid[0], cytoplasm_solid=cytoplasm_solid[0],
                                            cytoplasm_solid_target=cytoplasm_solid_target[0],
                                            target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
@@ -1162,11 +1175,11 @@ class NecrosisStandard(Phenotype):
                                            fluid_change_rate=fluid_change_rate[0])
 
         necro_lysed = Phases.NecrosisLysed(index=1, previous_phase_index=0, next_phase_index=1, dt=dt,
-                                           time_unit=time_unit,
+                                           time_unit=time_unit,space_unit=space_unit,
                                            division_at_phase_exit=division_at_phase_exits[1],
                                            removal_at_phase_exit=removal_at_phase_exits[1],
-                                           fixed_duration=fixed_durations[1],
-                                           phase_duration=phase_durations[1], entry_function=entry_functions[1],
+                                           fixed_duration=fixed_durations[1], phase_duration=phase_durations[1],
+                                           entry_function=entry_functions[1],
                                            entry_function_args=entry_functions_args[1], exit_function=exit_functions[1],
                                            exit_function_args=exit_functions_args[1],
                                            arrest_function=arrest_functions[1],
@@ -1178,8 +1191,8 @@ class NecrosisStandard(Phenotype):
                                            nuclear_biomass_change_rate=nuclear_biomass_change_rate[1],
                                            calcification_rate=calcification_rate[1],
                                            target_fluid_fraction=target_fluid_fraction[1],
-                                           nuclear_fluid=nuclear_fluid[1],
-                                           nuclear_solid=nuclear_solid[1], nuclear_solid_target=nuclear_solid_target[1],
+                                           nuclear_fluid=nuclear_fluid[1], nuclear_solid=nuclear_solid[1],
+                                           nuclear_solid_target=nuclear_solid_target[1],
                                            cytoplasm_fluid=cytoplasm_fluid[1], cytoplasm_solid=cytoplasm_solid[1],
                                            cytoplasm_solid_target=cytoplasm_solid_target[1],
                                            target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[1],
@@ -1188,7 +1201,7 @@ class NecrosisStandard(Phenotype):
 
         phases = [necro_swell, necro_lysed]
 
-        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit="micrometer", phases=phases,
+        super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
                          quiescent_phase=quiescent_phase)
 
         return
