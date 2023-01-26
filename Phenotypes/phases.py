@@ -403,16 +403,16 @@ class Phase:
         if transition_to_next_phase is None:
             self.transition_to_next_phase_args = [None]
             if fixed_duration:
-                self.transition_to_next_phase = self._transition_to_next_phase_deterministic
+                self.check_transition_to_next_phase = self._check_transition_to_next_phase_deterministic
             else:
-                self.transition_to_next_phase = self._transition_to_next_phase_stochastic
+                self.check_transition_to_next_phase = self._check_transition_to_next_phase_stochastic
         else:
             if type(transition_to_next_phase_args) != list:
                 raise TypeError("Custom exit function selected but no args given. Was expecting "
                                 "'transition_to_next_phase_args' to be a list, got "
                                 f"{type(transition_to_next_phase_args)}.")
             self.transition_to_next_phase_args = transition_to_next_phase_args
-            self.transition_to_next_phase = transition_to_next_phase
+            self.check_transition_to_next_phase = transition_to_next_phase
 
         if simulated_cell_volume is None:
             self.simulated_cell_volume = 1
@@ -465,7 +465,7 @@ class Phase:
         self.volume.update_volume(self.dt, self.fluid_change_rate, self.nuclear_biomass_change_rate,
                                   self.cytoplasm_biomass_change_rate, self.calcification_rate)
 
-    def _transition_to_next_phase_stochastic(self, *none):
+    def _check_transition_to_next_phase_stochastic(self, *none):
         """
         Default stochastic phase transition function.
 
@@ -482,7 +482,7 @@ class Phase:
         prob = 1 - exp(-self.dt / self.phase_duration)
         return uniform() < prob
 
-    def _transition_to_next_phase_deterministic(self, *none):
+    def _check_transition_to_next_phase_deterministic(self, *none):
         """
         Default deterministic phase transition function.
 
@@ -516,7 +516,7 @@ class Phase:
         else:
             exit_phenotype = False
 
-        go_to_next_phase_in_phenotype = self.transition_to_next_phase(*self.transition_to_next_phase_args)
+        go_to_next_phase_in_phenotype = self.check_transition_to_next_phase(*self.transition_to_next_phase_args)
 
         if go_to_next_phase_in_phenotype and self.exit_function is not None:
             self.exit_function(*self.exit_function_args)
