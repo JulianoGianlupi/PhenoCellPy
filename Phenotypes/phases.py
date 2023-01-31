@@ -75,6 +75,10 @@ class Phase:
     arrest_function(*args)
         Optional function that returns true if the cell should exit the cell cycle and enter quiescence
 
+    user_phase_time_step(*args)
+        User-defined function to be executed with the time-step
+
+
     update_volume()
         Function to update the volume of the cell. Calls the cell volume submodel (class:CellVolume) `update_volume`
         function
@@ -141,10 +145,10 @@ class Phase:
     :param arrest_function_args: Args for `arrest_function`
     :type arrest_function_args: list or tuple
 
-    :param check_transition_to_next_phase_function: Default or custom function that returns if the cell should advance to the next
-    phase in the phenotype. If left as None the phase will pick either `_transition_to_next_phase_deterministic`
-    or `_transition_to_next_phase_stochastic` depending on the value of `fixed_duration`.
-    :type check_transition_to_next_phase_function: function
+    :param check_transition_to_next_phase_function: Default or custom function that returns if the cell should
+    advance to the next phase in the phenotype. If left as None the phase will pick either
+    `_transition_to_next_phase_deterministic` or `_transition_to_next_phase_stochastic` depending on the value of
+    `fixed_duration`. :type check_transition_to_next_phase_function: function
 
     :param check_transition_to_next_phase_function_args: Args for `transition_to_next_phase`
     :type check_transition_to_next_phase_function_args: list or tuple
@@ -204,6 +208,9 @@ class Phase:
     :param relative_rupture_volume: Proportion of the initial volume that causes cell lysis
     :type relative_rupture_volume: float
 
+    :param user_phase_time_step_args: args for `user_phase_time_step`
+    :type user_phase_time_step_args: list or tuple
+
     Attributes
     ----------
 
@@ -226,7 +233,7 @@ class Phase:
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
-                 relative_rupture_volume=None):
+                 relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
         """
 
         :param space_unit:
@@ -286,7 +293,8 @@ class Phase:
         :param arrest_function_args: Args for `arrest_function`
         :type arrest_function_args: list or tuple
 
-        :param check_transition_to_next_phase_function: Default or custom function that returns if the cell should advance to the next
+        :param check_transition_to_next_phase_function: Default or custom function that returns if the cell should
+        advance to the next
         phase in the phenotype. If left as None the phase will pick either `_transition_to_next_phase_deterministic`
         or `_transition_to_next_phase_stochastic` depending on the value of `fixed_duration`.
         :type check_transition_to_next_phase_function: function
@@ -305,7 +313,8 @@ class Phase:
         `nuclear_volume_change_rate` >= 0. Passed to the `CellVolume` attribute class
         :type nuclear_volume_change_rate: float
 
-        :param calcification_rate: Rate of calcification of the cell. volume/`time_unit` units. `calcification_rate` >= 0
+        :param calcification_rate: Rate of calcification of the cell. volume/`time_unit` units. `calcification_rate`
+        >= 0
         Passed to the `CellVolume` attribute class
         :type calcification_rate: float
 
@@ -313,10 +322,12 @@ class Phase:
         0 <= `target_fluid_fraction` <= 1. Passed to the `CellVolume` attribute class
         :type target_fluid_fraction: float
 
-        :param nuclear_fluid: Initial volume of the fluid part of the nucleus. Passed to the `CellVolume` attribute class
+        :param nuclear_fluid: Initial volume of the fluid part of the nucleus. Passed to the `CellVolume` attribute
+        class
         :type nuclear_fluid: float
 
-        :param nuclear_solid: Initial volume of the solid part of the nucleus. Passed to the `CellVolume` attribute class
+        :param nuclear_solid: Initial volume of the solid part of the nucleus. Passed to the `CellVolume` attribute
+        class
         :type nuclear_solid: float
 
         :param nuclear_solid_target: Nuclear solid volume the volume model will tend towards. `nuclear_solid_target`>=0.
@@ -348,6 +359,10 @@ class Phase:
 
         :param relative_rupture_volume: Proportion of the initial volume that causes cell lysis
         :type relative_rupture_volume: float
+
+        :param user_phase_time_step_args: args for `user_phase_time_step`
+        :type user_phase_time_step_args: list or tuple
+
         """
 
         if index is None:
@@ -441,11 +456,15 @@ class Phase:
         else:
             self.fluid_change_rate = fluid_change_rate
 
-        # self.volume = CellVolumes(cytoplasm=cytoplasm_volume, target_cytoplasm=cytoplasm_target_volume,
-        #                           target_cytoplasm_fluid_fraction=cytoplasm_target_fluid_fraction,
-        #                           nuclear=nuclear_volume, target_nuclear=nuclear_target_volume,
-        #                           target_nuclear_fluid_fraction=nuclear_target_fluid_fraction,
-        #                           calcified_fraction=calcified_fraction)
+        self.user_phase_time_step = user_phase_time_step
+
+        if self.user_phase_time_step is not None and \
+                not (type(user_phase_time_step_args) == list or type(user_phase_time_step_args) == tuple):
+            raise ValueError(
+                f"`user_phase_time_step` is defined but `user_phase_time_step_args` is not list or "
+                f"tuple.\nGot {type(user_phase_time_step_args)} instead")
+
+        self.user_phase_time_step_args = user_phase_time_step_args
 
         self.volume = CellVolumes(target_fluid_fraction=target_fluid_fraction, nuclear_fluid=nuclear_fluid,
                                   nuclear_solid=nuclear_solid, nuclear_solid_target=nuclear_solid_target,
@@ -509,6 +528,9 @@ class Phase:
 
         self.update_volume()
 
+        if self.user_phase_time_step is not None:
+            self.user_phase_time_step(*self.user_phase_time_step_args)
+
         if self.arrest_function is not None:
             exit_phenotype = self.arrest_function(*self.exit_function_args)
             go_to_next_phase_in_phenotype = False
@@ -570,7 +592,7 @@ class QuiescentPhase(Phase):
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
-                 relative_rupture_volume=None):
+                 relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, space_unit=space_unit, name=name,
                          division_at_phase_exit=division_at_phase_exit,
@@ -578,7 +600,8 @@ class QuiescentPhase(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         arrest_function_args=arrest_function_args,
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_function,
                          check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
@@ -589,7 +612,8 @@ class QuiescentPhase(Phase):
                          cytoplasm_solid_target=cytoplasm_solid_target,
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
-                         relative_rupture_volume=relative_rupture_volume)
+                         relative_rupture_volume=relative_rupture_volume, user_phase_time_step=user_phase_time_step,
+                         user_phase_time_step_args=user_phase_time_step_args)
         return
 
 
@@ -597,7 +621,8 @@ class Ki67Negative(Phase):
     """
     Inherits :class:`Phase`. Defines Ki 67- quiescent phase.
 
-    This is a quiescent phenotype for cells that are replicating. Ki67 is a protein marker associated with proliferation.
+    This is a quiescent phenotype for cells that are replicating. Ki67 is a protein marker associated with
+    proliferation.
     Transition to the next phase is set to be stochastic (the phase does not use a fixed duration) by default. Default
     expected phase duration is 4.59h, the phase transition rate is, therefore, dt/4.59 1/h.
     This phase does not calcify the cell. The parameters for this phase are based on the MCF-10A cell line
@@ -616,7 +641,7 @@ class Ki67Negative(Phase):
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
-                 relative_rupture_volume=None):
+                 relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, space_unit=space_unit,
                          name=name, division_at_phase_exit=division_at_phase_exit,
@@ -624,7 +649,8 @@ class Ki67Negative(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         arrest_function_args=arrest_function_args,
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_function,
                          check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
@@ -635,7 +661,8 @@ class Ki67Negative(Phase):
                          cytoplasm_solid_target=cytoplasm_solid_target,
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
-                         relative_rupture_volume=relative_rupture_volume)
+                         relative_rupture_volume=relative_rupture_volume, user_phase_time_step=user_phase_time_step,
+                         user_phase_time_step_args=user_phase_time_step_args)
 
 
 class Ki67Positive(Phase):
@@ -643,8 +670,9 @@ class Ki67Positive(Phase):
 
     Inherits :class:`Phase`. Defines Ki 67+ proliferating phase.
 
-    This is a proliferating phenotype for cells that are replicating. Ki67 is a protein marker associated with prolife-
-    ration. Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by default.
+    This is a proliferating phenotype for cells that are replicating. Ki67 is a protein marker associated with
+    proliferation. Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by
+    default.
     Default phase duration is 15.5h. By default, if no user defined custom entry function is defined (i.e.,
     `entry_function=None`), this phase will set its entry function to be :class:`Phase._double_target_volume`.
     By default, will set the volume change rates to be [change in volume]/[phase duration]. This phase does not calcify
@@ -667,7 +695,7 @@ class Ki67Positive(Phase):
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
-                 relative_rupture_volume=None):
+                 relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
 
         if entry_function is None:
             entry_function = self._double_target_volume
@@ -731,7 +759,8 @@ class Ki67Positive(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         arrest_function_args=arrest_function_args,
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_function,
                          check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
@@ -742,7 +771,8 @@ class Ki67Positive(Phase):
                          cytoplasm_solid_target=cytoplasm_solid_target,
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
-                         relative_rupture_volume=relative_rupture_volume)
+                         relative_rupture_volume=relative_rupture_volume, user_phase_time_step=user_phase_time_step,
+                         user_phase_time_step_args=user_phase_time_step_args)
 
 
 class Ki67PositivePreMitotic(Ki67Positive):
@@ -751,8 +781,9 @@ class Ki67PositivePreMitotic(Ki67Positive):
     Inherits :class:`Ki67Positive`. Defines Ki 67+ pre-mitotic proliferating phase. Only difference to
     :class:`Ki67Positive` is the phase length.
 
-    This is a proliferating phenotype for cells that are replicating. Ki67 is a protein marker associated with prolife-
-    ration. Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by default.
+    This is a proliferating phenotype for cells that are replicating. Ki67 is a protein marker associated with
+    proliferation. Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by
+    default.
     Default phase duration is 13h. By default, if no user defined custom entry function is defined (i.e.,
     `entry_function=None`), this phase will set its entry function to be :class:`Phase._double_target_volume`
 
@@ -773,7 +804,7 @@ class Ki67PositivePreMitotic(Ki67Positive):
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
-                 relative_rupture_volume=None):
+                 relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
 
         if entry_function is None:
             # otherwise it will be defaulted to the halving target volume function by Ki67Positive
@@ -786,7 +817,8 @@ class Ki67PositivePreMitotic(Ki67Positive):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         arrest_function_args=arrest_function_args,
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_function,
                          check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
@@ -797,7 +829,8 @@ class Ki67PositivePreMitotic(Ki67Positive):
                          cytoplasm_solid_target=cytoplasm_solid_target,
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
-                         relative_rupture_volume=relative_rupture_volume)
+                         relative_rupture_volume=relative_rupture_volume, user_phase_time_step=user_phase_time_step,
+                         user_phase_time_step_args=user_phase_time_step_args)
 
 
 class Ki67PositivePostMitotic(Phase):
@@ -815,6 +848,7 @@ class Ki67PositivePostMitotic(Phase):
     https://www.sciencedirect.com/topics/medicine-and-dentistry/mcf-10a-cell-line
     https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FBTO_0001939
     """
+
     def __init__(self, index: int = 2, previous_phase_index: int = 1, next_phase_index: int = 0, dt: float = 0.1,
                  time_unit: str = "min", space_unit="micrometer", name: str = "Ki 67+ post-mitotic",
                  division_at_phase_exit: bool = True, removal_at_phase_exit: bool = False, fixed_duration: bool = True,
@@ -826,7 +860,7 @@ class Ki67PositivePostMitotic(Phase):
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
-                 relative_rupture_volume=None):
+                 relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
 
         if entry_function is None:
             entry_function = self._standard_Ki67_positive_postmit_entry_function
@@ -842,7 +876,8 @@ class Ki67PositivePostMitotic(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         arrest_function_args=arrest_function_args,
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_function,
                          check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
@@ -853,7 +888,8 @@ class Ki67PositivePostMitotic(Phase):
                          cytoplasm_solid_target=cytoplasm_solid_target,
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
-                         relative_rupture_volume=relative_rupture_volume)
+                         relative_rupture_volume=relative_rupture_volume, user_phase_time_step=user_phase_time_step,
+                         user_phase_time_step_args=user_phase_time_step_args)
 
     def _standard_Ki67_positive_postmit_entry_function(self, *args):
         """
@@ -875,6 +911,7 @@ class G0G1(Phase):
     expected phase duration is 5.15h, the phase transition rate is, therefore, dt/5.15 1/h.
     This phase does not calcify the cell. Reference phase duration from https://www.ncbi.nlm.nih.gov/books/NBK9876/
     """
+
     def __init__(self, index: int = 0, previous_phase_index: int = 2, next_phase_index: int = 1, dt: float = 0.1,
                  time_unit: str = "min", space_unit="micrometer", name: str = "G0/G1",
                  division_at_phase_exit: bool = False, removal_at_phase_exit: bool = False,
@@ -886,7 +923,7 @@ class G0G1(Phase):
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
-                 relative_rupture_volume=None):
+                 relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, space_unit=space_unit,
                          name=name, division_at_phase_exit=division_at_phase_exit,
@@ -894,7 +931,8 @@ class G0G1(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         arrest_function_args=arrest_function_args,
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_function,
                          check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
@@ -905,7 +943,8 @@ class G0G1(Phase):
                          cytoplasm_solid_target=cytoplasm_solid_target,
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
-                         relative_rupture_volume=relative_rupture_volume)
+                         relative_rupture_volume=relative_rupture_volume, user_phase_time_step=user_phase_time_step,
+                         user_phase_time_step_args=user_phase_time_step_args)
 
 
 class S(Phase):
@@ -918,17 +957,20 @@ class S(Phase):
     [change in volume]/[phase duration]. This phase does not calcify the cell. Reference phase duration from
     https://www.ncbi.nlm.nih.gov/books/NBK9876/
     """
+
     def __init__(self, index: int = 1, previous_phase_index: int = 0, next_phase_index: int = 2, dt: float = 0.1,
                  time_unit: str = "min", space_unit="micrometer", name: str = "S", division_at_phase_exit: bool = False,
                  removal_at_phase_exit: bool = False, fixed_duration: bool = False, phase_duration: float = 8 * 60.0,
                  entry_function=None, entry_function_args: list = None, exit_function=None,
                  exit_function_args: list = None, arrest_function=None, arrest_function_args: list = None,
-                 check_transition_to_next_phase_function=None, check_transition_to_next_phase_function_args: list = None,
+                 check_transition_to_next_phase_function=None,
+                 check_transition_to_next_phase_function_args: list = None,
                  simulated_cell_volume: float = None, cytoplasm_volume_change_rate=None,
                  nuclear_volume_change_rate=None, calcification_rate=None, target_fluid_fraction=None,
                  nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
                  cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
-                 calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None):
+                 calcified_fraction=None, fluid_change_rate=None, relative_rupture_volume=None,
+                 user_phase_time_step=None, user_phase_time_step_args=None):
 
         if entry_function is None:
             entry_function = self._double_target_volume
@@ -981,7 +1023,8 @@ class S(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         arrest_function_args=arrest_function_args,
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_function,
                          check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
@@ -992,7 +1035,8 @@ class S(Phase):
                          cytoplasm_solid_target=cytoplasm_solid_target,
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
-                         relative_rupture_volume=relative_rupture_volume)
+                         relative_rupture_volume=relative_rupture_volume, user_phase_time_step=user_phase_time_step,
+                         user_phase_time_step_args=user_phase_time_step_args)
 
 
 class G2M(Phase):
@@ -1005,6 +1049,7 @@ class G2M(Phase):
     [change in volume]/[phase duration]. This phase does not calcify the cell. Reference phase duration from
     https://www.ncbi.nlm.nih.gov/books/NBK9876/
     """
+
     def __init__(self, index: int = 2, previous_phase_index: int = 1, next_phase_index: int = 0, dt: float = 0.1,
                  time_unit: str = "min", space_unit="micrometer", name: str = "G2/M",
                  division_at_phase_exit: bool = True, removal_at_phase_exit: bool = False, fixed_duration: bool = False,
@@ -1016,7 +1061,7 @@ class G2M(Phase):
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
-                 relative_rupture_volume=None):
+                 relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
         if entry_function is None:
             entry_function = self._double_target_volume
             entry_function_args = [None]
@@ -1039,7 +1084,8 @@ class G2M(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         arrest_function_args=arrest_function_args,
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_function,
                          check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
@@ -1050,7 +1096,8 @@ class G2M(Phase):
                          cytoplasm_solid_target=cytoplasm_solid_target,
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
-                         relative_rupture_volume=relative_rupture_volume)
+                         relative_rupture_volume=relative_rupture_volume, user_phase_time_step=user_phase_time_step,
+                         user_phase_time_step_args=user_phase_time_step_args)
 
 
 class Apoptosis(Phase):
@@ -1066,6 +1113,7 @@ class Apoptosis(Phase):
     `nuclear_volume_change_rate = 0.35 / 60` [volume/min], `fluid_change_rate = 3 / 60`. This phase does not calcify
     the cell.
     """
+
     def __init__(self, index: int = 0, previous_phase_index: int = 0, next_phase_index: int = 0, dt: float = 0.1,
                  time_unit: str = "min", space_unit="micrometer", name: str = "Apoptosis",
                  division_at_phase_exit: bool = False, removal_at_phase_exit: bool = True, fixed_duration: bool = True,
@@ -1077,7 +1125,8 @@ class Apoptosis(Phase):
                  calcification_rate: float = 0, relative_rupture_volume: float = 2, target_fluid_fraction=None,
                  nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
                  cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
-                 calcified_fraction=None, fluid_change_rate=3 / 60):
+                 calcified_fraction=None, fluid_change_rate=3 / 60, user_phase_time_step=None,
+                 user_phase_time_step_args=None):
 
         if entry_function is None:
             entry_function = self._standard_apoptosis_entry
@@ -1087,7 +1136,6 @@ class Apoptosis(Phase):
             self.fluid_change_rate = fluid_change_rate
         else:
             self.fluid_change_rate = 3 / 60
-
 
         if relative_rupture_volume is None:
             self.relative_rupture_volume = 2
@@ -1101,7 +1149,8 @@ class Apoptosis(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         arrest_function_args=arrest_function_args,
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_function,
                          check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
@@ -1112,7 +1161,8 @@ class Apoptosis(Phase):
                          cytoplasm_solid_target=cytoplasm_solid_target,
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
-                         relative_rupture_volume=relative_rupture_volume)
+                         relative_rupture_volume=relative_rupture_volume, user_phase_time_step=user_phase_time_step,
+                         user_phase_time_step_args=user_phase_time_step_args)
 
     def _standard_apoptosis_entry(self, *none):
         """
@@ -1133,7 +1183,8 @@ class NecrosisSwell(Phase):
     Inherits :class:`Phase`. Swelling part of the necrosis process.
 
     Represents the osmotic swell a necrotic cell goes through. By default, this phase uses a custom transition function
-    (i.e., `check_transition_to_next_phase_functions=None`), it can be overwritten by a user defined one. The custom transition
+    (i.e., `check_transition_to_next_phase_functions=None`), it can be overwritten by a user defined one. The custom
+    transition
     function is :class:`NecrosisSwell._necrosis_transition_function`, it returns true when the cell becomes bigger than
     its rupture volume. The default relative rupture volume is 2, i.e., the cell ruptures after doubling in volume.
     By default, if no custom user defined entry function is used (i.e., `entry_function=None`), entry function is set
@@ -1155,7 +1206,8 @@ class NecrosisSwell(Phase):
                  calcification_rate: float = None, relative_rupture_volume: float = None, target_fluid_fraction=None,
                  nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
                  cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
-                 calcified_fraction=None, fluid_change_rate=None):
+                 calcified_fraction=None, fluid_change_rate=None, user_phase_time_step=None,
+                 user_phase_time_step_args=None):
 
         # default parameters
 
@@ -1202,7 +1254,8 @@ class NecrosisSwell(Phase):
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         arrest_function_args=arrest_function_args,
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_function,
                          check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
@@ -1213,7 +1266,8 @@ class NecrosisSwell(Phase):
                          cytoplasm_solid_target=cytoplasm_solid_target,
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
-                         relative_rupture_volume=relative_rupture_volume)
+                         relative_rupture_volume=relative_rupture_volume, user_phase_time_step=user_phase_time_step,
+                         user_phase_time_step_args=user_phase_time_step_args)
 
     def _standard_necrosis_entry_function(self, *none):
         """
@@ -1274,7 +1328,8 @@ class NecrosisLysed(Phase):
                  calcification_rate: float = None, relative_rupture_volume: float = None, target_fluid_fraction=None,
                  nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
                  cytoplasm_solid=None, cytoplasm_solid_target=None, target_cytoplasm_to_nuclear_ratio=None,
-                 calcified_fraction=None, fluid_change_rate=None):
+                 calcified_fraction=None, fluid_change_rate=None, user_phase_time_step=None,
+                 user_phase_time_step_args=None):
 
         # default parameters
 
@@ -1310,12 +1365,14 @@ class NecrosisLysed(Phase):
             entry_function_args = [None]
 
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
-                         dt=dt, time_unit=time_unit, space_unit=space_unit, name=name, division_at_phase_exit=division_at_phase_exit,
+                         dt=dt, time_unit=time_unit, space_unit=space_unit, name=name,
+                         division_at_phase_exit=division_at_phase_exit,
                          removal_at_phase_exit=removal_at_phase_exit, fixed_duration=fixed_duration,
                          phase_duration=phase_duration, entry_function=entry_function,
                          entry_function_args=entry_function_args, exit_function=exit_function,
                          exit_function_args=exit_function_args, arrest_function=arrest_function,
-                         arrest_function_args=arrest_function_args, check_transition_to_next_phase_function=check_transition_to_next_phase_function,
+                         arrest_function_args=arrest_function_args,
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_function,
                          check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
                          simulated_cell_volume=simulated_cell_volume,
                          cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
@@ -1326,7 +1383,8 @@ class NecrosisLysed(Phase):
                          cytoplasm_solid_target=cytoplasm_solid_target,
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio,
                          calcified_fraction=calcified_fraction, fluid_change_rate=fluid_change_rate,
-                         relative_rupture_volume=relative_rupture_volume)
+                         relative_rupture_volume=relative_rupture_volume, user_phase_time_step=user_phase_time_step,
+                         user_phase_time_step_args=user_phase_time_step_args)
 
     def _standard_lysis_entry_function(self, *none):
         """

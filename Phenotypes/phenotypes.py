@@ -323,6 +323,9 @@ class Phenotype:
     go_to_quiescence()
         Moves cycle to quiescent phase
 
+    user_phenotype_time_step(*args)
+        User-defined function to be executed with the time-step
+
     Attributes
     ----------
 
@@ -353,10 +356,13 @@ class Phenotype:
     time_in_phenotype : float
         Total time elapsed for the cycle
 
+    user_phenotype_time_step_args: list or tuple
+        args for `user_phenotype_time_step`
     """
 
     def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", space_unit="micrometer",
-                 phases: list = None, quiescent_phase: Phases.Phase or False = None, starting_phase_index: int = 0):
+                 phases: list = None, quiescent_phase: Phases.Phase or False = None, starting_phase_index: int = 0,
+                 user_phenotype_time_step=None, user_phenotype_time_step_args=None):
         """
         :param name: Name for the phenotype
         :type str
@@ -372,6 +378,10 @@ class Phenotype:
         :type Phases.Phase or False
         :param starting_phase_index: Which phase to start the phenotype model at
         :type int
+        :param user_phenotype_time_step: User-defined function to be executed with the time-step
+        :type function
+        :param user_phenotype_time_step_args: args for `user_phenotype_time_step`
+        :type list or tuple
         """
         # todo: add __init__ parameters for custom functions for each class
         # todo: add alias for self.current_phase.volume, i.e. property self.volume that fetches
@@ -407,6 +417,14 @@ class Phenotype:
             starting_phase_index = 0
             # starting_phase_index = randint(0, len(self.phases) + 1)
 
+        self.user_phenotype_time_step = user_phenotype_time_step
+        if self.user_phenotype_time_step is not None:
+            if not (type(user_phenotype_time_step_args) == list or type(user_phenotype_time_step_args) == tuple):
+                raise ValueError(
+                    f"`user_phenotype_time_step` is defined but `user_pheno_time_step_args` is not list or "
+                    f"tuple.\nGot {type(user_phenotype_time_step_args)} instead")
+            self.user_pheno_time_step_args = user_phenotype_time_step_args
+
         self.current_phase = self.phases[starting_phase_index]
         self.time_in_phenotype = 0
 
@@ -426,6 +444,9 @@ class Phenotype:
         # if we initialize a phenotype that has a initial phase with an entry function we should execute it immediately
         if not self.time_in_phenotype and self.current_phase.entry_function is not None:
             self.current_phase.entry_function(*self.current_phase.entry_function_args)
+
+        if self.user_phenotype_time_step is not None:
+            self.user_phenotype_time_step(*self.user_pheno_time_step_args)
 
         self.time_in_phenotype += self.dt
 
@@ -586,13 +607,22 @@ class SimpleLiveCycle(Phenotype):
     cell should divide.
     """
 
-    def __init__(self, time_unit: str = "min", space_unit="micrometer", name: str = "Simple Live", dt=1):
+    def __init__(self, time_unit: str = "min", space_unit="micrometer", name: str = "Simple Live", dt=1,
+                 user_phenotype_time_step=None, user_phenotype_time_step_args=None, user_phases_time_step=None,
+                 user_phases_time_step_args=None, phases_duration=60 / 0.0432):
+        if user_phases_time_step is None:
+            user_phases_time_step = [None]
+            user_phases_time_step_args = [None]
+
         phases = [
             Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
                          space_unit=space_unit, name="alive",
-                         division_at_phase_exit=True, phase_duration=60 / 0.0432)]
+                         division_at_phase_exit=True, phase_duration=phases_duration,
+                         user_phase_time_step=user_phases_time_step[0],
+                         user_phase_time_step_args=user_phases_time_step_args[0])]
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
-                         quiescent_phase=False)
+                         quiescent_phase=False, user_phenotype_time_step=user_phenotype_time_step,
+                         user_phenotype_time_step_args=user_phenotype_time_step_args)
 
 
 class Ki67Basic(Phenotype):
@@ -620,7 +650,12 @@ class Ki67Basic(Phenotype):
                  target_fluid_fraction=(None, None), nuclear_fluid=(None, None), nuclear_solid=(None, None),
                  nuclear_solid_target=(None, None), cytoplasm_fluid=(None, None), cytoplasm_solid=(None, None),
                  cytoplasm_solid_target=(None, None), target_cytoplasm_to_nuclear_ratio=(None, None),
-                 fluid_change_rate=(None, None)):
+                 fluid_change_rate=(None, None),
+                 user_phenotype_time_step=None, user_phenotype_time_step_args=None, user_phases_time_step=None,
+                 user_phases_time_step_args=None):
+        if user_phases_time_step is None:
+            user_phases_time_step = [None, None]
+            user_phases_time_step_args = [None, None]
         _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
                          arrest_functions_args, check_transition_to_next_phase_functions,
@@ -655,7 +690,9 @@ class Ki67Basic(Phenotype):
                                             cytoplasm_solid_target=cytoplasm_solid_target[1],
                                             target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[1],
                                             calcified_fraction=calcified_fraction[1],
-                                            fluid_change_rate=fluid_change_rate[1])
+                                            fluid_change_rate=fluid_change_rate[1],
+                                            user_phase_time_step=user_phases_time_step[1],
+                                            user_phase_time_step_args=user_phases_time_step_args[1])
 
         Ki67_negative = Phases.Ki67Negative(index=0, previous_phase_index=1, next_phase_index=1, dt=dt,
                                             time_unit=time_unit, space_unit=space_unit,
@@ -682,12 +719,15 @@ class Ki67Basic(Phenotype):
                                             cytoplasm_solid_target=cytoplasm_solid_target[0],
                                             target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
                                             calcified_fraction=calcified_fraction[0],
-                                            fluid_change_rate=fluid_change_rate[1])
+                                            fluid_change_rate=fluid_change_rate[0],
+                                            user_phase_time_step=user_phases_time_step[0],
+                                            user_phase_time_step_args=user_phases_time_step_args[0])
 
         phases = [Ki67_negative, Ki67_positive]
 
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
-                         quiescent_phase=quiescent_phase)
+                         quiescent_phase=quiescent_phase, user_phenotype_time_step=user_phenotype_time_step,
+                         user_phenotype_time_step_args=user_phenotype_time_step_args)
 
 
 class Ki67Advanced(Phenotype):
@@ -721,7 +761,12 @@ class Ki67Advanced(Phenotype):
                  nuclear_solid_target=(None, None, None), cytoplasm_fluid=(None, None, None),
                  cytoplasm_solid=(None, None, None),
                  cytoplasm_solid_target=(None, None, None), target_cytoplasm_to_nuclear_ratio=(None, None, None),
-                 fluid_change_rate=(None, None, None)):
+                 fluid_change_rate=(None, None, None),
+                 user_phenotype_time_step=None, user_phenotype_time_step_args=None, user_phases_time_step=None,
+                 user_phases_time_step_args=None):
+        if user_phases_time_step is None:
+            user_phases_time_step = [None, None, None]
+            user_phases_time_step_args = [None, None, None]
         _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
                          arrest_functions_args, check_transition_to_next_phase_functions,
@@ -756,7 +801,9 @@ class Ki67Advanced(Phenotype):
                                             cytoplasm_solid_target=cytoplasm_solid_target[0],
                                             target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
                                             calcified_fraction=calcified_fraction[0],
-                                            fluid_change_rate=fluid_change_rate[0])
+                                            fluid_change_rate=fluid_change_rate[0],
+                                            user_phase_time_step=user_phases_time_step[0],
+                                            user_phase_time_step_args=user_phases_time_step_args[0])
 
         Ki67_positive_pre = Phases.Ki67PositivePreMitotic(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
                                                           time_unit=time_unit, space_unit=space_unit,
@@ -789,7 +836,9 @@ class Ki67Advanced(Phenotype):
                                                           target_cytoplasm_to_nuclear_ratio=
                                                           target_cytoplasm_to_nuclear_ratio[1],
                                                           calcified_fraction=calcified_fraction[1],
-                                                          fluid_change_rate=fluid_change_rate[1])
+                                                          fluid_change_rate=fluid_change_rate[1],
+                                                          user_phase_time_step=user_phases_time_step[1],
+                                                          user_phase_time_step_args=user_phases_time_step_args[1])
 
         Ki67_positive_post = Phases.Ki67PositivePostMitotic(index=2, previous_phase_index=1, next_phase_index=0, dt=dt,
                                                             time_unit=time_unit, space_unit=space_unit,
@@ -822,10 +871,13 @@ class Ki67Advanced(Phenotype):
                                                             target_cytoplasm_to_nuclear_ratio=
                                                             target_cytoplasm_to_nuclear_ratio[2],
                                                             calcified_fraction=calcified_fraction[2],
-                                                            fluid_change_rate=fluid_change_rate[2])
+                                                            fluid_change_rate=fluid_change_rate[2],
+                                                            user_phase_time_step=user_phases_time_step[2],
+                                                            user_phase_time_step_args=user_phases_time_step_args[2])
         phases = [Ki67_negative, Ki67_positive_pre, Ki67_positive_post]
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
-                         quiescent_phase=quiescent_phase)
+                         quiescent_phase=quiescent_phase, user_phenotype_time_step=user_phenotype_time_step,
+                         user_phenotype_time_step_args=user_phenotype_time_step_args)
 
 
 class FlowCytometryBasic(Phenotype):
@@ -859,7 +911,12 @@ class FlowCytometryBasic(Phenotype):
                  nuclear_solid_target=(None, None, None), cytoplasm_fluid=(None, None, None),
                  cytoplasm_solid=(None, None, None),
                  cytoplasm_solid_target=(None, None, None), target_cytoplasm_to_nuclear_ratio=(None, None, None),
-                 fluid_change_rate=(None, None, None)):
+                 fluid_change_rate=(None, None, None),
+                 user_phenotype_time_step=None, user_phenotype_time_step_args=None, user_phases_time_step=None,
+                 user_phases_time_step_args=None):
+        if user_phases_time_step is None:
+            user_phases_time_step = [None, None, None]
+            user_phases_time_step_args = [None, None, None]
         _check_arguments(3, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
                          arrest_functions_args, check_transition_to_next_phase_functions,
@@ -887,7 +944,9 @@ class FlowCytometryBasic(Phenotype):
                            nuclear_solid_target=nuclear_solid_target[0], cytoplasm_fluid=cytoplasm_fluid[0],
                            cytoplasm_solid=cytoplasm_solid[0], cytoplasm_solid_target=cytoplasm_solid_target[0],
                            target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
-                           calcified_fraction=calcified_fraction[0], fluid_change_rate=fluid_change_rate[0])
+                           calcified_fraction=calcified_fraction[0], fluid_change_rate=fluid_change_rate[0],
+                           user_phase_time_step=user_phases_time_step[0],
+                           user_phase_time_step_args=user_phases_time_step_args[0])
 
         S = Phases.S(dt=dt, time_unit=time_unit, space_unit=space_unit,
                      division_at_phase_exit=division_at_phase_exits[1],
@@ -906,7 +965,9 @@ class FlowCytometryBasic(Phenotype):
                      nuclear_solid_target=nuclear_solid_target[1], cytoplasm_fluid=cytoplasm_fluid[1],
                      cytoplasm_solid=cytoplasm_solid[1], cytoplasm_solid_target=cytoplasm_solid_target[1],
                      target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[1],
-                     calcified_fraction=calcified_fraction[1], fluid_change_rate=fluid_change_rate[1])
+                     calcified_fraction=calcified_fraction[1], fluid_change_rate=fluid_change_rate[1],
+                     user_phase_time_step=user_phases_time_step[1],
+                     user_phase_time_step_args=user_phases_time_step_args[1])
 
         G2M = Phases.G2M(dt=dt, time_unit=time_unit, space_unit=space_unit,
                          division_at_phase_exit=division_at_phase_exits[2],
@@ -925,12 +986,15 @@ class FlowCytometryBasic(Phenotype):
                          nuclear_solid_target=nuclear_solid_target[2], cytoplasm_fluid=cytoplasm_fluid[2],
                          cytoplasm_solid=cytoplasm_solid[2], cytoplasm_solid_target=cytoplasm_solid_target[2],
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[2],
-                         calcified_fraction=calcified_fraction[2], fluid_change_rate=fluid_change_rate[2])
+                         calcified_fraction=calcified_fraction[2], fluid_change_rate=fluid_change_rate[2],
+                         user_phase_time_step=user_phases_time_step[2],
+                         user_phase_time_step_args=user_phases_time_step_args[2])
 
         phases = [G0G1, S, G2M]
 
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
-                         quiescent_phase=quiescent_phase)
+                         quiescent_phase=quiescent_phase, user_phenotype_time_step=user_phenotype_time_step,
+                         user_phenotype_time_step_args=user_phenotype_time_step_args)
 
 
 class FlowCytometryAdvanced(Phenotype):
@@ -969,7 +1033,12 @@ class FlowCytometryAdvanced(Phenotype):
                  cytoplasm_solid=(None, None, None, None),
                  cytoplasm_solid_target=(None, None, None, None),
                  target_cytoplasm_to_nuclear_ratio=(None, None, None, None),
-                 fluid_change_rate=(None, None, None, None)):
+                 fluid_change_rate=(None, None, None, None),
+                 user_phenotype_time_step=None, user_phenotype_time_step_args=None, user_phases_time_step=None,
+                 user_phases_time_step_args=None):
+        if user_phases_time_step is None:
+            user_phases_time_step = len(phase_durations) * [None]
+            user_phases_time_step_args = len(phase_durations) * [None]
         _check_arguments(4, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
                          arrest_functions_args, check_transition_to_next_phase_functions,
@@ -997,7 +1066,9 @@ class FlowCytometryAdvanced(Phenotype):
                            nuclear_solid_target=nuclear_solid_target[0], cytoplasm_fluid=cytoplasm_fluid[0],
                            cytoplasm_solid=cytoplasm_solid[0], cytoplasm_solid_target=cytoplasm_solid_target[0],
                            target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
-                           calcified_fraction=calcified_fraction[0], fluid_change_rate=fluid_change_rate[0])
+                           calcified_fraction=calcified_fraction[0], fluid_change_rate=fluid_change_rate[0],
+                           user_phase_time_step=user_phases_time_step[0],
+                           user_phase_time_step_args=user_phases_time_step_args[0])
 
         S = Phases.S(dt=dt, time_unit=time_unit, space_unit=space_unit,
                      division_at_phase_exit=division_at_phase_exits[1],
@@ -1016,7 +1087,9 @@ class FlowCytometryAdvanced(Phenotype):
                      nuclear_solid_target=nuclear_solid_target[1], cytoplasm_fluid=cytoplasm_fluid[1],
                      cytoplasm_solid=cytoplasm_solid[1], cytoplasm_solid_target=cytoplasm_solid_target[1],
                      target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[1],
-                     fluid_change_rate=fluid_change_rate[1])
+                     fluid_change_rate=fluid_change_rate[1],
+                     user_phase_time_step=user_phases_time_step[1],
+                     user_phase_time_step_args=user_phases_time_step_args[1])
 
         G2 = Phases.G0G1(index=2, previous_phase_index=1, next_phase_index=3, dt=dt, time_unit=time_unit,
                          space_unit=space_unit, name="G2",
@@ -1036,7 +1109,9 @@ class FlowCytometryAdvanced(Phenotype):
                          nuclear_solid_target=nuclear_solid_target[2], cytoplasm_fluid=cytoplasm_fluid[2],
                          cytoplasm_solid=cytoplasm_solid[2], cytoplasm_solid_target=cytoplasm_solid_target[2],
                          target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[2],
-                         fluid_change_rate=fluid_change_rate[2])
+                         fluid_change_rate=fluid_change_rate[2],
+                         user_phase_time_step=user_phases_time_step[2],
+                         user_phase_time_step_args=user_phases_time_step_args[2])
 
         M = Phases.G2M(index=3, previous_phase_index=2, next_phase_index=0, dt=dt, time_unit=time_unit,
                        space_unit=space_unit, name="M",
@@ -1056,12 +1131,15 @@ class FlowCytometryAdvanced(Phenotype):
                        nuclear_solid_target=nuclear_solid_target[3], cytoplasm_fluid=cytoplasm_fluid[3],
                        cytoplasm_solid=cytoplasm_solid[3], cytoplasm_solid_target=cytoplasm_solid_target[3],
                        target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[3],
-                       fluid_change_rate=fluid_change_rate[3])
+                       fluid_change_rate=fluid_change_rate[3],
+                       user_phase_time_step=user_phases_time_step[3],
+                       user_phase_time_step_args=user_phases_time_step_args[3])
 
         phases = [G0G1, S, G2, M]
 
         super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, space_unit=space_unit,
-                         quiescent_phase=quiescent_phase)
+                         quiescent_phase=quiescent_phase, user_phenotype_time_step=user_phenotype_time_step,
+                         user_phenotype_time_step_args=user_phenotype_time_step_args)
 
 
 class ApoptosisStandard(Phenotype):
@@ -1088,7 +1166,12 @@ class ApoptosisStandard(Phenotype):
                  target_fluid_fraction=(None,), nuclear_fluid=(None,), nuclear_solid=(None,),
                  nuclear_solid_target=(None,), cytoplasm_fluid=(None,), cytoplasm_solid=(None,),
                  cytoplasm_solid_target=(None,), target_cytoplasm_to_nuclear_ratio=(None,),
-                 fluid_change_rate=(None,)):
+                 fluid_change_rate=(None,),
+                 user_phenotype_time_step=None, user_phenotype_time_step_args=None, user_phases_time_step=None,
+                 user_phases_time_step_args=None):
+        if user_phases_time_step is None:
+            user_phases_time_step = len(phase_durations) * [None]
+            user_phases_time_step_args = len(phase_durations) * [None]
         _check_arguments(1, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
                          arrest_functions_args, check_transition_to_next_phase_functions,
@@ -1118,7 +1201,9 @@ class ApoptosisStandard(Phenotype):
                                   cytoplasm_fluid=cytoplasm_fluid[0], cytoplasm_solid=cytoplasm_solid[0],
                                   cytoplasm_solid_target=cytoplasm_solid_target[0],
                                   target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
-                                  calcified_fraction=calcified_fraction[0], fluid_change_rate=fluid_change_rate[0])
+                                  calcified_fraction=calcified_fraction[0], fluid_change_rate=fluid_change_rate[0],
+                                  user_phase_time_step=user_phases_time_step[0],
+                                  user_phase_time_step_args=user_phases_time_step_args[0])
 
         # a phase to help lyse the simulated cell, shouldn't do anything
         # debris = Phases.Phase(index=1, previous_phase_index=0, next_phase_index=1, dt=dt, time_unit=time_unit,
@@ -1128,7 +1213,9 @@ class ApoptosisStandard(Phenotype):
         phases = [apopto]
 
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit,
-                         phases=phases, quiescent_phase=quiescent_phase)
+                         phases=phases, quiescent_phase=quiescent_phase,
+                         user_phenotype_time_step=user_phenotype_time_step,
+                         user_phenotype_time_step_args=user_phenotype_time_step_args)
 
 
 class NecrosisStandard(Phenotype):
@@ -1160,7 +1247,12 @@ class NecrosisStandard(Phenotype):
                  target_fluid_fraction=(None, None), nuclear_fluid=(None, None), nuclear_solid=(None, None),
                  nuclear_solid_target=(None, None), cytoplasm_fluid=(None, None), cytoplasm_solid=(None, None),
                  cytoplasm_solid_target=(None, None), target_cytoplasm_to_nuclear_ratio=(None, None),
-                 fluid_change_rate=(None, None)):
+                 fluid_change_rate=(None, None),
+                 user_phenotype_time_step=None, user_phenotype_time_step_args=None, user_phases_time_step=None,
+                 user_phases_time_step_args=None):
+        if user_phases_time_step is None:
+            user_phases_time_step = len(phase_durations) * [None]
+            user_phases_time_step_args = len(phase_durations) * [None]
         _check_arguments(2, name, division_at_phase_exits, removal_at_phase_exits, fixed_durations, phase_durations,
                          entry_functions, entry_functions_args, exit_functions, exit_functions_args, arrest_functions,
                          arrest_functions_args, check_transition_to_next_phase_functions,
@@ -1195,7 +1287,9 @@ class NecrosisStandard(Phenotype):
                                            cytoplasm_solid_target=cytoplasm_solid_target[0],
                                            target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
                                            calcified_fraction=calcified_fraction[0],
-                                           fluid_change_rate=fluid_change_rate[0])
+                                           fluid_change_rate=fluid_change_rate[0],
+                                           user_phase_time_step=user_phases_time_step[0],
+                                           user_phase_time_step_args=user_phases_time_step_args[0])
 
         necro_lysed = Phases.NecrosisLysed(index=1, previous_phase_index=0, next_phase_index=1, dt=dt,
                                            time_unit=time_unit, space_unit=space_unit,
@@ -1222,12 +1316,15 @@ class NecrosisStandard(Phenotype):
                                            cytoplasm_solid_target=cytoplasm_solid_target[1],
                                            target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[1],
                                            calcified_fraction=calcified_fraction[1],
-                                           fluid_change_rate=fluid_change_rate[1])
+                                           fluid_change_rate=fluid_change_rate[1],
+                                           user_phase_time_step=user_phases_time_step[1],
+                                           user_phase_time_step_args=user_phases_time_step_args[1])
 
         phases = [necro_swell, necro_lysed]
 
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
-                         quiescent_phase=quiescent_phase)
+                         quiescent_phase=quiescent_phase, user_phenotype_time_step=user_phenotype_time_step,
+                         user_phenotype_time_step_args=user_phenotype_time_step_args)
 
         return
 
