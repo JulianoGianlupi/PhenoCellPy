@@ -704,7 +704,11 @@ class Ki67Positive(Phase):
             raise TypeError("'entry_function' was defined but no valid value for 'entry_function_args' was given. "
                             "Expected "
                             f"list or tuple got {type(entry_function_args)}")
-        if exit_function is None:
+
+        if exit_function == False:  # CANNOT be changed to not exit_function!!! not None => True, None == False => False
+            exit_function = None
+            exit_function_args = [None]
+        elif exit_function is None:
             exit_function = self._halve_target_volume
             exit_function_args = [None]
         elif type(exit_function_args) != list and type(exit_function_args) != tuple:
@@ -801,6 +805,11 @@ class Ki67PositivePreMitotic(Ki67Positive):
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
                  relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
+
+        if entry_function is None:
+            # otherwise it will be defaulted to the halving target volume function by Ki67Positive
+            entry_function = False
+
         super().__init__(index=index, previous_phase_index=previous_phase_index, next_phase_index=next_phase_index,
                          dt=dt, time_unit=time_unit, space_unit=space_unit,
                          name=name, division_at_phase_exit=division_at_phase_exit,
