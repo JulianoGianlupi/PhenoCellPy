@@ -362,7 +362,7 @@ class Phenotype:
 
     def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", space_unit="micrometer",
                  phases: list = None, quiescent_phase: Phases.Phase or False = None, starting_phase_index: int = 0,
-                 user_phenotype_time_step=None, user_phenotype_time_step_args=None):
+                 user_phenotype_time_step=None, user_phenotype_time_step_args=(None,)):
         """
         :param name: Name for the phenotype
         :type str

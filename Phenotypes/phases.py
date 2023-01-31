@@ -233,7 +233,7 @@ class Phase:
                  target_fluid_fraction=None, nuclear_fluid=None, nuclear_solid=None, nuclear_solid_target=None,
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
-                 relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
+                 relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=(None,)):
         """
 
         :param space_unit:
