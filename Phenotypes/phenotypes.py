@@ -417,8 +417,8 @@ class Phenotype:
             starting_phase_index = 0
             # starting_phase_index = randint(0, len(self.phases) + 1)
 
-        self.user_pheno_time_step = user_phenotype_time_step
-        if self.user_pheno_time_step is not None:
+        self.user_phenotype_time_step = user_phenotype_time_step
+        if self.user_phenotype_time_step is not None:
             if not (type(user_phenotype_time_step_args) == list or type(user_phenotype_time_step_args) == tuple):
                 raise ValueError(
                     f"`user_phenotype_time_step` is defined but `user_pheno_time_step_args` is not list or "
@@ -445,8 +445,8 @@ class Phenotype:
         if not self.time_in_phenotype and self.current_phase.entry_function is not None:
             self.current_phase.entry_function(*self.current_phase.entry_function_args)
 
-        if self.user_pheno_time_step is not None:
-            self.user_pheno_time_step(*self.user_pheno_time_step_args)
+        if self.user_phenotype_time_step is not None:
+            self.user_phenotype_time_step(*self.user_pheno_time_step_args)
 
         self.time_in_phenotype += self.dt
 
