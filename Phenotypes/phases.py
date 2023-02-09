@@ -51,7 +51,7 @@ class Phase:
 
     time_step_phase()
         Time steps the phase. Returns a tuple (did the cell transition to the next phase, did the cell enter
-        quiescence). See `time_step_phase`'s documentation for further explanation.
+        senescence). See `time_step_phase`'s documentation for further explanation.
 
     transition_to_next_phase(*args)
         One of the default transition functions (`_transition_to_next_phase_deterministic`,
@@ -73,7 +73,7 @@ class Phase:
         function already defined. It gets called using attribute `exit_function_args`. Must have no return
 
     arrest_function(*args)
-        Optional function that returns true if the cell should exit the cell cycle and enter quiescence
+        Optional function that returns true if the cell should exit the cell cycle and enter senescence
 
     user_phase_time_step(*args)
         User-defined function to be executed with the time-step
@@ -139,7 +139,7 @@ class Phase:
     :type exit_function_args: list or tuple
 
     :param arrest_function: Function that return if the cell should exit the current phase early and the cell cyle
-    and enter quiescence
+    and enter senescence
     :type arrest_function: function
 
     :param arrest_function_args: Args for `arrest_function`
@@ -287,7 +287,7 @@ class Phase:
         :type exit_function_args: list or tuple
 
         :param arrest_function: Function that return if the cell should exit the current phase early and the cell cyle
-        and enter quiescence
+        and enter senescence
         :type arrest_function: function
 
         :param arrest_function_args: Args for `arrest_function`
@@ -408,7 +408,7 @@ class Phase:
             raise TypeError("Exit function defined but no args given. Was expecting "
                             f"'exit_function_args' to be a list or tupple, got {type(exit_function_args)}.")
 
-        self.arrest_function = arrest_function  # function determining if cell will exit cell cycle and become quiescent
+        self.arrest_function = arrest_function  # function determining if cell will exit cell cycle and become senescent
         self.arrest_function_args = arrest_function_args
 
         if self.arrest_function is not None and type(self.arrest_function_args) != list:
@@ -518,11 +518,12 @@ class Phase:
         Time steps the phase.
 
         This function increments the `time_in_phase` by `dt`. Updates the cell volume. Checks if the cell arrests its
-        cycle (i.e., leaves the cycle; goes to quiescence). If the cell doesn't quies, this function checks if the cell
+        cycle (i.e., leaves the cycle; goes to senescence). If the cell doesn't senesce, this function checks if the
+        cell
         should transition to the next phase.
 
         :return: tuple. First element of tuple: bool denoting if the cell moves to the next phase. Second element:
-        denotes if the cell leaves the cell cycle and enters quiescence.
+        denotes if the cell leaves the cell cycle and enters senescence.
         """
         self.time_in_phase += self.dt
 
@@ -573,16 +574,16 @@ class Phase:
         return f"{self.name} phase"
 
 
-class QuiescentPhase(Phase):
+class SenescentPhase(Phase):
     """
-    Default Quiescent Phase. Inherits :class:`Phase`
+    Default Senescent Phase. Inherits :class:`Phase`
 
-    This quiescent phase class is meant to be "outside" whatever phenotype progression is being used.
+    This senescent phase class is meant to be "outside" whatever phenotype progression is being used.
 
     """
 
     def __init__(self, index: int = 9999, previous_phase_index: int = None, next_phase_index: int = 0, dt: float = None,
-                 time_unit: str = "min", space_unit="micrometer", name: str = "quiescent",
+                 time_unit: str = "min", space_unit="micrometer", name: str = "senescent",
                  division_at_phase_exit: bool = False, removal_at_phase_exit: bool = False,
                  fixed_duration: bool = False, phase_duration: float = 4.59 * 60, entry_function=None,
                  entry_function_args: list = None, exit_function=None, exit_function_args: list = None,
@@ -1407,7 +1408,7 @@ class NecrosisLysed(Phase):
 if __name__ == '__main__':
     dt = 1
     phase = Phase(dt=dt)
-    qui = QuiescentPhase(dt=dt)
+    sen = SenescentPhase(dt=dt)
     ki67n = Ki67Negative(dt=dt)
     test_ki67p = Ki67Positive(dt=dt)
     ki67ppre = Ki67PositivePreMitotic(dt=dt)
