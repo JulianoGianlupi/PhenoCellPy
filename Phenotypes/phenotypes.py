@@ -1364,10 +1364,121 @@ def get_phenotype_by_name(name):
 
 
 if __name__ == "__main__":
+    import numpy as np
+
+    dt = 1
     print(cycle_names)
 
     test = Ki67Basic()
 
+    custom_p0 = Phases.Phase(index=0, previous_phase_index=-1, next_phase_index=1, dt=dt,
+                             time_unit="min", space_unit="micrometer", name="custom_p0",
+                             division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=True,
+                             phase_duration=20, entry_function=None, exit_function=None,
+                             arrest_function=None,
+                             check_transition_to_next_phase_function=None,
+                             simulated_cell_volume=1,
+                             cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
+                             calcification_rate=None, target_fluid_fraction=None, nuclear_fluid=None,
+                             nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                             cytoplasm_solid=None, cytoplasm_solid_target=None,
+                             target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
+                             fluid_change_rate=None, relative_rupture_volume=None,
+                             user_phase_time_step=None, user_phase_time_step_args=(None,))
+
+
+    def grow_phase_transition(*args):
+        volume = args[0]
+        doubling_volume = 0.9*args[1]
+        time_phase = args[2]
+        phase_duration = args[3]
+        return volume >= doubling_volume and time_phase > phase_duration
+
+
+    custom_p1 = Phases.Ki67Positive(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
+                                    time_unit="min", space_unit="micrometer", name="custom_p1",
+                                    division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=True,
+                                    phase_duration=120, entry_function=None,
+                                    entry_function_args=[None],
+                                    exit_function=False, arrest_function=None,
+                                    check_transition_to_next_phase_function=grow_phase_transition,
+                                    check_transition_to_next_phase_function_args=[0, 9, 0, 9],
+                                    simulated_cell_volume=1,
+                                    cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
+                                    calcification_rate=None, target_fluid_fraction=None, nuclear_fluid=None,
+                                    nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                                    cytoplasm_solid=None, cytoplasm_solid_target=None,
+                                    target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
+                                    fluid_change_rate=None, relative_rupture_volume=None,
+                                    user_phase_time_step=None, user_phase_time_step_args=(None,))
+
+
+    stable_phase_1 = Phases.Phase(index=2, previous_phase_index=1, next_phase_index=3, dt=dt,
+                                  time_unit="min", space_unit="micrometer", name="stable1",
+                                  division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=True,
+                                  phase_duration=30, entry_function=None, exit_function=None,
+                                  arrest_function=None,
+                                  check_transition_to_next_phase_function=None,
+                                  simulated_cell_volume=1,
+                                  cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
+                                  calcification_rate=None, target_fluid_fraction=None, nuclear_fluid=None,
+                                  nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                                  cytoplasm_solid=None, cytoplasm_solid_target=None,
+                                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
+                                  fluid_change_rate=None, relative_rupture_volume=None,
+                                  user_phase_time_step=None, user_phase_time_step_args=(None,))
+
+
+    def shrink_phase_transition(*args):
+        dt = args[0]
+        phase_duration = args[1]
+        total = args[2]
+        total_target = args[3]
+        time_check = np.random.uniform() < (1 - np.exp(-dt / phase_duration))
+        volume_check = total <= 1.1 * total_target
+        return time_check and volume_check
+
+
+    shrink_phase = Phases.Ki67PositivePostMitotic(index=3, previous_phase_index=2, next_phase_index=0, dt=dt,
+                                                  time_unit="min", space_unit="micrometer", name="shrink",
+                                                  division_at_phase_exit=False, removal_at_phase_exit=False,
+                                                  fixed_duration=False,
+                                                  phase_duration=60, entry_function=None,
+                                                  entry_function_args=[None], exit_function=None, arrest_function=None,
+                                                  check_transition_to_next_phase_function=shrink_phase_transition,
+                                                  check_transition_to_next_phase_function_args=[0, 1, 99, 0],
+                                                  simulated_cell_volume=1,
+                                                  cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
+                                                  calcification_rate=None, target_fluid_fraction=None,
+                                                  nuclear_fluid=None,
+                                                  nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                                                  cytoplasm_solid=None, cytoplasm_solid_target=None,
+                                                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
+                                                  fluid_change_rate=None, relative_rupture_volume=None,
+                                                  user_phase_time_step=None, user_phase_time_step_args=(None,))
+    shrink_phase.check_transition_to_next_phase_function = shrink_phase_transition
+    # shrink_phase.entry_function = Phases.Phase._halve_target_volume
+
+    custom_pheno = Phenotype(name="oscillate volume with rests", dt=dt, time_unit="min",
+                             space_unit="micrometer",
+                             phases=[custom_p0, custom_p1, stable_phase_1,
+                                     shrink_phase],
+                             quiescent_phase=False, starting_phase_index=0,
+                             user_phenotype_time_step=None,
+                             user_phenotype_time_step_args=[None, ])
+
     for i in range(10000):
-        changed_phase, died, divides = test.time_step_phenotype()
-        print(changed_phase, died, divides)
+        print(f"t={i}")
+        # changed_phase, died, divides = test.time_step_phenotype()
+        # print(changed_phase, died, divides)
+        if custom_pheno.current_phase.name == "custom_p1":
+            custom_pheno.current_phase.check_transition_to_next_phase_function_args = \
+                [custom_pheno.current_phase.volume.total, custom_pheno.current_phase.volume.total_target,
+                 custom_pheno.current_phase.time_in_phase, custom_pheno.current_phase.phase_duration]
+        elif custom_pheno.current_phase.name == "shrink":
+            custom_pheno.current_phase.check_transition_to_next_phase_function_args = \
+                [dt, custom_pheno.current_phase.phase_duration,
+                 custom_pheno.current_phase.volume.total, custom_pheno.current_phase.volume.total_target]
+
+        changed_phase, died, divides = custom_pheno.time_step_phenotype()
+        print(changed_phase, died, divides, custom_pheno.current_phase.volume.total)

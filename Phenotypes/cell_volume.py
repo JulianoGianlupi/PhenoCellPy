@@ -356,6 +356,10 @@ class CellVolumes:
         self._total = value if value >= 0 else 0
 
     @property
+    def total_target(self):
+        return (self.cytoplasm_solid_target + self.nuclear_solid_target)/(1 - self.target_fluid_fraction)
+
+    @property
     def nuclear_fluid(self):
         """Gets the nuclear fluid volume"""
         return self._nuclear_fluid

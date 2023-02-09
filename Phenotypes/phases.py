@@ -56,7 +56,7 @@ class Phase:
     transition_to_next_phase(*args)
         One of the default transition functions (`_transition_to_next_phase_deterministic`,
         `_transition_to_next_phase_stochastic`) or a user defined function. If user defined, it will be called with
-        `transition_to_next_phase_args` as args. Must return a bool denoting if the transition occurs or not.
+        `check_transition_to_next_phase_function_args` as args. Must return a bool denoting if the transition occurs or not.
 
     _transition_to_next_phase_deterministic()
         Default deterministic transition function. Returns `time_in_phase > phase_duration`
@@ -97,7 +97,7 @@ class Phase:
     phenotype
     :type previous_phase_index: int
 
-    :param next_phase_index: Index of the phase proceding this phase in the list of phases that forms a phenotype
+    :param next_phase_index: Index of the phase proceeding this phase in the list of phases that forms a phenotype
     :type next_phase_index: int
 
     :param dt: Time step duration in units of `time_unit`. `dt > 0`
@@ -116,7 +116,7 @@ class Phase:
     killed, leaves the simulated domain) when leaving this phase
     :type removal_at_phase_exit: bool
 
-    :param fixed_duration: Boolean seting the transition from this phase to the next to be deterministic (True) or
+    :param fixed_duration: Boolean setting the transition from this phase to the next to be deterministic (True) or
     stochastic (False)
     :type fixed_duration: bool
 
@@ -416,18 +416,18 @@ class Phase:
                             f"'arrest_function_args' to be a list, got {type(arrest_function_args)}.")
 
         if check_transition_to_next_phase_function is None:
-            self.transition_to_next_phase_args = [None]
+            self.check_transition_to_next_phase_function_args = [None]
             if fixed_duration:
-                self.check_transition_to_next_phase = self._check_transition_to_next_phase_deterministic
+                self.check_transition_to_next_phase_function = self._check_transition_to_next_phase_deterministic
             else:
-                self.check_transition_to_next_phase = self._check_transition_to_next_phase_stochastic
+                self.check_transition_to_next_phase_function = self._check_transition_to_next_phase_stochastic
         else:
             if type(check_transition_to_next_phase_function_args) != list:
                 raise TypeError("Custom exit function selected but no args given. Was expecting "
                                 "'check_transition_to_next_phase_function_args' to be a list, got "
                                 f"{type(check_transition_to_next_phase_function_args)}.")
-            self.transition_to_next_phase_args = check_transition_to_next_phase_function_args
-            self.check_transition_to_next_phase = check_transition_to_next_phase_function
+            self.check_transition_to_next_phase_function_args = check_transition_to_next_phase_function_args
+            self.check_transition_to_next_phase_function = check_transition_to_next_phase_function
 
         if simulated_cell_volume is None:
             self.simulated_cell_volume = 1
@@ -538,7 +538,7 @@ class Phase:
         else:
             exit_phenotype = False
 
-        go_to_next_phase_in_phenotype = self.check_transition_to_next_phase(*self.transition_to_next_phase_args)
+        go_to_next_phase_in_phenotype = self.check_transition_to_next_phase_function(*self.check_transition_to_next_phase_function_args)
 
         if go_to_next_phase_in_phenotype and self.exit_function is not None:
             self.exit_function(*self.exit_function_args)
@@ -700,6 +700,8 @@ class Ki67Positive(Phase):
         if entry_function is None:
             entry_function = self._double_target_volume
             entry_function_args = [None]
+        elif entry_function == False:  # CANNOT BE SIMPLIFIED TO `not entry_function`. Because not None == True
+            pass
         elif type(entry_function_args) != list and type(entry_function_args) != tuple:
             raise TypeError("'entry_function' was defined but no valid value for 'entry_function_args' was given. "
                             "Expected "
@@ -805,7 +807,6 @@ class Ki67PositivePreMitotic(Ki67Positive):
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
                  relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
-
         if entry_function is None:
             # otherwise it will be defaulted to the halving target volume function by Ki67Positive
             entry_function = False
@@ -1404,5 +1405,58 @@ class NecrosisLysed(Phase):
 
 
 if __name__ == '__main__':
-    test_ki = Ki67Positive(dt=0.1)
-    print(test_ki.index)
+    dt = 1
+    phase = Phase(dt=dt)
+    qui = QuiescentPhase(dt=dt)
+    ki67n = Ki67Negative(dt=dt)
+    test_ki67p = Ki67Positive(dt=dt)
+    ki67ppre = Ki67PositivePreMitotic(dt=dt)
+    ki67ppos = Ki67PositivePostMitotic(dt=dt)
+    g0g1 = G0G1(dt=dt)
+    s = S(dt=dt)
+    g2m = G2M(dt=dt)
+    ap = Apoptosis(dt=dt)
+    necsw = NecrosisSwell(dt=dt)
+    necLys = NecrosisLysed(dt=dt)
+
+
+    def grow_phase_transition(*args):
+        return args[0] >= args[1] and args[2] > args[4]
+
+
+    def double_target_volumes(self, *none):
+        self.volume.nuclear_solid_target *= 2
+        self.volume.cytoplasm_solid_target *= 2
+
+    custom = Phase(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
+                   time_unit="min", space_unit="micrometer", name="custom",
+                   division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=True,
+                   phase_duration=120, entry_function=double_target_volumes,
+                   entry_function_args=[None],
+                   exit_function=None, arrest_function=None,
+                   check_transition_to_next_phase_function=grow_phase_transition,
+                   check_transition_to_next_phase_function_args=[0, 9, 0, 9],
+                   simulated_cell_volume=1,
+                   cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
+                   calcification_rate=None, target_fluid_fraction=None, nuclear_fluid=None,
+                   nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                   cytoplasm_solid=None, cytoplasm_solid_target=None,
+                   target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
+                   fluid_change_rate=None, relative_rupture_volume=None,
+                   user_phase_time_step=None, user_phase_time_step_args=(None,))
+
+    # print(test_ki67p.index)
+    for _ in range(1000):
+        # print(phase.name, phase.time_step_phase(), phase.volume.total)
+        # print(qui.name, qui.time_step_phase(), qui.volume.total)
+        # print(ki67n.name, ki67n.time_step_phase(), ki67n.volume.total)
+        # print(test_ki67p.name, test_ki67p.time_step_phase(), test_ki67p.volume.total)
+        # print(ki67ppre.name, ki67ppre.time_step_phase(), ki67ppre.volume.total)
+        # print(ki67ppos.name, ki67ppos.time_step_phase(), ki67ppos.volume.total)
+        # print(g0g1.name, g0g1.time_step_phase(), g0g1.volume.total)
+        # print(s.name, s.time_step_phase(), s.volume.total)
+        # print(g2m.name, g2m.time_step_phase(), g2m.volume.total)
+        # print(ap.name, ap.time_step_phase(), ap.volume.total)
+        # print(necsw.name, necsw.time_step_phase(), necsw.volume.total)
+        # print(necLys.name, necLys.time_step_phase(), necLys.volume.total)
+        print(custom.name, custom.time_step_phase(), custom.volume.total)
