@@ -41,7 +41,7 @@ from numpy import random as rng
 # sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
 sys.path.extend(['C:\\github\\PhenoCellPy', 'C:/github/PhenoCellPy'])
 
-import Phenotypes as pheno
+import PhenoCellPy as pcp
 
 
 class ApoptosysSteppable(SteppableBasePy):
@@ -61,7 +61,7 @@ class ApoptosysSteppable(SteppableBasePy):
 
         self.target_volume = self.side * self.side
 
-        self.apopto = pheno.phenotypes.ApoptosisStandard(dt=self.dt)
+        self.apopto = pcp.phenotypes.ApoptosisStandard(dt=self.dt)
 
         self.volume_conversion_unit = self.target_volume / self.apopto.current_phase.volume.total
 
@@ -83,7 +83,7 @@ class ApoptosysSteppable(SteppableBasePy):
                 cell.lambdaVolume = 25  # the cell is not alive anymore, so it should be pretty stiff as it can't
                 # reshape itself actively
 
-                pheno.utils.add_phenotype_to_CC3D_cell(cell, self.apopto)
+                pcp.utils.add_phenotype_to_CC3D_cell(cell, self.apopto)
                 changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
                 if should_be_removed:
                     self.delete_cell(cell)
