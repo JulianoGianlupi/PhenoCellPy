@@ -44,7 +44,7 @@ from os.path import abspath, dirname, join
 
 sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
 
-import PhenoCellPy as pheno
+import PhenoCellPy as pcp
 
 
 class ConstraintInitializerSteppable(SteppableBasePy):
@@ -69,14 +69,14 @@ class ConstraintInitializerSteppable(SteppableBasePy):
 
         dt = 5  # 5 min/mcs
 
-        ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt)
+        ki67_basic = pcp.phenotypes.Ki67Basic(dt=dt)
 
         self.volume_conversion_unit = self.target_volume / ki67_basic.current_phase.volume.total
 
         for cell in self.cell_list:
             cell.targetVolume = self.target_volume
             cell.lambdaVolume = 2.0
-            pheno.utils.add_phenotype_to_CC3D_cell(cell, ki67_basic)
+            pcp.utils.add_phenotype_to_CC3D_cell(cell, ki67_basic)
             cell.dict["phase_index_plus_1"] = cell.dict["phenotype"].current_phase.index + 1
 
         self.shared_steppable_vars["constraints"] = self

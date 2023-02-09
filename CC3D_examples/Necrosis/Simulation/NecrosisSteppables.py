@@ -42,7 +42,7 @@ from numpy import random as rng
 # sys.path.extend(['C:\\github\\PhenoCellPy', 'C:/github/PhenoCellPy'])
 sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
 
-import PhenoCellPy as pheno
+import PhenoCellPy as pcp
 
 
 class NecrosisSteppable(SteppableBasePy):
@@ -62,7 +62,7 @@ class NecrosisSteppable(SteppableBasePy):
         self.to_necrose = 15  # how many cells we will necrose
         self.target_volume = self.side * self.side
 
-        self.necrotic_phenotype = pheno.phenotypes.NecrosisStandard(dt=self.dt)
+        self.necrotic_phenotype = pcp.phenotypes.NecrosisStandard(dt=self.dt)
         self.volume_conversion_unit = self.target_volume / self.necrotic_phenotype.current_phase.volume.total
 
         for cell in self.cell_list:
@@ -83,7 +83,7 @@ class NecrosisSteppable(SteppableBasePy):
                 cell.type = self.NECROTIC
                 cell.lambdaVolume = 25  # the cell is not alive anymore, so it should be pretty stiff as it can't
                 # reshape itself actively
-                pheno.utils.add_phenotype_to_CC3D_cell(cell, self.necrotic_phenotype)
+                pcp.utils.add_phenotype_to_CC3D_cell(cell, self.necrotic_phenotype)
 
         if mcs > 50:
             for cid in self.selected_cell_ids:

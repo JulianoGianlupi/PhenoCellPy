@@ -43,7 +43,7 @@ from os.path import abspath, dirname, join
 # sys.path.extend([abspath("../../..")])  # todo: make this more refined
 
 sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
-import PhenoCellPy as pheno
+import PhenoCellPy as pcp
 
 
 def Ki67pos_transition(*args):
@@ -74,10 +74,10 @@ class ConstraintInitializerSteppable(SteppableBasePy):
 
         dt = 5  # 5 min/mcs
 
-        ki67_basic_modified_transition = pheno.phenotypes.Ki67Basic(dt=dt,
-                                                                    check_transition_to_next_phase_functions=[None,
+        ki67_basic_modified_transition = pcp.phenotypes.Ki67Basic(dt=dt,
+                                                                  check_transition_to_next_phase_functions=[None,
                                                                                                               Ki67pos_transition],
-                                                                    check_transition_to_next_phase_functions_args=[None,
+                                                                  check_transition_to_next_phase_functions_args=[None,
                                                                                                                    [-9, 1, -9, 1]])
 
         self.volume_conversion_unit = self.target_volume / ki67_basic_modified_transition.current_phase.volume.total
@@ -85,7 +85,7 @@ class ConstraintInitializerSteppable(SteppableBasePy):
         for cell in self.cell_list:
             cell.targetVolume = self.target_volume
             cell.lambdaVolume = 2.0
-            pheno.utils.add_phenotype_to_CC3D_cell(cell, ki67_basic_modified_transition)
+            pcp.utils.add_phenotype_to_CC3D_cell(cell, ki67_basic_modified_transition)
             cell.dict["phase_index_plus_1"] = cell.dict["phenotype"].current_phase.index + 1
 
         self.shared_steppable_vars["constraints"] = self
