@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from numpy import exp
 from numpy.random import uniform
 
-from Phenotypes.cell_volume import CellVolumes
+from PhenoCellPy.cell_volume import CellVolumes
 
 
 # todo: change args handling to also accept tuples
@@ -549,7 +549,7 @@ class Phase:
     def _double_target_volume(self, *none):
         """
 
-        Doubles the cell volume submodel (:class:`Phenotypes.cell_volume`) target volumes. Used by several cell cycle
+        Doubles the cell volume submodel (:class:`PhenoCellPy.cell_volume`) target volumes. Used by several cell cycle
         models to double the cell volume before mitosis
 
         :param none: Not used. This is a custom entry function, therefore it has to have args
@@ -561,7 +561,7 @@ class Phase:
     def _halve_target_volume(self, *none):
         """
 
-        Halves the cell volume submodel (:class:`Phenotypes.cell_volume`) target volumes. Used by several cell cycle
+        Halves the cell volume submodel (:class:`PhenoCellPy.cell_volume`) target volumes. Used by several cell cycle
         models to halve the cell volume after mitosis
 
         :param none: Not used. This is a custom entry function, therefore it has to have args
@@ -1110,7 +1110,7 @@ class Apoptosis(Phase):
     phase ends. Transition to the next phase is set to be deterministic (the phase does use a fixed duration) by
     default. Default phase duration is 8.6h. By default, if no custom user defined entry function is used (i.e.,
     `entry_function=None`), entry function is set to :class:`Apoptosis._standard_apoptosis_entry`.
-    :class:`Apoptosis._standard_apoptosis_entry` sets all the cell target volumes from :class:`Phenotypes.cell_volume`
+    :class:`Apoptosis._standard_apoptosis_entry` sets all the cell target volumes from :class:`PhenoCellPy.cell_volume`
     to 0. The default mass change rates are `cytoplasm_volume_change_rate = 1/60` [volume/min],
     `nuclear_volume_change_rate = 0.35 / 60` [volume/min], `fluid_change_rate = 3 / 60`. This phase does not calcify
     the cell.
@@ -1313,7 +1313,7 @@ class NecrosisLysed(Phase):
     disappear before then, this is a safeguard to remove the cell "by hand" if it hasn't. By default, if no custom user
     defined entry function is used (i.e., `entry_function=None`), entry function is set to
     :class:`NecrosisLysed._standard_lysis_entry_function`. It zeroes all target volumes from
-    :class:`Phenotypes.cell_volume`. The default volume change rates are:
+    :class:`PhenoCellPy.cell_volume`. The default volume change rates are:
     `cytoplasm_volume_change_rate = 0.0032 / 60.0`, `nuclear_volume_change_rate = 0.013 / 60.0`,
     `fluid_change_rate = 0.050 / 60.0`, `calcification_rate = 0.0042 / 60.0`. This phase calcifies the cell.
 

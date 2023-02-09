@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from warnings import warn
 
-import Phenotypes.phases as Phases
+import PhenoCellPy.phases as Phases
 
 
 # from numpy.random import randint

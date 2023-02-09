@@ -39,7 +39,7 @@ import time
 
 sys.path.extend([abspath("../")])  # todo: make this more refined
 
-import Phenotypes as pheno
+import PhenoCellPy as pcp
 
 
 def get_radius_sphere(volume):
@@ -68,7 +68,7 @@ density = mass / ((4 / 3) * np.pi * radius * radius * radius)
 
 dt = 10  # min/time step
 
-ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt)
+ki67_basic = pcp.phenotypes.Ki67Basic(dt=dt)
 
 global volume_conversion_unit
 volume_conversion_unit = (4 / 3) * np.pi * radius * radius * radius/ki67_basic.current_phase.volume.total
