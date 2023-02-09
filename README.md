@@ -22,7 +22,7 @@ set Phase period). The user can also define a custom transition function. One of
 Standard Model, uses a custom transition function for its first Phase (which represents the osmotic swelling of a 
 necrotic cell). The custom transition function monitors the cell volume and changes from the swelling Phase to the 
 ruptured cell Phase when the cell reaches its rupturing volume. The Phase class can, optionally, check if a cell should 
-exit the Phenotype and enter quiescence.
+exit the Phenotype and enter senescence.
 
 As mentioned, a Phenotype can be any sequence of Phases. For instance, the cell cycle is a Phenotype. The modeler using 
 PhenoCellPy must call the division methods of the modeling framework being used to divide the cell. 

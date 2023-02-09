@@ -83,7 +83,7 @@ def _check_arguments(number_phases, phase_names, division_at_phase_exits, remova
     :type list
     :param exit_functions_args: List of lists of arguments for the exit functions
     :type list
-    :param arrest_functions: Functions defining exit from the phenotype and entrance to quiescence
+    :param arrest_functions: Functions defining exit from the phenotype and entrance to senescence
     :type list
     :param arrest_functions_args: List of lists of arguments for the arrest functions
     :type list
@@ -305,7 +305,7 @@ class Phenotype:
 
     This class has methods to time-step the phenotype model (which time-steps all submodels), to change the phenotype
     phase to an arbitrary phase of the phenotype cycle, to go to the next phase in the cycle, and to go to a
-    non-changing quiescent phase.
+    non-changing senescent phase.
 
     Methods:
     --------
@@ -345,10 +345,10 @@ class Phenotype:
         Index of which phase to start at. Currently there is no option to start at a random phase, but that capability
         will be implemented soon. When it is, to start at a random phase set to -1
 
-    quiescent_phase : :class:`Phases.Phase`, None, or False
-        If false the cycle won't have a (stand-alone) quiescent phase defined. If None the default
-        :class:`Phases.QuiescentPhase` will be used as the stand-alone quiescent phase. If it is a :class:`Phases.Phase`
-        object it will be used as the stand-alone quiescent phase.
+    senescent_phase : :class:`Phases.Phase`, None, or False
+        If false the cycle won't have a (stand-alone) senescent phase defined. If None the default
+        :class:`Phases.SenescentPhase` will be used as the stand-alone senescent phase. If it is a :class:`Phases.Phase`
+        object it will be used as the stand-alone senescent phase.
 
     current_phase : :class:`Phases.Phase`
         The current (active) phase of the cycle.
@@ -361,7 +361,7 @@ class Phenotype:
     """
 
     def __init__(self, name: str = "unnamed", dt: float = 1, time_unit: str = "min", space_unit="micrometer",
-                 phases: list = None, quiescent_phase: Phases.Phase or False = None, starting_phase_index: int = 0,
+                 phases: list = None, senescent_phase: Phases.Phase or False = None, starting_phase_index: int = 0,
                  user_phenotype_time_step=None, user_phenotype_time_step_args=(None,)):
         """
         :param name: Name for the phenotype
@@ -374,7 +374,7 @@ class Phenotype:
         :type space_unit: str
         :param phases: The different phases of the phenotype
         :type list of Phases.Phase
-        :param quiescent_phase: Special outside-of-phenotype-order quiescent phase
+        :param senescent_phase: Special outside-of-phenotype-order senescent phase
         :type Phases.Phase or False
         :param starting_phase_index: Which phase to start the phenotype model at
         :type int
@@ -399,14 +399,14 @@ class Phenotype:
                                         space_unit=space_unit)]
         else:
             self.phases = phases
-        if quiescent_phase is None:
-            self.quiescent_phase = Phases.QuiescentPhase(dt=self.dt)
-        elif quiescent_phase is not None and not quiescent_phase:
-            self.quiescent_phase = False
-        elif not isinstance(quiescent_phase, Phases.Phase):
-            raise ValueError(f"`quiescent_phase` must Phases.Phase object, False, or None. Got {quiescent_phase}")
+        if senescent_phase is None:
+            self.senescent_phase = Phases.SenescentPhase(dt=self.dt)
+        elif senescent_phase is not None and not senescent_phase:
+            self.senescent_phase = False
+        elif not isinstance(senescent_phase, Phases.Phase):
+            raise ValueError(f"`senescent_phase` must Phases.Phase object, False, or None. Got {senescent_phase}")
         else:
-            self.quiescent_phase = quiescent_phase
+            self.senescent_phase = senescent_phase
         if starting_phase_index is None:
             starting_phase_index = 0
         elif starting_phase_index == -1:  # random option
@@ -434,8 +434,8 @@ class Phenotype:
 
         Increments :attr:`time_in_cycle` by :attr:`dt`. Calls :func:`current_phase.time_step_phase`. If the phase time-
         step determines the cycle moves to the next phase (i.e., returns `True` for `next_phase`), calls
-        :func:go_to_next_phase. If the phase time-step determines the cell exits the cell cycle and goes to quiescence
-        (i.e., returns `True` for `quies`) calls :func:`go_to_quiescence`. If :attr:`time_in_cycle` is 0 and
+        :func:go_to_next_phase. If the phase time-step determines the cell exits the cell cycle and goes to senescence
+        (i.e., returns `True` for `senes`) calls :func:`go_to_senescence`. If :attr:`time_in_cycle` is 0 and
         :attr:current_phase has an entry function calls :func:current_phase.entry_function.
 
         :return: Flags (bool) for phase changing, cell death, and cell division
@@ -456,7 +456,7 @@ class Phenotype:
             changed_phases, cell_removed, cell_divides = self.go_to_next_phase()
             return changed_phases, cell_removed, cell_divides
         elif exit_phenotype:
-            self.go_to_quiescence()
+            self.go_to_senescence()
             changed_phases, cell_removed, cell_divides = (True, False, False)
             return changed_phases, cell_removed, cell_divides
         changed_phases, cell_removed, cell_divides = (False, False, False)
@@ -538,19 +538,19 @@ class Phenotype:
         if self.current_phase.entry_function is not None:
             self.current_phase.entry_function(*self.current_phase.entry_function_args)
 
-    def go_to_quiescence(self):
+    def go_to_senescence(self):
         """
 
-        Sets cycle phase to be the quiescent phase.
+        Sets cycle phase to be the senescent phase.
 
-        This function checks that :attr:`quiescent_phase` is a :class:`Phases.Phase`, if that's the case it sets
-        :attr:`current_phase` to be :attr:`quiescent_phase`. It also sets (after phase change) the
+        This function checks that :attr:`senescent_phase` is a :class:`Phases.Phase`, if that's the case it sets
+        :attr:`current_phase` to be :attr:`senescent_phase`. It also sets (after phase change) the
         :attr:`current_phase.volume` and :attr:`current_phase.volume` to be the previous phase :attr:`volume` by first
         saving it to a temporary variable. It resets :attr:`current_phase.time_in_phase` to be 0.
 
         :return: No return
         """
-        if not isinstance(self.quiescent_phase, Phases.Phase):
+        if not isinstance(self.senescent_phase, Phases.Phase):
             return
 
         # get the current cytoplasm, nuclear, calcified volumes
@@ -572,24 +572,24 @@ class Phenotype:
         #
         # target_fluid_fraction = self.current_phase.volume.target_fluid_fraction
 
-        # setting the quiescent phase volume parameters. As the cell is now quiescent it shouldn't want to change its
+        # setting the senescent phase volume parameters. As the cell is now senescent it shouldn't want to change its
         # volume, so we set the targets to be the current measurements
-        self.quiescent_phase.volume.cytoplasm_solid = cyto_solid
-        self.quiescent_phase.volume.cytoplasm_fluid = cyto_fluid
+        self.senescent_phase.volume.cytoplasm_solid = cyto_solid
+        self.senescent_phase.volume.cytoplasm_fluid = cyto_fluid
 
-        self.quiescent_phase.volume.nuclear_solid = nucl_solid
-        self.quiescent_phase.volume.nuclear_fluid = nucl_fluid
+        self.senescent_phase.volume.nuclear_solid = nucl_solid
+        self.senescent_phase.volume.nuclear_fluid = nucl_fluid
 
-        self.quiescent_phase.volume.nuclear_solid_target = nucl_solid
-        self.quiescent_phase.volume.cytoplasm_solid_target = cyto_solid
+        self.senescent_phase.volume.nuclear_solid_target = nucl_solid
+        self.senescent_phase.volume.cytoplasm_solid_target = cyto_solid
 
-        self.quiescent_phase.volume.calcified_fraction = calc_frac
+        self.senescent_phase.volume.calcified_fraction = calc_frac
 
-        self.quiescent_phase.volume.target_fluid_fraction = (cyto_fluid + nucl_fluid) / (nucl_solid + nucl_fluid +
+        self.senescent_phase.volume.target_fluid_fraction = (cyto_fluid + nucl_fluid) / (nucl_solid + nucl_fluid +
                                                                                          cyto_fluid + cyto_solid)
 
-        # set the phase to be quiescent
-        self.current_phase = self.quiescent_phase
+        # set the phase to be senescent
+        self.current_phase = self.senescent_phase
         self.current_phase.time_in_phase = 0
 
     def __str__(self):
@@ -621,16 +621,16 @@ class SimpleLiveCycle(Phenotype):
                          user_phase_time_step=user_phases_time_step[0],
                          user_phase_time_step_args=user_phases_time_step_args[0])]
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
-                         quiescent_phase=False, user_phenotype_time_step=user_phenotype_time_step,
+                         senescent_phase=False, user_phenotype_time_step=user_phenotype_time_step,
                          user_phenotype_time_step_args=user_phenotype_time_step_args)
 
 
 class Ki67Basic(Phenotype):
     """
 
-    Inherits :class:`Phenotype`. Simple proliferating-quiescent phase. Cell divides upon leaving Ki67+
+    Inherits :class:`Phenotype`. Simple proliferating-senescent phase. Cell divides upon leaving Ki67+
 
-    This is a two phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the quiescent phase, Ki67-'s mean du-
+    This is a two phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the senescent phase, Ki67-'s mean du-
     ration is 4.59h (stochastic transition to Ki67+ by default). Ki67+ (defined in :class:`Phases.Ki67Positive`) is the
     proliferating phase. It is responsible for doubling the volume of the cell at a rate of
     [increase in volume]/[Ki67+ duration]. Ki67+ duration is fixed (by default) at 15.5 hours. Once the cell exits Ki67+
@@ -638,7 +638,7 @@ class Ki67Basic(Phenotype):
 
     """
 
-    def __init__(self, name="Ki67 Basic", dt=0.1, time_unit="min", space_unit="micrometer", quiescent_phase=False,
+    def __init__(self, name="Ki67 Basic", dt=0.1, time_unit="min", space_unit="micrometer", senescent_phase=False,
                  division_at_phase_exits=(False, True), removal_at_phase_exits=(False, False),
                  fixed_durations=(False, True), phase_durations: list = (4.59 * 60, 15.5 * 60.0),
                  entry_functions=(None, None), entry_functions_args=(None, None), exit_functions=(None, None),
@@ -726,16 +726,16 @@ class Ki67Basic(Phenotype):
         phases = [Ki67_negative, Ki67_positive]
 
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
-                         quiescent_phase=quiescent_phase, user_phenotype_time_step=user_phenotype_time_step,
+                         senescent_phase=senescent_phase, user_phenotype_time_step=user_phenotype_time_step,
                          user_phenotype_time_step_args=user_phenotype_time_step_args)
 
 
 class Ki67Advanced(Phenotype):
     """
 
-    Inherits :class:`Phenotype`. Simple quiescent-proliferating (mitosis)-rest cycle. Cell divides upon leaving Ki67+ pre
+    Inherits :class:`Phenotype`. Simple senescent-proliferating (mitosis)-rest cycle. Cell divides upon leaving Ki67+ pre
 
-    This is a three phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the quiescent phase, Ki67-'s mean
+    This is a three phase cycle. Ki67- (defined in :class:`Phases.Ki67Negative`) is the senescent phase, Ki67-'s mean
     duration is 3.62h (stochastic transition to Ki67+ pre-mitotic by default). Ki67+ pre-mitotic (defined in
     :class:`Phases.Ki67PositivePreMitotic`) is the proliferating phase. It is responsible for doubling the volume of the
     cell at a rate of [increase in volume]/[Ki67+ pre duration]. Ki67+ pre-mitotic duration is fixed (by default) at 13
@@ -745,7 +745,7 @@ class Ki67Advanced(Phenotype):
 
     """
 
-    def __init__(self, name="Ki67 Advanced", dt=0.1, time_unit="min", space_unit="micrometer", quiescent_phase=False,
+    def __init__(self, name="Ki67 Advanced", dt=0.1, time_unit="min", space_unit="micrometer", senescent_phase=False,
                  division_at_phase_exits=(False, True, False), removal_at_phase_exits=(False, False, False),
                  fixed_durations=(False, True, True), phase_durations: list = (3.62 * 60, 13.0 * 60.0, 2.5 * 60),
                  entry_functions=(None, None, None), entry_functions_args=(None, None, None),
@@ -876,7 +876,7 @@ class Ki67Advanced(Phenotype):
                                                             user_phase_time_step_args=user_phases_time_step_args[2])
         phases = [Ki67_negative, Ki67_positive_pre, Ki67_positive_post]
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
-                         quiescent_phase=quiescent_phase, user_phenotype_time_step=user_phenotype_time_step,
+                         senescent_phase=senescent_phase, user_phenotype_time_step=user_phenotype_time_step,
                          user_phenotype_time_step_args=user_phenotype_time_step_args)
 
 
@@ -895,7 +895,7 @@ class FlowCytometryBasic(Phenotype):
     """
 
     def __init__(self, name="Flow Cytometry Basic", dt=0.1, time_unit="min", space_unit="micrometer",
-                 quiescent_phase=False,
+                 senescent_phase=False,
                  division_at_phase_exits=(False, False, True), removal_at_phase_exits=(False, False, False),
                  fixed_durations=(False, False, False), phase_durations: list = (5.15 * 60, 8 * 60.0, 5 * 60),
                  entry_functions=(None, None, None), entry_functions_args=(None, None, None),
@@ -993,7 +993,7 @@ class FlowCytometryBasic(Phenotype):
         phases = [G0G1, S, G2M]
 
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
-                         quiescent_phase=quiescent_phase, user_phenotype_time_step=user_phenotype_time_step,
+                         senescent_phase=senescent_phase, user_phenotype_time_step=user_phenotype_time_step,
                          user_phenotype_time_step_args=user_phenotype_time_step_args)
 
 
@@ -1014,7 +1014,7 @@ class FlowCytometryAdvanced(Phenotype):
     """
 
     def __init__(self, name="Flow Cytometry Advanced", dt=0.1, time_unit="min", space_unit="micrometer",
-                 quiescent_phase=False,
+                 senescent_phase=False,
                  division_at_phase_exits=(False, False, False, True),
                  removal_at_phase_exits=(False, False, False, False), fixed_durations=(False, False, False, False),
                  phase_durations: list = (4.98 * 60, 8 * 60.0, 4 * 60, 1 * 60),
@@ -1138,7 +1138,7 @@ class FlowCytometryAdvanced(Phenotype):
         phases = [G0G1, S, G2, M]
 
         super().__init__(name=name, dt=dt, time_unit=time_unit, phases=phases, space_unit=space_unit,
-                         quiescent_phase=quiescent_phase, user_phenotype_time_step=user_phenotype_time_step,
+                         senescent_phase=senescent_phase, user_phenotype_time_step=user_phenotype_time_step,
                          user_phenotype_time_step_args=user_phenotype_time_step_args)
 
 
@@ -1154,7 +1154,7 @@ class ApoptosisStandard(Phenotype):
     """
 
     def __init__(self, name="Standard apoptosis model", dt=0.1, time_unit="min", space_unit="micrometer",
-                 quiescent_phase=False,
+                 senescent_phase=False,
                  division_at_phase_exits=(False,), removal_at_phase_exits=(True,), fixed_durations=(True,),
                  phase_durations=(8.6 * 60,), entry_functions=(None,), entry_functions_args=(None,),
                  exit_functions=(None,), exit_functions_args=(None,), arrest_functions=(None,),
@@ -1213,7 +1213,7 @@ class ApoptosisStandard(Phenotype):
         phases = [apopto]
 
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit,
-                         phases=phases, quiescent_phase=quiescent_phase,
+                         phases=phases, senescent_phase=senescent_phase,
                          user_phenotype_time_step=user_phenotype_time_step,
                          user_phenotype_time_step_args=user_phenotype_time_step_args)
 
@@ -1233,7 +1233,7 @@ class NecrosisStandard(Phenotype):
     """
 
     def __init__(self, name="Standard necrosis model", dt=0.1, time_unit="min", space_unit="micrometer",
-                 quiescent_phase=False,
+                 senescent_phase=False,
                  division_at_phase_exits=(False, False), removal_at_phase_exits=(False, True),
                  fixed_durations=(False, True),
                  phase_durations=(None, None), entry_functions=(None, None), entry_functions_args=(None, None),
@@ -1323,7 +1323,7 @@ class NecrosisStandard(Phenotype):
         phases = [necro_swell, necro_lysed]
 
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
-                         quiescent_phase=quiescent_phase, user_phenotype_time_step=user_phenotype_time_step,
+                         senescent_phase=senescent_phase, user_phenotype_time_step=user_phenotype_time_step,
                          user_phenotype_time_step_args=user_phenotype_time_step_args)
 
         return
@@ -1463,14 +1463,14 @@ if __name__ == "__main__":
                              space_unit="micrometer",
                              phases=[custom_p0, custom_p1, stable_phase_1,
                                      shrink_phase],
-                             quiescent_phase=False, starting_phase_index=0,
+                             senescent_phase=False, starting_phase_index=0,
                              user_phenotype_time_step=None,
                              user_phenotype_time_step_args=[None, ])
 
     for i in range(10000):
         print(f"t={i}")
-        # changed_phase, died, divides = test.time_step_phenotype()
-        # print(changed_phase, died, divides)
+        changed_phase, died, divides = test.time_step_phenotype()
+        print(changed_phase, died, divides)
         if custom_pheno.current_phase.name == "custom_p1":
             custom_pheno.current_phase.check_transition_to_next_phase_function_args = \
                 [custom_pheno.current_phase.volume.total, custom_pheno.current_phase.volume.total_target,

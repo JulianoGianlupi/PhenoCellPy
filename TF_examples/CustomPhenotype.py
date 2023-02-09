@@ -157,7 +157,7 @@ shrink_phase = pheno.phases.Ki67PositivePostMitotic(index=3, previous_phase_inde
 custom_pheno = pheno.phenotypes.Phenotype(name="oscillate volume with rests", dt=dt, time_unit="min",
                                           space_unit="micrometer", phases=[stable_phase_0, grow_phase, stable_phase_1,
                                                                            shrink_phase],
-                                          quiescent_phase=False, starting_phase_index=0, user_phenotype_time_step=None,
+                                          senescent_phase=False, starting_phase_index=0, user_phenotype_time_step=None,
                                           user_phenotype_time_step_args=[None, ])
 
 global volume_conversion_unit
