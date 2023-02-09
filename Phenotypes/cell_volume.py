@@ -1,7 +1,7 @@
 """
 BSD 3-Clause License
 
-Copyright (c) 2022, Juliano Ferrari Gianlupi
+Copyright (c) 2023, Juliano Ferrari Gianlupi
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -354,6 +354,10 @@ class CellVolumes:
     @total.setter
     def total(self, value):
         self._total = value if value >= 0 else 0
+
+    @property
+    def total_target(self):
+        return (self.cytoplasm_solid_target + self.nuclear_solid_target)/(1 - self.target_fluid_fraction)
 
     @property
     def nuclear_fluid(self):

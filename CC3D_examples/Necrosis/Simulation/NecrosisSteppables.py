@@ -1,7 +1,7 @@
 """
 BSD 3-Clause License
 
-Copyright (c) 2022, Juliano Ferrari Gianlupi
+Copyright (c) 2023, Juliano Ferrari Gianlupi
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -88,6 +88,7 @@ class NecrosisSteppable(SteppableBasePy):
         if mcs > 50:
             for cid in self.selected_cell_ids:
                 cell = self.fetch_cell_by_id(int(cid))
+                print(cell.volume)
                 if cell is not None:  # if the cell has died (disappeared, deleted from the simulation) cell is a null
                     # object
                     changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
@@ -101,6 +102,7 @@ class NecrosisSteppable(SteppableBasePy):
                         # if cell.dict["phenotype"].current_phase.name == "Necrotic (lysed)":
                             # if the cell has ruptured
                         cell.type = self.RUPTURED
+                        cell.lambdaVolume = 50
                     if should_be_removed:
                         self.delete_cell(cell)
 

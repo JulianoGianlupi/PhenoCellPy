@@ -1,7 +1,7 @@
 """
 BSD 3-Clause License
 
-Copyright (c) 2022, Juliano Ferrari Gianlupi
+Copyright (c) 2023, Juliano Ferrari Gianlupi
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ from .. import phenotypes
 
 
 def add_cycle_to_object(o: object, phenotype: str or phenotypes.Phenotype, name: str = "unnamed",
-                        dt: float = 1, time_unit: str = "min", phases: list = None, quiescent_phase= None):
+                        dt: float = 1, time_unit: str = "min", phases: list = None, senescent_phase= None):
 
     if not hasattr(o, "__dict__"):
         raise AttributeError("phenotype class can only be attached to objects that support custom attributes. Object "
@@ -50,13 +50,13 @@ def add_cycle_to_object(o: object, phenotype: str or phenotypes.Phenotype, name:
 
     if type(phenotype) == str:
         phenotype = phenotypes.get_phenotype_by_name(phenotype)
-        phenotype = phenotype(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
+        phenotype = phenotype(name=name, dt=dt, time_unit=time_unit, phases=phases, senescent_phase=senescent_phase)
 
     setattr(o, "phenotype", phenotype)
 
 
 def add_phenotype_to_CC3D_cell(cell, phenotype: str or phenotypes.Phenotype, name: str = "unnamed", dt: float = 1,
-                               time_unit: str = "min", phases: list = None, quiescent_phase=None):
+                               time_unit: str = "min", phases: list = None, senescent_phase=None):
 
     if not hasattr(cell, "dict"):
         raise AttributeError("phenotype class is currently attached to the cell dictionary (i.e., cell.dict), however"
@@ -69,7 +69,7 @@ def add_phenotype_to_CC3D_cell(cell, phenotype: str or phenotypes.Phenotype, nam
 
     if type(phenotype) == str:
         phenotype = phenotypes.get_phenotype_by_name(phenotype)
-        phenotype = phenotype(name=name, dt=dt, time_unit=time_unit, phases=phases, quiescent_phase=quiescent_phase)
+        phenotype = phenotype(name=name, dt=dt, time_unit=time_unit, phases=phases, senescent_phase=senescent_phase)
 
     cell.dict["phenotype"] = phenotype
 

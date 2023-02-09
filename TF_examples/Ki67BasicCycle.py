@@ -1,7 +1,7 @@
 """
 BSD 3-Clause License
 
-Copyright (c) 2022, Juliano Ferrari Gianlupi
+Copyright (c) 2023, Juliano Ferrari Gianlupi
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ dt = 10  # min/time step
 ki67_basic = pheno.phenotypes.Ki67Basic(dt=dt)
 
 global volume_conversion_unit
-volume_conversion_unit = mass/ki67_basic.current_phase.volume.total
+volume_conversion_unit = (4 / 3) * np.pi * radius * radius * radius/ki67_basic.current_phase.volume.total
 
 
 class CellType(tf.ParticleTypeSpec):

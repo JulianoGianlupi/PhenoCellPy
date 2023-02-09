@@ -1,7 +1,7 @@
 """
 BSD 3-Clause License
 
-Copyright (c) 2022, Juliano Ferrari Gianlupi
+Copyright (c) 2023, Juliano Ferrari Gianlupi
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -195,7 +195,7 @@ class MitosisSteppable(MitosisSteppableBase):
                     cell.dict["phenotype"].current_phase.time_in_phase + cell.dict["phenotype"].dt,
                     cell.dict["phenotype"].current_phase.phase_duration]
 
-                cell.dict["phenotype"].current_phase.transition_to_next_phase_args = args
+                cell.dict["phenotype"].current_phase.check_transition_to_next_phase_function_args = args
 
             changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
             converted_volume = self.constraint_vars.volume_conversion_unit * \
