@@ -1469,8 +1469,8 @@ if __name__ == "__main__":
 
     for i in range(10000):
         print(f"t={i}")
-        # changed_phase, died, divides = test.time_step_phenotype()
-        # print(changed_phase, died, divides)
+        changed_phase, died, divides = test.time_step_phenotype()
+        print(changed_phase, died, divides)
         if custom_pheno.current_phase.name == "custom_p1":
             custom_pheno.current_phase.check_transition_to_next_phase_function_args = \
                 [custom_pheno.current_phase.volume.total, custom_pheno.current_phase.volume.total_target,
