@@ -61,17 +61,17 @@ pot = tf.Potential.morse(d=3, a=5, min=-0.8, max=2)
 
 mass = 40
 
-radius = 1
+radius = .4
 
 global density
 density = mass / ((4 / 3) * np.pi * radius * radius * radius)
 
-dt = .1  # min/time step
+dt = 10  # min/time step
 
 stable_phase_0 = pheno.phases.Phase(index=0, previous_phase_index=-1, next_phase_index=1, dt=dt,
                                     time_unit="min", space_unit="micrometer", name="stable0",
                                     division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=True,
-                                    phase_duration=10, entry_function=None, exit_function=None, arrest_function=None,
+                                    phase_duration=20, entry_function=None, exit_function=None, arrest_function=None,
                                     check_transition_to_next_phase_function=None,
                                     simulated_cell_volume=np.pi * (4 / 3) * radius * radius * radius,
                                     cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
@@ -84,35 +84,34 @@ stable_phase_0 = pheno.phases.Phase(index=0, previous_phase_index=-1, next_phase
 
 
 def grow_phase_transition(*args):
-    volume = args[0]
-    doubling_volume = 0.8 * args[1]
-    time_phase = args[2]
-    phase_duration = args[3]
-    # print("grow trans", volume, doubling_volume, time_phase, phase_duration)
-    return volume >= doubling_volume and time_phase > phase_duration
+    return args[0] >= args[1] and args[2] > args[4]
+
+def double_target_volumes(self, *none):
+    self.volume.nuclear_solid_target *= 2
+    self.volume.cytoplasm_solid_target *= 2
 
 
-grow_phase = pheno.phases.Ki67Positive(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
-                                       time_unit="min", space_unit="micrometer", name="grow",
-                                       division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=True,
-                                       phase_duration=50, entry_function=None,
-                                       entry_function_args=[None],
-                                       exit_function=False, arrest_function=None,
-                                       check_transition_to_next_phase_function=grow_phase_transition,
-                                       check_transition_to_next_phase_function_args=[0, 9, 0, 9],
-                                       simulated_cell_volume=1,
-                                       cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
-                                       calcification_rate=None, target_fluid_fraction=None, nuclear_fluid=None,
-                                       nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
-                                       cytoplasm_solid=None, cytoplasm_solid_target=None,
-                                       target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
-                                       fluid_change_rate=None, relative_rupture_volume=None,
-                                       user_phase_time_step=None, user_phase_time_step_args=(None,))
+grow_phase = pheno.phases.Phase(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
+                                time_unit="min", space_unit="micrometer", name="grow",
+                                division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=True,
+                                phase_duration=120, entry_function=double_target_volumes,
+                                entry_function_args=[None],
+                                exit_function=None, arrest_function=None,
+                                check_transition_to_next_phase_function=grow_phase_transition,
+                                check_transition_to_next_phase_function_args=[0, 9, 0, 9],
+                                simulated_cell_volume=np.pi * (4 / 3) * radius * radius * radius,
+                                cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
+                                calcification_rate=None, target_fluid_fraction=None, nuclear_fluid=None,
+                                nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                                cytoplasm_solid=None, cytoplasm_solid_target=None,
+                                target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
+                                fluid_change_rate=None, relative_rupture_volume=None,
+                                user_phase_time_step=None, user_phase_time_step_args=(None,))
 
 stable_phase_1 = pheno.phases.Phase(index=2, previous_phase_index=1, next_phase_index=3, dt=dt,
                                     time_unit="min", space_unit="micrometer", name="stable1",
                                     division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=True,
-                                    phase_duration=5, entry_function=None, exit_function=None, arrest_function=None,
+                                    phase_duration=30, entry_function=None, exit_function=None, arrest_function=None,
                                     check_transition_to_next_phase_function=None,
                                     simulated_cell_volume=np.pi * (4 / 3) * radius * radius * radius,
                                     cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
@@ -124,41 +123,34 @@ stable_phase_1 = pheno.phases.Phase(index=2, previous_phase_index=1, next_phase_
                                     user_phase_time_step=None, user_phase_time_step_args=(None,))
 
 
-def shrink_phase_transition(*args):
-    dt = args[0]
-    phase_duration = args[1]
-    total = args[2]
-    total_target = args[3]
-    time_check = np.random.uniform() < (1 - np.exp(-dt / phase_duration))
-    volume_check = total <= 1.1 * total_target
-    # print("shrink trans", total, 1.1 * total_target)
+def shrink_phase_transition(self, *none):
+    time_check = np.random.uniform() < (1 - np.exp(-self.dt / self.phase_duration))
+    volume_check = self.volume.total <= 1.1 * self.volume.total_target
     return time_check and volume_check
 
 
-shrink_phase = pheno.phases.Ki67PositivePostMitotic(index=3, previous_phase_index=2, next_phase_index=0, dt=dt,
-                                                    time_unit="min", space_unit="micrometer", name="shrink",
-                                                    division_at_phase_exit=False, removal_at_phase_exit=False,
-                                                    fixed_duration=False,
-                                                    phase_duration=100, entry_function=None,
-                                                    entry_function_args=[None], exit_function=None,
-                                                    arrest_function=None,
-                                                    check_transition_to_next_phase_function=shrink_phase_transition,
-                                                    check_transition_to_next_phase_function_args=[0, 1, 99, 0],
-                                                    simulated_cell_volume=1,
-                                                    cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
-                                                    calcification_rate=None, target_fluid_fraction=None,
-                                                    nuclear_fluid=None,
-                                                    nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
-                                                    cytoplasm_solid=None, cytoplasm_solid_target=None,
-                                                    target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
-                                                    fluid_change_rate=None, relative_rupture_volume=None,
-                                                    user_phase_time_step=None, user_phase_time_step_args=(None,))
+shrink_phase = pheno.phases.Phase(index=3, previous_phase_index=2, next_phase_index=0, dt=dt,
+                                  time_unit="min", space_unit="micrometer", name="shrink",
+                                  division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=False,
+                                  phase_duration=60, entry_function=pheno.phases.Phase._halve_target_volume,
+                                  entry_function_args=[None], exit_function=None, arrest_function=None,
+                                  check_transition_to_next_phase_function=shrink_phase_transition,
+                                  check_transition_to_next_phase_function_args=[None],
+                                  simulated_cell_volume=np.pi * (4 / 3) * radius * radius * radius,
+                                  cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
+                                  calcification_rate=None, target_fluid_fraction=None, nuclear_fluid=None,
+                                  nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+                                  cytoplasm_solid=None, cytoplasm_solid_target=None,
+                                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
+                                  fluid_change_rate=None, relative_rupture_volume=None,
+                                  user_phase_time_step=None, user_phase_time_step_args=(None,))
+
 
 custom_pheno = pheno.phenotypes.Phenotype(name="oscillate volume with rests", dt=dt, time_unit="min",
                                           space_unit="micrometer", phases=[stable_phase_0, grow_phase, stable_phase_1,
                                                                            shrink_phase],
                                           quiescent_phase=False, starting_phase_index=0, user_phenotype_time_step=None,
-                                          user_phenotype_time_step_args=[None, ])
+                                          user_phenotype_time_step_args=[None,])
 
 global volume_conversion_unit
 volume_conversion_unit = mass / custom_pheno.current_phase.volume.total
@@ -193,22 +185,13 @@ def step_cycle_and_divide(event):
     for p in Cell.items():
         pcycle = cells_cycles[f"{p.id}"]
         pcycle.current_phase.simulated_cell_volume = p.mass * density
-        if pcycle.current_phase.name == "grow":
-            print(pcycle.current_phase.volume.total, pcycle.current_phase.volume.total_target,
-                 pcycle.current_phase.time_in_phase, pcycle.current_phase.phase_duration)
-            pcycle.current_phase.check_transition_to_next_phase_function_args = \
-                [pcycle.current_phase.volume.total, pcycle.current_phase.volume.total_target,
-                 pcycle.current_phase.time_in_phase, pcycle.current_phase.phase_duration]
-        elif pcycle.current_phase.name == "shrink":
-            pcycle.current_phase.check_transition_to_next_phase_function_args = \
-                [dt, pcycle.current_phase.phase_duration,
-                 pcycle.current_phase.volume.total, pcycle.current_phase.volume.total_target]
+        if pcycle.current_phase.name == "grow" or pcycle.current_phase.name == "shrink":
+            phase_change, should_be_removed, division = pcycle.time_step_phenotype()
+        else:
+            phase_change, should_be_removed, division = pcycle.time_step_phenotype()
+        print(p.id, p.radius, pcycle.current_phase.name, pcycle.current_phase.volume.total)
 
-        phase_change, should_be_removed, division = pcycle.time_step_phenotype()
-        print(p.id, p.radius, pcycle.current_phase.name, pcycle.current_phase.volume.total,
-              pcycle.current_phase.volume.total_target)
-
-        if phase_change:
+        if phase_change and len(Cell.items()) < 10:
             print("@@@\nPHASE CHANGE\n@@@")
             # time.sleep(1)
 
