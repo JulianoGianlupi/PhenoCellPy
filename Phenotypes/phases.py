@@ -582,10 +582,10 @@ class SenescentPhase(Phase):
 
     """
 
-    def __init__(self, index: int = 9999, previous_phase_index: int = None, next_phase_index: int = 0, dt: float = None,
-                 time_unit: str = "min", space_unit="micrometer", name: str = "senescent",
+    def __init__(self, index: int = 9999, previous_phase_index: int = None, next_phase_index: int = 9999,
+                 dt: float = None, time_unit: str = "min", space_unit="micrometer", name: str = "senescent",
                  division_at_phase_exit: bool = False, removal_at_phase_exit: bool = False,
-                 fixed_duration: bool = False, phase_duration: float = 4.59 * 60, entry_function=None,
+                 fixed_duration: bool = True, phase_duration: float = 60 * 24 * 60, entry_function=None,
                  entry_function_args: list = None, exit_function=None, exit_function_args: list = None,
                  arrest_function=None, arrest_function_args: list = None, check_transition_to_next_phase_function=None,
                  check_transition_to_next_phase_function_args: list = None, simulated_cell_volume: float = None,
