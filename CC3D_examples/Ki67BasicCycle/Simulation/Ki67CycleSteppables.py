@@ -44,7 +44,7 @@ from os.path import abspath, dirname, join
 
 sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
 
-import Phenotypes as pheno
+import PhenoCellPy as pheno
 
 
 class ConstraintInitializerSteppable(SteppableBasePy):

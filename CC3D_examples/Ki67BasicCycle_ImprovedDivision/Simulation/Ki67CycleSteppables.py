@@ -43,7 +43,7 @@ from os.path import abspath, dirname, join
 # sys.path.extend([abspath("../../..")])  # todo: make this more refined
 
 sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
-import Phenotypes as pheno
+import PhenoCellPy as pheno
 
 
 def Ki67pos_transition(*args):

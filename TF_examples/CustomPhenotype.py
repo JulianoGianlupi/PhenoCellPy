@@ -39,7 +39,7 @@ import time
 
 sys.path.extend([abspath("../")])  # todo: make this more refined
 
-import Phenotypes as pheno
+import PhenoCellPy as pheno
 
 
 def get_radius_sphere(volume):

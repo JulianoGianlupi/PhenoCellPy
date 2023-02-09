@@ -41,7 +41,7 @@ from numpy import random as rng
 # sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
 sys.path.extend(['C:\\github\\PhenoCellPy', 'C:/github/PhenoCellPy'])
 
-import Phenotypes as pheno
+import PhenoCellPy as pheno
 
 
 class ApoptosysSteppable(SteppableBasePy):
