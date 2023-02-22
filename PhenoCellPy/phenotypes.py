@@ -595,10 +595,10 @@ class Phenotype:
     def __str__(self):
         phases = ""
         for p in self.phases:
-            phases += f"{p}, "
+            phases += f"{p._short_str}, "
         if len(phases) > 2:
             phases = phases[:-2]
-        return f"{self.name} cycle, phases: {phases}"
+        return f"{self.name} cycle, phases: {phases}, at memory {self.__repr__().split(' ')[-1][:-1]}"
 
 
 class SimpleLiveCycle(Phenotype):

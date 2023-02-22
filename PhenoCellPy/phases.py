@@ -571,6 +571,10 @@ class Phase:
         self.volume.nuclear_solid_target /= 2
 
     def __str__(self):
+        return f"{self.name} phase, at memory {self.__repr__().split(' ')[-1][:-1]}"
+
+    @property
+    def _short_str(self):
         return f"{self.name} phase"
 
 
