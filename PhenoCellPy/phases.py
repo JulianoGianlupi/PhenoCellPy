@@ -35,6 +35,8 @@ from numpy.random import uniform
 
 from PhenoCellPy.cell_volume import CellVolumes
 
+from copy import deepcopy
+
 
 # todo: change args handling to also accept tuples
 
@@ -539,7 +541,8 @@ class Phase:
         else:
             exit_phenotype = False
 
-        go_to_next_phase_in_phenotype = self.check_transition_to_next_phase_function(*self.check_transition_to_next_phase_function_args)
+        go_to_next_phase_in_phenotype = self.check_transition_to_next_phase_function(
+            *self.check_transition_to_next_phase_function_args)
 
         if go_to_next_phase_in_phenotype and self.exit_function is not None:
             self.exit_function(*self.exit_function_args)
@@ -570,7 +573,14 @@ class Phase:
         self.volume.cytoplasm_solid_target /= 2
         self.volume.nuclear_solid_target /= 2
 
+    def copy(self):
+        return deepcopy(self)
+
     def __str__(self):
+        return f"{self.name} phase, at memory {self.__repr__().split(' ')[-1][:-1]}"
+
+    @property
+    def _short_str(self):
         return f"{self.name} phase"
 
 
@@ -1405,8 +1415,21 @@ class NecrosisLysed(Phase):
         self.volume.rupture_volume = self.volume.relative_rupture_volume * self.volume.total
 
 
+def main():
+    return
+
+
 if __name__ == '__main__':
     dt = 1
+    phase = Phase(dt=dt)
+    sen = SenescentPhase(dt=dt)
+    cells = [type('', (), {})() for _ in range(10)]
+    for c in cells:
+        c.p = sen.copy()
+
+    for c in cells:
+        print(c.p.volume)
+
     phase = Phase(dt=dt)
     sen = SenescentPhase(dt=dt)
     ki67n = Ki67Negative(dt=dt)
@@ -1448,16 +1471,16 @@ if __name__ == '__main__':
 
     # print(test_ki67p.index)
     for _ in range(1000):
-        # print(phase.name, phase.time_step_phase(), phase.volume.total)
-        # print(qui.name, qui.time_step_phase(), qui.volume.total)
-        # print(ki67n.name, ki67n.time_step_phase(), ki67n.volume.total)
-        # print(test_ki67p.name, test_ki67p.time_step_phase(), test_ki67p.volume.total)
-        # print(ki67ppre.name, ki67ppre.time_step_phase(), ki67ppre.volume.total)
-        # print(ki67ppos.name, ki67ppos.time_step_phase(), ki67ppos.volume.total)
-        # print(g0g1.name, g0g1.time_step_phase(), g0g1.volume.total)
-        # print(s.name, s.time_step_phase(), s.volume.total)
-        # print(g2m.name, g2m.time_step_phase(), g2m.volume.total)
-        # print(ap.name, ap.time_step_phase(), ap.volume.total)
-        # print(necsw.name, necsw.time_step_phase(), necsw.volume.total)
-        # print(necLys.name, necLys.time_step_phase(), necLys.volume.total)
+        print(phase.name, phase.time_step_phase(), phase.volume.total)
+        print(sen.name, sen.time_step_phase(), sen.volume.total)
+        print(ki67n.name, ki67n.time_step_phase(), ki67n.volume.total)
+        print(test_ki67p.name, test_ki67p.time_step_phase(), test_ki67p.volume.total)
+        print(ki67ppre.name, ki67ppre.time_step_phase(), ki67ppre.volume.total)
+        print(ki67ppos.name, ki67ppos.time_step_phase(), ki67ppos.volume.total)
+        print(g0g1.name, g0g1.time_step_phase(), g0g1.volume.total)
+        print(s.name, s.time_step_phase(), s.volume.total)
+        print(g2m.name, g2m.time_step_phase(), g2m.volume.total)
+        print(ap.name, ap.time_step_phase(), ap.volume.total)
+        print(necsw.name, necsw.time_step_phase(), necsw.volume.total)
+        print(necLys.name, necLys.time_step_phase(), necLys.volume.total)
         print(custom.name, custom.time_step_phase(), custom.volume.total)

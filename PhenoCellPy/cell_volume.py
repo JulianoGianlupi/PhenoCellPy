@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from scipy.integrate import odeint
 from numpy import array
-
+from copy import deepcopy
 
 class CellVolumes:
     """
@@ -316,6 +316,9 @@ class CellVolumes:
         self.total = self.cytoplasm + self.nuclear
 
         self.fluid_fraction = self.fluid / (self.total + 1e-12)
+
+    def copy(self):
+        return deepcopy(self)
 
     @property
     def cytoplasm_to_nuclear_ratio(self):
