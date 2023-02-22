@@ -303,6 +303,7 @@ class MitosisSteppable(MitosisSteppableBase):
         self.parent_cell.targetVolume = converted_volume
 
         self.clone_parent_2_child()
+        self.child_cell.dict["phenotype"] = self.parent_cell.dict["phenotype"].copy()
         self.parent_cell.dict["phase_index_plus_1"] = self.parent_cell.dict["phenotype"].current_phase.index + 1
 
         self.child_cell.dict["phase_index_plus_1"] = self.child_cell.dict["phenotype"].current_phase.index + 1

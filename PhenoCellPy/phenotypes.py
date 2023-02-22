@@ -34,6 +34,8 @@ from warnings import warn
 
 import PhenoCellPy.phases as Phases
 
+from copy import deepcopy
+
 
 # from numpy.random import randint
 
@@ -592,13 +594,16 @@ class Phenotype:
         self.current_phase = self.senescent_phase
         self.current_phase.time_in_phase = 0
 
+    def copy(self):
+        return deepcopy(self)
+
     def __str__(self):
         phases = ""
         for p in self.phases:
-            phases += f"{p}, "
+            phases += f"{p._short_str}, "
         if len(phases) > 2:
             phases = phases[:-2]
-        return f"{self.name} cycle, phases: {phases}"
+        return f"{self.name} cycle, phases: {phases}, at memory {self.__repr__().split(' ')[-1][:-1]}"
 
 
 class SimpleLiveCycle(Phenotype):
@@ -1369,7 +1374,15 @@ if __name__ == "__main__":
     dt = 1
     print(cycle_names)
 
-    test = Ki67Basic()
+    test = Ki67Basic(dt=dt)
+    cells = [type('', (), {})() for _ in range(2)]
+    for c in cells:
+        c.p = test.copy()
+
+    for c in cells:
+        print(c.p)
+        [print(ph) for ph in c.p.phases]
+
 
     custom_p0 = Phases.Phase(index=0, previous_phase_index=-1, next_phase_index=1, dt=dt,
                              time_unit="min", space_unit="micrometer", name="custom_p0",
