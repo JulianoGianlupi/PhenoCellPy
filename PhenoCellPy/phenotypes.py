@@ -34,6 +34,8 @@ from warnings import warn
 
 import PhenoCellPy.phases as Phases
 
+from copy import deepcopy
+
 
 # from numpy.random import randint
 
@@ -591,6 +593,9 @@ class Phenotype:
         # set the phase to be senescent
         self.current_phase = self.senescent_phase
         self.current_phase.time_in_phase = 0
+
+    def copy(self):
+        return deepcopy(self)
 
     def __str__(self):
         phases = ""

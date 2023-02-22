@@ -35,6 +35,8 @@ from numpy.random import uniform
 
 from PhenoCellPy.cell_volume import CellVolumes
 
+from copy import deepcopy
+
 
 # todo: change args handling to also accept tuples
 
@@ -569,6 +571,9 @@ class Phase:
         """
         self.volume.cytoplasm_solid_target /= 2
         self.volume.nuclear_solid_target /= 2
+
+    def copy(self):
+        return deepcopy(self)
 
     def __str__(self):
         return f"{self.name} phase, at memory {self.__repr__().split(' ')[-1][:-1]}"
@@ -1408,60 +1413,72 @@ class NecrosisLysed(Phase):
 
         self.volume.rupture_volume = self.volume.relative_rupture_volume * self.volume.total
 
+def main():
+    return
 
 if __name__ == '__main__':
     dt = 1
     phase = Phase(dt=dt)
     sen = SenescentPhase(dt=dt)
-    ki67n = Ki67Negative(dt=dt)
-    test_ki67p = Ki67Positive(dt=dt)
-    ki67ppre = Ki67PositivePreMitotic(dt=dt)
-    ki67ppos = Ki67PositivePostMitotic(dt=dt)
-    g0g1 = G0G1(dt=dt)
-    s = S(dt=dt)
-    g2m = G2M(dt=dt)
-    ap = Apoptosis(dt=dt)
-    necsw = NecrosisSwell(dt=dt)
-    necLys = NecrosisLysed(dt=dt)
+    cells = [type('', (), {})() for _ in range(10)]
+    for c in cells:
+        c.p = sen.copy()
+
+    for c in cells:
+        print(c.p)
 
 
-    def grow_phase_transition(*args):
-        return args[0] >= args[1] and args[2] > args[4]
-
-
-    def double_target_volumes(self, *none):
-        self.volume.nuclear_solid_target *= 2
-        self.volume.cytoplasm_solid_target *= 2
-
-    custom = Phase(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
-                   time_unit="min", space_unit="micrometer", name="custom",
-                   division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=True,
-                   phase_duration=120, entry_function=double_target_volumes,
-                   entry_function_args=[None],
-                   exit_function=None, arrest_function=None,
-                   check_transition_to_next_phase_function=grow_phase_transition,
-                   check_transition_to_next_phase_function_args=[0, 9, 0, 9],
-                   simulated_cell_volume=1,
-                   cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
-                   calcification_rate=None, target_fluid_fraction=None, nuclear_fluid=None,
-                   nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
-                   cytoplasm_solid=None, cytoplasm_solid_target=None,
-                   target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
-                   fluid_change_rate=None, relative_rupture_volume=None,
-                   user_phase_time_step=None, user_phase_time_step_args=(None,))
-
-    # print(test_ki67p.index)
-    for _ in range(1000):
-        # print(phase.name, phase.time_step_phase(), phase.volume.total)
-        # print(qui.name, qui.time_step_phase(), qui.volume.total)
-        # print(ki67n.name, ki67n.time_step_phase(), ki67n.volume.total)
-        # print(test_ki67p.name, test_ki67p.time_step_phase(), test_ki67p.volume.total)
-        # print(ki67ppre.name, ki67ppre.time_step_phase(), ki67ppre.volume.total)
-        # print(ki67ppos.name, ki67ppos.time_step_phase(), ki67ppos.volume.total)
-        # print(g0g1.name, g0g1.time_step_phase(), g0g1.volume.total)
-        # print(s.name, s.time_step_phase(), s.volume.total)
-        # print(g2m.name, g2m.time_step_phase(), g2m.volume.total)
-        # print(ap.name, ap.time_step_phase(), ap.volume.total)
-        # print(necsw.name, necsw.time_step_phase(), necsw.volume.total)
-        # print(necLys.name, necLys.time_step_phase(), necLys.volume.total)
-        print(custom.name, custom.time_step_phase(), custom.volume.total)
+    # phase = Phase(dt=dt)
+    # sen = SenescentPhase(dt=dt)
+    # ki67n = Ki67Negative(dt=dt)
+    # test_ki67p = Ki67Positive(dt=dt)
+    # ki67ppre = Ki67PositivePreMitotic(dt=dt)
+    # ki67ppos = Ki67PositivePostMitotic(dt=dt)
+    # g0g1 = G0G1(dt=dt)
+    # s = S(dt=dt)
+    # g2m = G2M(dt=dt)
+    # ap = Apoptosis(dt=dt)
+    # necsw = NecrosisSwell(dt=dt)
+    # necLys = NecrosisLysed(dt=dt)
+    #
+    #
+    # def grow_phase_transition(*args):
+    #     return args[0] >= args[1] and args[2] > args[4]
+    #
+    #
+    # def double_target_volumes(self, *none):
+    #     self.volume.nuclear_solid_target *= 2
+    #     self.volume.cytoplasm_solid_target *= 2
+    #
+    # custom = Phase(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
+    #                time_unit="min", space_unit="micrometer", name="custom",
+    #                division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=True,
+    #                phase_duration=120, entry_function=double_target_volumes,
+    #                entry_function_args=[None],
+    #                exit_function=None, arrest_function=None,
+    #                check_transition_to_next_phase_function=grow_phase_transition,
+    #                check_transition_to_next_phase_function_args=[0, 9, 0, 9],
+    #                simulated_cell_volume=1,
+    #                cytoplasm_volume_change_rate=None, nuclear_volume_change_rate=None,
+    #                calcification_rate=None, target_fluid_fraction=None, nuclear_fluid=None,
+    #                nuclear_solid=None, nuclear_solid_target=None, cytoplasm_fluid=None,
+    #                cytoplasm_solid=None, cytoplasm_solid_target=None,
+    #                target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
+    #                fluid_change_rate=None, relative_rupture_volume=None,
+    #                user_phase_time_step=None, user_phase_time_step_args=(None,))
+    #
+    # # print(test_ki67p.index)
+    # for _ in range(1000):
+    #     # print(phase.name, phase.time_step_phase(), phase.volume.total)
+    #     # print(qui.name, qui.time_step_phase(), qui.volume.total)
+    #     # print(ki67n.name, ki67n.time_step_phase(), ki67n.volume.total)
+    #     # print(test_ki67p.name, test_ki67p.time_step_phase(), test_ki67p.volume.total)
+    #     # print(ki67ppre.name, ki67ppre.time_step_phase(), ki67ppre.volume.total)
+    #     # print(ki67ppos.name, ki67ppos.time_step_phase(), ki67ppos.volume.total)
+    #     # print(g0g1.name, g0g1.time_step_phase(), g0g1.volume.total)
+    #     # print(s.name, s.time_step_phase(), s.volume.total)
+    #     # print(g2m.name, g2m.time_step_phase(), g2m.volume.total)
+    #     # print(ap.name, ap.time_step_phase(), ap.volume.total)
+    #     # print(necsw.name, necsw.time_step_phase(), necsw.volume.total)
+    #     # print(necLys.name, necLys.time_step_phase(), necLys.volume.total)
+    #     print(custom.name, custom.time_step_phase(), custom.volume.total)
