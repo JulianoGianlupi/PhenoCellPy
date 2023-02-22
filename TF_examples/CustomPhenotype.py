@@ -186,7 +186,7 @@ first_cell.cycle = custom_pheno
 
 global cells_cycles
 
-cells_cycles = {f"{first_cell.id}": custom_pheno}
+cells_cycles = {f"{first_cell.id}": custom_pheno.copy()}
 
 
 def step_cycle_and_divide(event):

@@ -96,7 +96,7 @@ first_cell.cycle = ki67_basic
 
 global cells_cycles
 
-cells_cycles = {f"{first_cell.id}": ki67_basic}
+cells_cycles = {f"{first_cell.id}": ki67_basic.copy()}
 
 
 def step_cycle_and_divide(event):
@@ -125,7 +125,7 @@ def step_cycle_and_divide(event):
             # divide and reasign attribs (is this step necessary?)
             child = p.split()
 
-            cells_cycles[f"{child.id}"] = ki67_basic
+            cells_cycles[f"{child.id}"] = ki67_basic.copy()
 
             child.mass = p.mass = cur_mass / 2
             child.radius = p.radius = get_radius_sphere((cur_mass / 2) / density)
