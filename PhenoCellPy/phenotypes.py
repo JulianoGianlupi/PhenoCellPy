@@ -1374,7 +1374,15 @@ if __name__ == "__main__":
     dt = 1
     print(cycle_names)
 
-    test = Ki67Basic()
+    test = Ki67Basic(dt=dt)
+    cells = [type('', (), {})() for _ in range(2)]
+    for c in cells:
+        c.p = test.copy()
+
+    for c in cells:
+        print(c.p)
+        [print(ph) for ph in c.p.phases]
+
 
     custom_p0 = Phases.Phase(index=0, previous_phase_index=-1, next_phase_index=1, dt=dt,
                              time_unit="min", space_unit="micrometer", name="custom_p0",
