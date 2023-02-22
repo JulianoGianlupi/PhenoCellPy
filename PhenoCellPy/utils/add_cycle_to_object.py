@@ -71,6 +71,6 @@ def add_phenotype_to_CC3D_cell(cell, phenotype: str or phenotypes.Phenotype, nam
         phenotype = phenotypes.get_phenotype_by_name(phenotype)
         phenotype = phenotype(name=name, dt=dt, time_unit=time_unit, phases=phases, senescent_phase=senescent_phase)
 
-    cell.dict["phenotype"] = phenotype
+    cell.dict["phenotype"] = phenotype.copy()
 
 
