@@ -88,7 +88,6 @@ def grow_phase_transition(*args):
     doubling_volume = 0.8 * args[1]
     time_phase = args[2]
     phase_duration = args[3]
-    # print("grow trans", volume, doubling_volume, time_phase, phase_duration)
     return volume >= doubling_volume and time_phase > phase_duration
 
 

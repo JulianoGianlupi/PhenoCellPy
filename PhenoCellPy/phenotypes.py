@@ -452,10 +452,18 @@ class Phenotype:
 
         self.time_in_phenotype += self.dt
 
-        go_next_phase, exit_phenotype = self.current_phase.time_step_phase()
+        go_next_phase, exit_phenotype, transition_to_index = self.current_phase.time_step_phase()
 
         if go_next_phase:
+            if transition_to_index is not None:
+                phase_idx = self.current_phase.index
+                old_next_phase_idx = self.current_phase.next_phase_index
+                self.current_phase.next_phase_index = transition_to_index
+            else:
+                phase_idx = None
             changed_phases, cell_removed, cell_divides = self.go_to_next_phase()
+            if phase_idx is not None:
+                self.phases[phase_idx].next_phase_index  = old_next_phase_idx
             return changed_phases, cell_removed, cell_divides
         elif exit_phenotype:
             self.go_to_senescence()

@@ -531,23 +531,29 @@ class Phase:
 
         self.update_volume()
 
+        transition_to_index = None
+
         if self.user_phase_time_step is not None:
             self.user_phase_time_step(*self.user_phase_time_step_args)
 
         if self.arrest_function is not None:
             exit_phenotype = self.arrest_function(*self.exit_function_args)
             go_to_next_phase_in_phenotype = False
-            return go_to_next_phase_in_phenotype, exit_phenotype
+            return go_to_next_phase_in_phenotype, exit_phenotype, transition_to_index
         else:
             exit_phenotype = False
 
         go_to_next_phase_in_phenotype = self.check_transition_to_next_phase_function(
             *self.check_transition_to_next_phase_function_args)
 
+        if hasattr(go_to_next_phase_in_phenotype, "len") and len(go_to_next_phase_in_phenotype) > 1:
+            transition_to_index = go_to_next_phase_in_phenotype[1]
+            go_to_next_phase_in_phenotype = go_to_next_phase_in_phenotype[0]
+
         if go_to_next_phase_in_phenotype and self.exit_function is not None:
             self.exit_function(*self.exit_function_args)
-            return go_to_next_phase_in_phenotype, exit_phenotype
-        return go_to_next_phase_in_phenotype, exit_phenotype
+            return go_to_next_phase_in_phenotype, exit_phenotype, transition_to_index
+        return go_to_next_phase_in_phenotype, exit_phenotype, transition_to_index
 
     def _double_target_volume(self, *none):
         """
@@ -1451,6 +1457,7 @@ if __name__ == '__main__':
     def double_target_volumes(self, *none):
         self.volume.nuclear_solid_target *= 2
         self.volume.cytoplasm_solid_target *= 2
+
 
     custom = Phase(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
                    time_unit="min", space_unit="micrometer", name="custom",
