@@ -1,6 +1,6 @@
 # PhenoCellPy
 
-**Publication coming soon**
+See more details at https://www.biorxiv.org/content/10.1101/2023.04.12.535625v2
 
 PhenoCellPy is an open-source python package that defines methods for modeling changes of cell behaviors. 
 It also has pre-defined sequences of behaviors.
