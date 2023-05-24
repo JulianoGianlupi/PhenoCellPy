@@ -620,9 +620,25 @@ class SimpleLiveCycle(Phenotype):
     cell should divide.
     """
 
-    def __init__(self, time_unit: str = "min", space_unit="micrometer", name: str = "Simple Live", dt=1,
+    def __init__(self, name="Simple Live", dt=0.1, time_unit="min", space_unit="micrometer", senescent_phase=False,
+                 division_at_phase_exits=(True,), removal_at_phase_exits=(False,),
+                 fixed_durations=(False,), phase_durations: list = (60 / 0.0432,),
+                 entry_functions=(None,), entry_functions_args=(None,), exit_functions=(None,),
+                 exit_functions_args=(None, ), arrest_functions=(None, ), arrest_functions_args=(None, ),
+                 check_transition_to_next_phase_functions=(None,),
+                 check_transition_to_next_phase_functions_args: list = (None,),
+                 simulated_cell_volume=None, cytoplasm_volume_change_rate=(None,),
+                 nuclear_volume_change_rate=(None, ), calcification_rate=(None,), calcified_fraction=(0,),
+                 target_fluid_fraction=(None, ), nuclear_fluid=(None, ), nuclear_solid=(None, ),
+                 nuclear_solid_target=(None, ), cytoplasm_fluid=(None,), cytoplasm_solid=(None,),
+                 cytoplasm_solid_target=(None, ), target_cytoplasm_to_nuclear_ratio=(None, ),
+                 fluid_change_rate=(None, ),
                  user_phenotype_time_step=None, user_phenotype_time_step_args=None, user_phases_time_step=None,
-                 user_phases_time_step_args=None, phases_duration=60 / 0.0432, fixed_durations=[None]):
+                 user_phases_time_step_args=None):
+    # def __init__(self, time_unit: str = "min", space_unit="micrometer", name: str = "Simple Live", dt=1,
+    #              user_phenotype_time_step=None, user_phenotype_time_step_args=None, user_phases_time_step=None,
+    #              user_phases_time_step_args=None, phase_durations=[60 / 0.0432], fixed_durations=[None],
+    #              cytoplasm_volume_change_rate=(None,)):
         if user_phases_time_step is None:
             user_phases_time_step = [None]
             user_phases_time_step_args = [None]
@@ -630,9 +646,25 @@ class SimpleLiveCycle(Phenotype):
         phases = [
             Phases.Phase(index=0, previous_phase_index=0, next_phase_index=0, dt=dt, time_unit=time_unit,
                          space_unit=space_unit, name="alive",
-                         division_at_phase_exit=True, phase_duration=phases_duration,
+                         division_at_phase_exit=division_at_phase_exits[0], phase_duration=phase_durations[0],
                          user_phase_time_step=user_phases_time_step[0],
-                         user_phase_time_step_args=user_phases_time_step_args[0], fixed_duration=fixed_durations[0])]
+                         user_phase_time_step_args=user_phases_time_step_args[0], fixed_duration=fixed_durations[0],
+                         cytoplasm_volume_change_rate=cytoplasm_volume_change_rate[0],
+                         removal_at_phase_exit=removal_at_phase_exits, entry_function=entry_functions[0],
+                         entry_function_args=entry_functions_args[0], exit_function=exit_functions[0],
+                         exit_function_args=exit_functions_args[0], arrest_function=arrest_functions[0],
+                         arrest_function_args=arrest_functions_args[0],
+                         check_transition_to_next_phase_function=check_transition_to_next_phase_functions[0],
+                         check_transition_to_next_phase_function_args=check_transition_to_next_phase_functions_args[0],
+                         simulated_cell_volume=simulated_cell_volume,
+                         nuclear_volume_change_rate=nuclear_volume_change_rate[0],
+                         calcification_rate=calcification_rate[0],
+                         calcified_fraction=calcified_fraction[0], target_fluid_fraction=target_fluid_fraction[0],
+                         nuclear_fluid=nuclear_fluid[0], nuclear_solid=nuclear_solid[0],
+                         nuclear_solid_target=nuclear_solid_target[0], cytoplasm_fluid=cytoplasm_fluid[0],
+                         cytoplasm_solid=cytoplasm_solid[0], cytoplasm_solid_target=cytoplasm_solid_target[0],
+                         target_cytoplasm_to_nuclear_ratio=target_cytoplasm_to_nuclear_ratio[0],
+                         fluid_change_rate=fluid_change_rate[0])]
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
                          senescent_phase=False, user_phenotype_time_step=user_phenotype_time_step,
                          user_phenotype_time_step_args=user_phenotype_time_step_args)
