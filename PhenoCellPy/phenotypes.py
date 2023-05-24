@@ -463,7 +463,7 @@ class Phenotype:
                 phase_idx = None
             changed_phases, cell_removed, cell_divides = self.go_to_next_phase()
             if phase_idx is not None:
-                self.phases[phase_idx].next_phase_index  = old_next_phase_idx
+                self.phases[phase_idx].next_phase_index = old_next_phase_idx
             return changed_phases, cell_removed, cell_divides
         elif exit_phenotype:
             self.go_to_senescence()
@@ -622,7 +622,7 @@ class SimpleLiveCycle(Phenotype):
 
     def __init__(self, time_unit: str = "min", space_unit="micrometer", name: str = "Simple Live", dt=1,
                  user_phenotype_time_step=None, user_phenotype_time_step_args=None, user_phases_time_step=None,
-                 user_phases_time_step_args=None, phases_duration=60 / 0.0432):
+                 user_phases_time_step_args=None, phases_duration=60 / 0.0432, fixed_durations=[None]):
         if user_phases_time_step is None:
             user_phases_time_step = [None]
             user_phases_time_step_args = [None]
@@ -632,7 +632,7 @@ class SimpleLiveCycle(Phenotype):
                          space_unit=space_unit, name="alive",
                          division_at_phase_exit=True, phase_duration=phases_duration,
                          user_phase_time_step=user_phases_time_step[0],
-                         user_phase_time_step_args=user_phases_time_step_args[0])]
+                         user_phase_time_step_args=user_phases_time_step_args[0], fixed_duration=fixed_durations[0])]
         super().__init__(name=name, dt=dt, time_unit=time_unit, space_unit=space_unit, phases=phases,
                          senescent_phase=False, user_phenotype_time_step=user_phenotype_time_step,
                          user_phenotype_time_step_args=user_phenotype_time_step_args)
@@ -1391,7 +1391,6 @@ if __name__ == "__main__":
         print(c.p)
         [print(ph) for ph in c.p.phases]
 
-
     custom_p0 = Phases.Phase(index=0, previous_phase_index=-1, next_phase_index=1, dt=dt,
                              time_unit="min", space_unit="micrometer", name="custom_p0",
                              division_at_phase_exit=False, removal_at_phase_exit=False, fixed_duration=True,
@@ -1410,7 +1409,7 @@ if __name__ == "__main__":
 
     def grow_phase_transition(*args):
         volume = args[0]
-        doubling_volume = 0.9*args[1]
+        doubling_volume = 0.9 * args[1]
         time_phase = args[2]
         phase_duration = args[3]
         return volume >= doubling_volume and time_phase > phase_duration
@@ -1432,7 +1431,6 @@ if __name__ == "__main__":
                                     target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None,
                                     fluid_change_rate=None, relative_rupture_volume=None,
                                     user_phase_time_step=None, user_phase_time_step_args=(None,))
-
 
     stable_phase_1 = Phases.Phase(index=2, previous_phase_index=1, next_phase_index=3, dt=dt,
                                   time_unit="min", space_unit="micrometer", name="stable1",
