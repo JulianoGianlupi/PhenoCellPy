@@ -1080,10 +1080,8 @@ class G2M(Phase):
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
                  relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
-        if entry_function is None:
-            entry_function = self._double_target_volume
-            entry_function_args = [None]
-        elif type(entry_function_args) != list and type(entry_function_args) != tuple:
+
+        if entry_function is not None and type(entry_function_args) != list and type(entry_function_args) != tuple:
             raise TypeError("'entry_function' was defined but no valid value for 'entry_function_args' was given. "
                             "Expected "
                             f"list or tuple got {type(entry_function_args)}")
