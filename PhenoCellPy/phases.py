@@ -500,7 +500,7 @@ class Phase:
         # the approximation 1-exp(-x) ~ x can be used. That approximation has a difference of 0.005 at x=0.1, which I'd
         # find acceptable. TODO: implement a check on self.dt / self.phase_duration, if it is < .1 use the approximation
 
-        prob = 1 - exp(-self.dt / self.phase_duration)
+        prob = float(1 - exp(-self.dt / self.phase_duration))
         return uniform() < prob
 
     def _check_transition_to_next_phase_deterministic(self, *none):
@@ -577,7 +577,7 @@ class Phase:
         :return: No return
         """
         self.volume.cytoplasm_solid_target /= 2
-        self.volume.nuclear_solid_target /= 2
+        self.volume.nuclear_solid_target /= 2 # 540
 
     def copy(self):
         return deepcopy(self)
