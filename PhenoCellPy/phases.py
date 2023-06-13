@@ -500,7 +500,7 @@ class Phase:
         # the approximation 1-exp(-x) ~ x can be used. That approximation has a difference of 0.005 at x=0.1, which I'd
         # find acceptable. TODO: implement a check on self.dt / self.phase_duration, if it is < .1 use the approximation
 
-        prob = 1 - exp(-self.dt / self.phase_duration)
+        prob = float(1 - exp(-self.dt / self.phase_duration))
         return uniform() < prob
 
     def _check_transition_to_next_phase_deterministic(self, *none):
@@ -577,7 +577,7 @@ class Phase:
         :return: No return
         """
         self.volume.cytoplasm_solid_target /= 2
-        self.volume.nuclear_solid_target /= 2
+        self.volume.nuclear_solid_target /= 2 # 540
 
     def copy(self):
         return deepcopy(self)
@@ -1080,10 +1080,8 @@ class G2M(Phase):
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
                  relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
-        if entry_function is None:
-            entry_function = self._double_target_volume
-            entry_function_args = [None]
-        elif type(entry_function_args) != list and type(entry_function_args) != tuple:
+
+        if entry_function is not None and type(entry_function_args) != list and type(entry_function_args) != tuple:
             raise TypeError("'entry_function' was defined but no valid value for 'entry_function_args' was given. "
                             "Expected "
                             f"list or tuple got {type(entry_function_args)}")
