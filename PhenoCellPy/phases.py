@@ -500,7 +500,7 @@ class Phase:
         # the approximation 1-exp(-x) ~ x can be used. That approximation has a difference of 0.005 at x=0.1, which I'd
         # find acceptable. TODO: implement a check on self.dt / self.phase_duration, if it is < .1 use the approximation
 
-        prob = 1 - exp(-self.dt / self.phase_duration)
+        prob = float(1 - exp(-self.dt / self.phase_duration))
         return uniform() < prob
 
     def _check_transition_to_next_phase_deterministic(self, *none):
@@ -531,23 +531,29 @@ class Phase:
 
         self.update_volume()
 
+        transition_to_index = None
+
         if self.user_phase_time_step is not None:
             self.user_phase_time_step(*self.user_phase_time_step_args)
 
         if self.arrest_function is not None:
             exit_phenotype = self.arrest_function(*self.exit_function_args)
             go_to_next_phase_in_phenotype = False
-            return go_to_next_phase_in_phenotype, exit_phenotype
+            return go_to_next_phase_in_phenotype, exit_phenotype, transition_to_index
         else:
             exit_phenotype = False
 
         go_to_next_phase_in_phenotype = self.check_transition_to_next_phase_function(
             *self.check_transition_to_next_phase_function_args)
 
+        if hasattr(go_to_next_phase_in_phenotype, "len") and len(go_to_next_phase_in_phenotype) > 1:
+            transition_to_index = go_to_next_phase_in_phenotype[1]
+            go_to_next_phase_in_phenotype = go_to_next_phase_in_phenotype[0]
+
         if go_to_next_phase_in_phenotype and self.exit_function is not None:
             self.exit_function(*self.exit_function_args)
-            return go_to_next_phase_in_phenotype, exit_phenotype
-        return go_to_next_phase_in_phenotype, exit_phenotype
+            return go_to_next_phase_in_phenotype, exit_phenotype, transition_to_index
+        return go_to_next_phase_in_phenotype, exit_phenotype, transition_to_index
 
     def _double_target_volume(self, *none):
         """
@@ -571,7 +577,7 @@ class Phase:
         :return: No return
         """
         self.volume.cytoplasm_solid_target /= 2
-        self.volume.nuclear_solid_target /= 2
+        self.volume.nuclear_solid_target /= 2 # 540
 
     def copy(self):
         return deepcopy(self)
@@ -1074,10 +1080,8 @@ class G2M(Phase):
                  cytoplasm_fluid=None, cytoplasm_solid=None, cytoplasm_solid_target=None,
                  target_cytoplasm_to_nuclear_ratio=None, calcified_fraction=None, fluid_change_rate=None,
                  relative_rupture_volume=None, user_phase_time_step=None, user_phase_time_step_args=None):
-        if entry_function is None:
-            entry_function = self._double_target_volume
-            entry_function_args = [None]
-        elif type(entry_function_args) != list and type(entry_function_args) != tuple:
+
+        if entry_function is not None and type(entry_function_args) != list and type(entry_function_args) != tuple:
             raise TypeError("'entry_function' was defined but no valid value for 'entry_function_args' was given. "
                             "Expected "
                             f"list or tuple got {type(entry_function_args)}")
@@ -1451,6 +1455,7 @@ if __name__ == '__main__':
     def double_target_volumes(self, *none):
         self.volume.nuclear_solid_target *= 2
         self.volume.cytoplasm_solid_target *= 2
+
 
     custom = Phase(index=1, previous_phase_index=0, next_phase_index=2, dt=dt,
                    time_unit="min", space_unit="micrometer", name="custom",
