@@ -32,14 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from cc3d.core.PySteppables import *
 
-import sys
 
 from numpy import random as rng
 
-# sys.path.extend([abspath("../../..")])  # todo: make this more refined
-
-# sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
-sys.path.extend(['C:\\github\\PhenoCellPy', 'C:/github/PhenoCellPy'])
 
 import PhenoCellPy as pcp
 
@@ -55,7 +50,7 @@ class ApoptosysSteppable(SteppableBasePy):
         """
 
         self.side = 8  # cell side
-        self.dt = .1  # min/MCS
+        self.dt = 10  # min/MCS
 
         self.to_apoptose = 5
 
