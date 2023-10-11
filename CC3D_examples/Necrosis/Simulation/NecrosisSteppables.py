@@ -32,15 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from cc3d.core.PySteppables import *
 
-import sys
-
 from numpy import random as rng
-
-# sys.path.extend([abspath("../../..")])  # todo: make this more refined
-
-# sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
-# sys.path.extend(['C:\\github\\PhenoCellPy', 'C:/github/PhenoCellPy'])
-sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
 
 import PhenoCellPy as pcp
 
@@ -51,6 +43,8 @@ class NecrosisSteppable(SteppableBasePy):
 
         SteppableBasePy.__init__(self, frequency)
 
+        self.plot = True
+
     def start(self):
         """
         Called before MCS=0 while building the initial simulation
@@ -59,7 +53,7 @@ class NecrosisSteppable(SteppableBasePy):
         self.side = 8  # cell side
         self.dt = .1  # min/MCS
 
-        self.to_necrose = 15  # how many cells we will necrose
+        self.to_necrose = 10  # how many cells we will necrose
         self.target_volume = self.side * self.side
 
         self.necrotic_phenotype = pcp.phenotypes.NecrosisStandard(dt=self.dt)
@@ -69,6 +63,19 @@ class NecrosisSteppable(SteppableBasePy):
             cell.targetVolume = self.target_volume
             cell.lambdaVolume = 8
 
+        if self.plot:
+            self.plot_win_vol = self.add_new_plot_window(title="Necrotic cells volume",
+                                                         x_axis_title="MonteCarlo Step",
+                                                         y_axis_title="Volume",
+                                                         x_scale_type="linear",
+                                                         y_scale_type="linear",
+                                                         grid=True,
+                                                         config_options={"legend": True})
+
+            colors = ["red", "green", "blue", "yellow", "magenta",
+                      "cyan", "gray", "orange", "purple", "olive"]
+            for i in range(self.to_necrose):
+                self.plot_win_vol.add_plot(f"{i}", style="Dots", color=colors[i], size=5)
 
     def step(self, mcs):
         """
@@ -86,11 +93,12 @@ class NecrosisSteppable(SteppableBasePy):
                 pcp.utils.add_phenotype_to_CC3D_cell(cell, self.necrotic_phenotype)
 
         if mcs > 50:
-            for cid in self.selected_cell_ids:
+            for i, cid in enumerate(self.selected_cell_ids):
                 cell = self.fetch_cell_by_id(int(cid))
-                print(cell.volume)
+                # print(cell.volume)
                 if cell is not None:  # if the cell has died (disappeared, deleted from the simulation) cell is a null
                     # object
+                    self.plot_win_vol.add_data_point(f"{i}", mcs, cell.volume)
                     changed_phase, should_be_removed, divides = cell.dict["phenotype"].time_step_phenotype()
                     cell.targetVolume = self.volume_conversion_unit * \
                                         cell.dict["phenotype"].current_phase.volume.total
@@ -100,7 +108,7 @@ class NecrosisSteppable(SteppableBasePy):
                             (changed_phase or cell.dict["phenotype"].current_phase.name == "Necrotic (lysed)"):
                         print("CELL BURST!")
                         # if cell.dict["phenotype"].current_phase.name == "Necrotic (lysed)":
-                            # if the cell has ruptured
+                        # if the cell has ruptured
                         cell.type = self.RUPTURED
                         cell.lambdaVolume = 50
                     if should_be_removed:
