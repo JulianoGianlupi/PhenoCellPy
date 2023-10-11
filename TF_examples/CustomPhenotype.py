@@ -33,11 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import tissue_forge as tf
 import numpy as np
 
-import sys
 from os.path import abspath
 import time
-
-sys.path.extend([abspath("../")])  # todo: make this more refined
 
 import PhenoCellPy as pcp
 
