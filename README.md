@@ -1,6 +1,6 @@
 # PhenoCellPy
 
-**Publication coming soon**
+**See [publication](https://doi.org/10.1101/2023.04.12.535625) for more information**
 
 PhenoCellPy is an open-source python package that defines methods for modeling changes of cell behaviors. 
 It also has pre-defined sequences of behaviors.
@@ -43,11 +43,26 @@ PhenoCellPy only requirements are
 
 ## Installation
 
-PhenoCellPy's _alpha_ version does not have any installer. To use it you should clone or download its GitHub 
-repository and add its folder to the simulation's system path. E.g., 
+PhenoCellPy's v0.0.9-alpha and above are packaged through `pip`. You can install it using
 
+```commandline
+pip install phenocellpy==0.0.9a0
 ```
-import sys
-sys.path.extend(['C:\\PhenoCellPy_Dowload_Folder', 
-                'C:/PhenoCellPy_Dowload_Folder'])
+
+The project can be found in [PyPi](https://pypi.org/project/phenocellpy/0.0.9a0/)
+
+Conda distribution coming soon
+
+
+## Importing PhenoCellPy
+
+PhenoCellPy can be included in your project by
+
+```python
+import PhenoCellPy as pcp
 ```
+
+# How to cite:
+Gianlupi, J. F., Sego, T. J., Sluka, J. P., & Glazier, J. A. (2023). PhenoCellPy: A Python package for biological cell 
+behavior modeling. bioRxiv, 2023-04.
+

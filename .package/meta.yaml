@@ -1,6 +1,7 @@
 package:
   name: phenocellpy
-  version: 0.0.9.alpha
+  version: 0.0.9a0
+
 
 about:
   home: https://github.com/JulianoGianlupi/PhenoCellPy
@@ -26,5 +27,5 @@ requirements:
     - pip
   run:
     - python
-    - numpy >=1.20
-    - scipy >=1.6
+    - numpy
+    - scipy
