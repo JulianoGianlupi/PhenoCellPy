@@ -37,12 +37,8 @@ from cc3d.core.PySteppables import *
 
 from numpy import median, quantile, nan
 
-import sys
 from os.path import abspath, dirname, join
 
-# sys.path.extend([abspath("../../..")])  # todo: make this more refined
-
-sys.path.extend(['D:\\modeling\\PhenoCellPy', 'D:/modeling/PhenoCellPy'])
 import PhenoCellPy as pcp
 
 
@@ -99,7 +95,7 @@ class MitosisSteppable(MitosisSteppableBase):
 
         self.previous_number_cells = 0
 
-        self.plot = True
+        self.plot = False
         self.save = False
 
         if self.save:

@@ -33,11 +33,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import tissue_forge as tf
 import numpy as np
 
-import sys
+import matplotlib.pyplot as plt
+
 from os.path import abspath
 import time
 
-sys.path.extend([abspath("../")])  # todo: make this more refined
 
 import PhenoCellPy as pcp
 
@@ -99,7 +99,36 @@ global cells_cycles
 cells_cycles = {f"{first_cell.id}": ki67_basic.copy()}
 
 
+fig, axs = plt.subplots(ncols=2)
+# plt.show()
+
+global time
+time = []
+
+global pop
+pop = []
+
+global median_volumes
+median_volumes = []
+
+global min_volumes
+min_volumes = []
+
+global max_volumes
+max_volumes = []
+
 def step_cycle_and_divide(event):
+
+    # axs[0].scatter(tf.Universe.time, len(Cell.items()), c="b")
+    # fig.show()
+    # print(tf.Universe.time, len(Cell.items()))
+
+    stats = False
+    if not tf.Universe.time % 1:
+        print(tf.Universe.time, tf.Universe.time*dt/tf.Universe.dt/60)
+        stats = True
+
+    vols = []
     for p in Cell.items():
         pcycle = cells_cycles[f"{p.id}"]
         pcycle.current_phase.simulated_cell_volume = p.mass * density
@@ -115,10 +144,13 @@ def step_cycle_and_divide(event):
         # if p.radius < radius:
         p.radius = radius
         p.mass = ((4 / 3) * np.pi * radius * radius * radius) * density
+        if stats:
+            vols.append(p.mass)
 
         # if division occurs, divide
         if division:
-            print("@@@\nDIVISION\n@@@")
+            if len(Cell.items()) < 10:
+                print("@@@\nDIVISION\n@@@")
             # save cell attribs to halve later
             cur_mass = p.mass
 
@@ -133,10 +165,19 @@ def step_cycle_and_divide(event):
             cells_cycles[f"{child.id}"].volume = child.mass * density
             cells_cycles[f"{child.id}"].simulated_cell_volume = child.mass * density
 
+    if stats:
+        time.append(tf.Universe.time*dt/tf.Universe.dt/60)#/24)
+        pop.append(len(Cell.items()))
     return 0
 
 
 tf.event.on_time(invoke_method=step_cycle_and_divide, period=.9*tf.Universe.dt)
 
 # run the simulator interactive
-tf.run()
+tf.run(10)
+
+axs[0].scatter(time, pop)
+axs[0].set_xlabel("Time (days)")
+axs[0].set_ylabel("Population")
+
+plt.show()

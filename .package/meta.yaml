@@ -1,0 +1,31 @@
+package:
+  name: phenocellpy
+  version: 0.0.9a0
+
+
+about:
+  home: https://github.com/JulianoGianlupi/PhenoCellPy
+  license: BSD 3-Clause License
+  license_file: ../LICENSE
+
+extra:
+  maintainer: Juliano Ferrari Gianlupi
+  publication: https://doi.org/10.1101/2023.04.12.535625
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  script: "{{ PYTHON }} -m pip install .package --no-deps -vv" #"{{ PYTHON }} -m pip install . -vv"
+#    - mkdir -p $PREFIX/lib/python{{ python }}/site-packages/PhenoCellPy/
+#    - cp -r * $PREFIX/lib/python{{ python }}/site-packages/PhenoCellPy/
+
+requirements:
+  host:
+    - python
+    - pip
+  run:
+    - python
+    - numpy
+    - scipy
