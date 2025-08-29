@@ -102,6 +102,9 @@ class ConstraintInitializerSteppable(SteppableBasePy):
                         created_cells.add((x, y))
 
         ki67_advanced_modified_transition = pcp.phenotypes.Ki67Advanced(dt=dt,
+                                                        nuclear_volume_change_rate=[None, 0.0055, None],
+                                                        cytoplasm_volume_change_rate=[None, 0.0045, None],
+                                                        fluid_change_rate=[None, 0.05, None],
                                                         phase_durations=[74.35 * 60, 13 * 60, 2.5 * 60],
                                                         check_transition_to_next_phase_functions=
                                                         [None, Ki67pos_transition, None],
@@ -430,6 +433,8 @@ class MitosisSteppable(MitosisSteppableBase):
 
     def update_attributes(self):
         # resetting target volume
+        self.parent_cell.dict["phenotype"].current_phase.volume.nuclear_solid = self.parent_cell.dict["phenotype"].current_phase.volume.nuclear_solid / 2
+        self.parent_cell.dict["phenotype"].current_phase.volume.cytoplasm_solid = self.parent_cell.dict["phenotype"].current_phase.volume.cytoplasm_solid / 2
         converted_volume = self.constraint_vars.volume_conversion_unit * \
                            self.parent_cell.dict["phenotype"].current_phase.volume.total
         self.parent_cell.targetVolume = converted_volume
@@ -528,4 +533,3 @@ class ApoptosisSteppable(SteppableBasePy):
     def on_stop(self):
         # this gets called each time user stops simulation
         return
-    
