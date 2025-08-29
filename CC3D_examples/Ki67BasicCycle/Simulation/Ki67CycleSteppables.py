@@ -86,7 +86,7 @@ class MitosisSteppable(MitosisSteppableBase):
 
         self.previous_number_cells = 0
 
-        self.plot = False
+        self.plot = True
 
         self.save = False
 

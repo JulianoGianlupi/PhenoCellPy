@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       
       <!-- Basic properties of CPM (GGH) algorithm -->
       <Dimensions x="1024" y="1024" z="1"/>
-      <Steps>100000</Steps>
+      <Steps>4000</Steps>
       <Temperature>10.0</Temperature>
       <NeighborOrder>1</NeighborOrder>
    </Potts>
