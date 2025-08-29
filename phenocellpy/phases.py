@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 from numpy import exp
+from numpy import log
 from numpy.random import uniform
 
 from phenocellpy.cell_volume import CellVolumes
@@ -855,7 +856,9 @@ class Ki67Positive(Phase):
         check_transition_to_next_phase_function_args: list = None,
         simulated_cell_volume: float = None,
         cytoplasm_volume_change_rate=None,
+        cytoplasm_doubling_duration=None,
         nuclear_volume_change_rate=None,
+        nuclear_doubling_duration=None,
         calcification_rate=None,
         target_fluid_fraction=None,
         nuclear_fluid=None,
@@ -870,7 +873,7 @@ class Ki67Positive(Phase):
         relative_rupture_volume=None,
         user_phase_time_step=None,
         user_phase_time_step_args=None
-    ):
+    ):  #TODO, create entries such that the new args are in the base phase class
 
         if entry_function is None:
             entry_function = self._double_target_volume
@@ -896,42 +899,38 @@ class Ki67Positive(Phase):
                 "Expected "
                 f"list or tuple got {type(exit_function_args)}"
             )
-        if cytoplasm_volume_change_rate is None and cytoplasm_fluid is not None and cytoplasm_solid is not None:
-            cytoplasm_volume_change_rate = (cytoplasm_fluid + cytoplasm_solid) / (phase_duration / dt)
 
-        elif cytoplasm_volume_change_rate is None and cytoplasm_fluid is not None:
-            cytoplasm_volume_change_rate = cytoplasm_fluid / (phase_duration / dt)
-
-        elif cytoplasm_volume_change_rate is None and cytoplasm_solid is not None:
-            cytoplasm_volume_change_rate = cytoplasm_solid / (phase_duration / dt)
-
+        if cytoplasm_volume_change_rate is None and cytoplasm_doubling_duration is not None:  #propose adding an argument to allow different phase times that diverge from the total phase time. Do we want to build in safeties, i.e cytoplasm_doubling_duration>phasetime?
+            cytoplasm_volume_change_rate = -np.log(0.05) / cytoplasm_doubling_duration
         elif cytoplasm_volume_change_rate is None:
-            cytoplasm_volume_change_rate = 1
+            cytoplasm_volume_change_rate = 0.27 / 60.0  # default to physicell rates
         else:
             cytoplasm_volume_change_rate = cytoplasm_volume_change_rate
 
-        if nuclear_volume_change_rate is None and cytoplasm_fluid is not None and cytoplasm_solid is not None:
-            nuclear_volume_change_rate = (nuclear_fluid + nuclear_solid) / (phase_duration / dt)
-
-        elif nuclear_volume_change_rate is None and cytoplasm_fluid is not None:
-            nuclear_volume_change_rate = nuclear_fluid / (phase_duration / dt)
-
-        elif nuclear_volume_change_rate is None and cytoplasm_solid is not None:
-            nuclear_volume_change_rate = nuclear_solid / (phase_duration / dt)
-
+        if nuclear_volume_change_rate is None and nuclear_doubling_duration is not None:  #propose adding an argument to allow different phase times that diverge from the total phase time. Do we want to build in safeties, i.e cytoplasm_doubling_duration>phasetime?
+            nuclear_volume_change_rate = -np.log(0.05) / nuclear_doubling_duration
         elif nuclear_volume_change_rate is None:
-            nuclear_volume_change_rate = 1
+            nuclear_volume_change_rate = 0.33 / 60.0
         else:
             nuclear_volume_change_rate = nuclear_volume_change_rate
 
-        if fluid_change_rate is None and cytoplasm_fluid is not None and nuclear_fluid is not None:
-            fluid_change_rate = (cytoplasm_fluid + nuclear_fluid) / (phase_duration / dt)
-        elif fluid_change_rate is None and cytoplasm_fluid is not None:
-            fluid_change_rate = cytoplasm_fluid / (phase_duration / dt)
-        elif fluid_change_rate is None and nuclear_fluid is not None:
-            fluid_change_rate = nuclear_fluid / (phase_duration / dt)
+        if fluid_change_rate is None and cytoplasm_doubling_duration is not None and nuclear_doubling_duration is not None:
+            if cytoplasm_doubling_duration < nuclear_doubling_duration:  #with custom rates we follow the assumption that the fluid intake rate is an order of magnitude faster then the fastest of the two rates
+                fluid_change_rate = -np.log(0.05) / (cytoplasm_doubling_duration / 10)
+            else:
+                fluid_change_rate = -np.log(0.05) / (nuclear_doubling_duration / 10)
+        elif fluid_change_rate is None and cytoplasm_doubling_duration is not None:
+            fluid_change_rate = -np.log(0.05) / (
+                cytoplasm_doubling_duration / 10
+            )  #with custom rates we follow the assumption that the fluid intake rate is an order of magnitude faster
+        elif fluid_change_rate is None and nuclear_doubling_duration is not None:
+            fluid_change_rate = -np.log(0.05) / (
+                cytoplasm_doubling_duration / 10
+            )  #with custom rates we follow the assumption that the fluid intake rate is an order of magnitude faster
+        elif fluid_change_rate is None:
+            fluid_change_rate = 3.0 / 60.0  # default to physicell rates
         else:
-            fluid_change_rate = 1
+            fluid_change_rate = fluid_change_rate  #why did we previously not allow use defined fluid rate?
 
         super().__init__(
             index=index,
@@ -955,7 +954,9 @@ class Ki67Positive(Phase):
             check_transition_to_next_phase_function_args=check_transition_to_next_phase_function_args,
             simulated_cell_volume=simulated_cell_volume,
             cytoplasm_volume_change_rate=cytoplasm_volume_change_rate,
+            cytoplasm_doubling_duration=cytoplasm_doubling_duration,
             nuclear_volume_change_rate=nuclear_volume_change_rate,
+            nuclear_doubling_duration=nuclear_doubling_duration,
             calcification_rate=calcification_rate,
             target_fluid_fraction=target_fluid_fraction,
             nuclear_fluid=nuclear_fluid,
